@@ -100,14 +100,24 @@ tr:hover td{background:#f9fafb}
 .figure svg{display:block;width:100%;height:auto;max-width:820px;margin:0 auto}
 .figure figcaption{margin-top:10px;font-size:12px;color:var(--text-muted);text-align:center;line-height:1.5}
 code.inline{font-family:var(--font-mono);font-size:.9em;background:var(--accent-light);color:var(--gopas-blue);padding:1px 5px;border-radius:3px}
-[data-view="orig"]{display:none}
-html.mode-orig [data-view="orig"]{display:revert}
-html.mode-orig [data-view="custom"]{display:none}
+/* Vychozi pohled = originalni osnova MOC. Vlastni tridenni osnovu zapina trida
+   mode-custom na <html> (MODE_BOOT v build.py + initViewSwitch). Bez JS => originalni osnova. */
+/* Skryva se vzdy jen pres display:none. Nikdy display:revert - vracel by hodnotu
+   z UA stylu, ne autorskou, a diky vyssi specificite by prebil napr. .callout{display:flex}. */
+html:not(.mode-custom) [data-view="custom"]{display:none}
+html.mode-custom [data-view="orig"]{display:none}
+/* prepinac jazyka v top-nav (kapitoly); vlajky jsou inline SVG - zadny externi request */
+.lang-switch{display:flex;align-items:center;gap:2px;padding:2px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:999px;flex-shrink:0}
+.nav-links .lang-switch>*{display:flex;align-items:center;gap:5px;padding:3px 9px;border:none;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.5px;color:rgba(255,255,255,.6);text-decoration:none}
+.nav-links .lang-switch a:hover{background:rgba(255,255,255,.14);color:#fff}
+.nav-links .lang-switch>.current{background:#fff;color:var(--gopas-blue)}
+.lang-switch svg{display:block;width:18px;height:12px;border-radius:2px;flex-shrink:0}
+@media(max-width:700px){.lang-switch .lang-lbl{display:none}.nav-links .lang-switch>*{padding:4px 7px}}
 .learn-more{display:flex;gap:8px;align-items:baseline;margin:14px 0 0;padding:9px 13px;background:#f8fafc;border:1px solid var(--border);border-left:3px solid var(--gopas-blue);border-radius:6px;font-size:13px;color:var(--text-muted)}
 .learn-more .lm-label{flex-shrink:0;font-weight:600;color:var(--gopas-blue)}
 .learn-more a{color:var(--gopas-blue);text-decoration:none;border-bottom:1px solid rgba(26,58,107,.3)}
 .learn-more a:hover{border-bottom-color:var(--gopas-blue)}</style>
-<script>try{if(localStorage.getItem("dp750-view")==="orig")document.documentElement.className="mode-orig"}catch(e){}</script>
+
 </head>
 <body>
 <div id="chapOverlay" class="chapter-menu-overlay"></div>
@@ -125,16 +135,16 @@ html.mode-orig [data-view="custom"]{display:none}
   <div class="chapter-group">
     <div class="chapter-group-title">MOC — pokračování</div>
     <a class="chapter-link" href="dp750_08_transformace.html">8. Čištění a transformace dat</a>
-    <a class="chapter-link" href="dp750_09_data_quality.html" title="Mimo osnovu zkráceného kurzu">9. Data quality constraints<span data-view="custom" style="opacity:.55;font-size:11px"> · mimo osnovu</span></a>
+    <a class="chapter-link" href="dp750_09_data_quality.html">9. Data quality constraints</a>
     <a class="chapter-link" href="dp750_10_pipelines.html">10. Datové pipelines</a>
     <a class="chapter-link" href="dp750_11_lakeflow_jobs.html">11. Lakeflow Jobs</a>
-    <a class="chapter-link" href="dp750_12_dev_lifecycle.html" title="Mimo osnovu zkráceného kurzu">12. Vývojový lifecycle<span data-view="custom" style="opacity:.55;font-size:11px"> · mimo osnovu</span></a>
+    <a class="chapter-link" href="dp750_12_dev_lifecycle.html">12. Vývojový lifecycle</a>
     <a class="chapter-link" href="dp750_13_monitoring.html">13. Monitoring a optimalizace</a>
     <div data-view="orig" style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1)">
       <a class="chapter-link" href="index.html" style="color:rgba(255,255,255,.5)">🏠 Rozcestník kurzu</a>
     </div>
   </div>
-  <div class="chapter-group" data-view="custom">
+  <div class="chapter-group">
     <div class="chapter-group-title">Pod čarou — den 3</div>
     <a class="chapter-link" href="dp750_14_fabric_prehled.html">14. Průřez Microsoft Fabric</a>
     <a class="chapter-link" href="dp750_15_pbi_fabric_databricks.html">15. Power BI + Fabric + Databricks</a>
@@ -151,7 +161,7 @@ html.mode-orig [data-view="custom"]{display:none}
     <span class="chapter-title-nav">Datové modelování v Unity Catalogu</span>
   </div>
   <div class="nav-links">
-    <button id="chapBtn" class="chapter-menu-btn">☰ Kapitoly</button><a href="index.html" class="home" title="Rozcestník">🏠</a>
+    <div class="lang-switch" role="group" aria-label="Jazyk / Language"><span class="current" aria-current="true"><svg viewBox="0 0 30 20" aria-hidden="true" focusable="false"><rect width="30" height="10" fill="#fff"/><rect y="10" width="30" height="10" fill="#d7141a"/><path d="M0 0 15 10 0 20Z" fill="#11457e"/></svg><span class="lang-lbl">CS</span></span><a href="en/dp750_06_datove_modelovani.html" title="English version" hreflang="en"><svg viewBox="0 0 60 30" aria-hidden="true" focusable="false"><rect width="60" height="30" fill="#012169"/><path d="M0 0 60 30M60 0 0 30" stroke="#fff" stroke-width="6"/><path d="M0 0 60 30M60 0 0 30" stroke="#c8102e" stroke-width="2"/><path d="M30 0V30M0 15H60" stroke="#fff" stroke-width="10"/><path d="M30 0V30M0 15H60" stroke="#c8102e" stroke-width="6"/></svg><span class="lang-lbl">EN</span></a></div><button id="chapBtn" class="chapter-menu-btn">☰ Kapitoly</button><a href="index.html" class="home" title="Rozcestník">🏠</a>
     <a href="dp750_07_ingest.html" class="next">Ingest dat →</a>
   </div>
 </nav>
@@ -171,6 +181,7 @@ html.mode-orig [data-view="custom"]{display:none}
     <a href="#sec-managed-external" class="toc-item" data-section="sec-managed-external">Managed vs. external (unmanaged) tabulky</a>
     <a href="#sec-liquid-clustering" class="toc-item" data-section="sec-liquid-clustering">Liquid clustering vs. partitioning vs. Z-ORDER</a>
     <a href="#sec-lab" class="toc-item" data-section="sec-lab">Lab 6: Design and Implement a Data Model in Unity Catalog (45 minut)</a>
+    <a href="#sec-runbook" class="toc-item" data-section="sec-runbook">Runbook: ukázka krok za krokem</a>
   </aside>
 
   <main class="main">
@@ -797,22 +808,311 @@ html.mode-orig [data-view="custom"]{display:none}
   <div class="callout success"><div class="callout-icon">✓</div><div><strong>Sebekontrola:</strong> <strong>1)</strong> Proč faktová tabulka odkazuje na SCD Type 2 dimenzi přes surrogate key, a ne přes customer_id? <strong>2)</strong> Proč audit trail nestačí postavit jen na time travel a potřebujete Change Data Feed s perzistencí do history tabulky? <strong>3)</strong> Kdy byste pro transakční fakta zvolili partitioning místo liquid clusteringu — a jaká dvě čísla přitom musí platit?</div></div>
 </div>
 
+<div class="section" id="sec-runbook">
+  <div class="section-header">
+    <div class="section-num">6.R</div>
+    <h2>Runbook: ukázka krok za krokem</h2>
+  </div>
+  <p>Ukázka staví malý model prodejní sítě: dimenzi prodejen se SCD Type 2 historií, faktovou tabulku účtenek s liquid clusteringem a kolem nich watermark, partitioning, Change Data Feed a time travel. Běží v lektorském workspace nad vlastními syntetickými daty ve schématu <code class="inline">dp750_demo.m06</code>, ne nad daty labu.</p>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> SQL editor připojený na serverless SQL warehouse, existující katalog <code class="inline">dp750_demo</code> (bez vlastní storage v metastoru musel vzniknout s <code class="inline">MANAGED LOCATION</code>, jinak <code class="inline">CREATE CATALOG</code> padá na „Metastore storage root URL does not exist“). Nic dalšího předem zakládat netřeba. Celý průchod zabere asi 12 minut; kroky 4 a 5 musí jít za sebou, protože čísla verzí v kroku 5 počítají s tím, že krok 4 začal <code class="inline">DROP TABLE</code>.</div></div>
+
+  <h3>Krok 1 – Návrh ingesční logiky a volba nástroje (6.1 a 6.2)</h3>
+  <ol>
+    <li>Založ schéma a zdrojovou tabulku účtenek se sloupcem <code class="inline">modified_at</code>.</li>
+    <li>Založ řídicí tabulku s watermarkem a ukaž, že inkrementální výběr vrátí jen řádky novější než watermark (jedna účtenka ze tří).</li>
+    <li>Posuň watermark na maximum ze zdroje, jako by to udělal úspěšný běh.</li>
+    <li>Ústně projdi rozhodovací strom ze sekce 6.2: kdyby šlo o tabulku v SQL Serveru, sáhneš nejdřív po managed konektoru Lakeflow Connect, u souborů po Auto Loaderu nebo <code class="inline">COPY INTO</code>.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="kw">CREATE</span> <span class="kw">SCHEMA</span> <span class="kw">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> <span class="tbl">dp750_demo.m06</span>;
+
+<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.src_receipts</span> <span class="kw">AS</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">VALUES</span>
+  (<span class="num">101</span>, <span class="str">'S01'</span>, <span class="num">450.00</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-11-01 08:00:00'</span>),
+  (<span class="num">102</span>, <span class="str">'S02'</span>, <span class="num">120.50</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-11-01 09:30:00'</span>),
+  (<span class="num">103</span>, <span class="str">'S01'</span>, <span class="num">999.90</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-11-02 10:15:00'</span>)
+<span class="kw">AS</span> t(receipt_id, store_id, amount, modified_at);
+
+<span class="cm">-- control table: last successfully loaded change</span>
+<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.etl_watermark</span> (source <span class="kw">STRING</span>, last_modified <span class="kw">TIMESTAMP</span>);
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m06.etl_watermark</span> <span class="kw">VALUES</span> (<span class="str">'src_receipts'</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-11-01 23:59:59'</span>);
+
+<span class="cm">-- incremental extraction: only rows newer than the watermark</span>
+<span class="kw">SELECT</span> r.* <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.src_receipts</span> r
+<span class="kw">WHERE</span> r.modified_at &gt; (<span class="kw">SELECT</span> last_modified <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.etl_watermark</span> <span class="kw">WHERE</span> source = <span class="str">'src_receipts'</span>);
+
+<span class="cm">-- after a successful load move the watermark</span>
+<span class="kw">UPDATE</span> <span class="tbl">dp750_demo.m06.etl_watermark</span>
+<span class="kw">SET</span> last_modified = (<span class="kw">SELECT</span> <span class="fn">max</span>(modified_at) <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.src_receipts</span>)
+<span class="kw">WHERE</span> source = <span class="str">'src_receipts'</span>;
+
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.etl_watermark</span>;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> inkrementální extrakce vidí jen nový stav řádku. Kdyby zdroj účtenku smazal, watermark se o tom nedozví; to umí až CDC, které nese typ operace. Tohle je moment říct, proč volba extraction type předchází volbě nástroje.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> CTAS z literálů odvodí typ podle dat. Sloupec <code class="inline">amount</code> v <code class="inline">src_receipts</code> dostal <code class="inline">decimal(5,2)</code> (je vidět v <code class="inline">DESCRIBE EXTENDED</code> v kroku 2, kopie typ převzala), takže pozdější účtenka nad 999,99 by při vložení selhala na přetečení. U zdrojových tabulek typy deklaruj explicitně.</div></div>
+
+  <h3>Krok 2 – Volba formátu tabulky: Delta vs. Iceberg (6.3)</h3>
+  <ol>
+    <li>Pusť <code class="inline">DESCRIBE DETAIL</code> na tabulku z kroku 1 a ukaž <code class="inline">format = delta</code>, i když formát nikdo neuvedl.</li>
+    <li>Založ kopii jako managed Iceberg tabulku a v <code class="inline">DESCRIBE EXTENDED</code> ukaž řádek <code class="inline">Provider = iceberg</code> a <code class="inline">Type = MANAGED</code>.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="cm">-- default table format: Delta</span>
+<span class="kw">DESCRIBE</span> <span class="kw">DETAIL</span> <span class="tbl">dp750_demo.m06.src_receipts</span>;
+
+<span class="cm">-- managed Iceberg table for engines outside Databricks</span>
+<span class="kw">DROP</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">EXISTS</span> <span class="tbl">dp750_demo.m06.receipts_iceberg</span>;
+<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.receipts_iceberg</span> <span class="kw">USING</span> <span class="kw">ICEBERG</span>
+<span class="kw">AS</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.src_receipts</span>;
+
+<span class="kw">DESCRIBE</span> <span class="kw">EXTENDED</span> <span class="tbl">dp750_demo.m06.receipts_iceberg</span>;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> pod oběma formáty leží Parquet, liší se metadatová vrstva. Iceberg volíš kvůli enginům mimo Databricks (aktuální stav managed Iceberg tabulek a jejich omezení ověř v dokumentaci); jinak zůstáváš u Delta, která je výchozí a má Change Data Feed nad vlastním transakčním logem.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> v <code class="inline">DESCRIBE DETAIL</code> uvidí účastníci i <code class="inline">clusterByAuto = true</code> a vlastnosti jako <code class="inline">delta.enableRowTracking</code>, přestože je nikdo nezapínal. V lektorském workspace je takhle nová managed tabulka dostala automaticky; neříkej, že to tak bude v každém workspace.</div></div>
+
+  <h3>Krok 3 – Partitioning s generated column (6.4)</h3>
+  <ol>
+    <li>Založ tabulku prodejů partitionovanou podle sloupce <code class="inline">sold_date</code>, který se počítá z <code class="inline">sold_at</code>.</li>
+    <li>Vlož tři řádky bez hodnoty <code class="inline">sold_date</code> (dopočítá se) a ukaž <code class="inline">SHOW PARTITIONS</code>.</li>
+    <li>Pusť <code class="inline">EXPLAIN</code> s filtrem jen na <code class="inline">sold_at</code> a v plánu najdi <code class="inline">PartitionFilters</code> nad <code class="inline">sold_date</code>.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="kw">DROP</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">EXISTS</span> <span class="tbl">dp750_demo.m06.sales_by_day</span>;
+<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.sales_by_day</span> (
+  receipt_id <span class="kw">INT</span>,
+  store_id <span class="kw">STRING</span>,
+  amount <span class="kw">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>),
+  sold_at <span class="kw">TIMESTAMP</span>,
+  sold_date <span class="kw">DATE</span> <span class="kw">GENERATED</span> <span class="kw">ALWAYS</span> <span class="kw">AS</span> (CAST(sold_at <span class="kw">AS</span> <span class="kw">DATE</span>))
+)
+<span class="kw">PARTITIONED</span> <span class="kw">BY</span> (sold_date);
+
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m06.sales_by_day</span> (receipt_id, store_id, amount, sold_at) <span class="kw">VALUES</span>
+  (<span class="num">1</span>, <span class="str">'S01'</span>, <span class="num">450.00</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-11-01 08:00:00'</span>),
+  (<span class="num">2</span>, <span class="str">'S02'</span>, <span class="num">120.50</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-11-01 09:30:00'</span>),
+  (<span class="num">3</span>, <span class="str">'S01'</span>, <span class="num">999.90</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-11-02 10:15:00'</span>);
+
+<span class="kw">SHOW</span> <span class="kw">PARTITIONS</span> <span class="tbl">dp750_demo.m06.sales_by_day</span>;
+
+<span class="cm">-- filter only on sold_at; the plan still prunes partitions of sold_date</span>
+<span class="kw">EXPLAIN</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.sales_by_day</span>
+<span class="kw">WHERE</span> sold_at &gt;= <span class="kw">TIMESTAMP</span><span class="str">'2026-11-02 00:00:00'</span>;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> analytik filtruje na timestamp a o partitioningu nemusí vědět; Delta si partition filtr odvodí z generated column. Hned dodej, že tahle tabulka má pár řádků a pod 1 TB by se v praxi partitionovat neměla. Je tu jen kvůli mechanismu.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> partition klíč podle <code class="inline">store_id</code> nebo podle timestampu na sekundy by vyrobil spoustu malých partitions. Změna klíče znamená přepis tabulky; srovnání s liquid clusteringem přijde v kroku 8.</div></div>
+
+  <h3>Krok 4 – SCD Type 2 dimenze přes MERGE (6.5)</h3>
+  <ol>
+    <li>Založ dimenzi prodejen se surrogate key přes <code class="inline">GENERATED ALWAYS AS IDENTITY</code>, s <code class="inline">valid_from</code>, <code class="inline">valid_to</code> a <code class="inline">is_current</code>; rovnou zapni Change Data Feed (využije ho krok 5).</li>
+    <li>Vlož výchozí stav dvou prodejen a připrav staging: prodejna S01 změnila region, S02 se nezměnila, S03 je nová. Čas změny nese staging ve sloupci <code class="inline">changed_at</code>.</li>
+    <li>Fáze 1: <code class="inline">MERGE</code> uzavře aktuální verzi změněných prodejen a vloží nové prodejny. Očekávej <code class="inline">num_updated_rows = 1</code>, <code class="inline">num_inserted_rows = 1</code>.</li>
+    <li>Fáze 2: <code class="inline">INSERT … WHERE NOT EXISTS</code> vloží novou verzi tam, kde po fázi 1 nezůstala aktuální verze (jen S01).</li>
+    <li>Ukaž výsledek (S01 má dvě verze, starou s <code class="inline">valid_to = 2026-10-01</code>) a point-in-time dotaz k 15. 6. 2026, který vrátí starý region.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="cm">-- DROP, not CREATE OR REPLACE: a fresh history keeps version numbers in step 5 stable</span>
+<span class="kw">DROP</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">EXISTS</span> <span class="tbl">dp750_demo.m06.dim_store</span>;
+<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.dim_store</span> (
+  store_sk <span class="kw">BIGINT</span> <span class="kw">GENERATED</span> <span class="kw">ALWAYS</span> <span class="kw">AS</span> <span class="kw">IDENTITY</span>,
+  store_id <span class="kw">STRING</span> <span class="kw">NOT</span> <span class="kw">NULL</span>,
+  store_name <span class="kw">STRING</span>,
+  region <span class="kw">STRING</span>,
+  valid_from <span class="kw">TIMESTAMP</span> <span class="kw">NOT</span> <span class="kw">NULL</span>,
+  valid_to <span class="kw">TIMESTAMP</span> <span class="kw">NOT</span> <span class="kw">NULL</span>,
+  is_current <span class="kw">BOOLEAN</span> <span class="kw">NOT</span> <span class="kw">NULL</span>
+)
+<span class="kw">TBLPROPERTIES</span> (delta.enableChangeDataFeed = true);
+
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m06.dim_store</span> (store_id, store_name, region, valid_from, valid_to, is_current) <span class="kw">VALUES</span>
+  (<span class="str">'S01'</span>, <span class="str">'Brno Centrum'</span>, <span class="str">'Morava'</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-01-01'</span>, <span class="kw">TIMESTAMP</span><span class="str">'9999-12-31'</span>, true),
+  (<span class="str">'S02'</span>, <span class="str">'Praha Smichov'</span>, <span class="str">'Cechy'</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-01-01'</span>, <span class="kw">TIMESTAMP</span><span class="str">'9999-12-31'</span>, true);
+
+<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.stg_store</span> <span class="kw">AS</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">VALUES</span>
+  (<span class="str">'S01'</span>, <span class="str">'Brno Centrum'</span>, <span class="str">'Jizni Morava'</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-10-01 00:00:00'</span>),
+  (<span class="str">'S02'</span>, <span class="str">'Praha Smichov'</span>, <span class="str">'Cechy'</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-10-01 00:00:00'</span>),
+  (<span class="str">'S03'</span>, <span class="str">'Ostrava Forum'</span>, <span class="str">'Slezsko'</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-10-01 00:00:00'</span>)
+<span class="kw">AS</span> t(store_id, store_name, region, changed_at);
+
+<span class="cm">-- phase 1: close changed current versions, insert brand new stores</span>
+<span class="kw">MERGE</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m06.dim_store</span> <span class="kw">AS</span> t
+<span class="kw">USING</span> <span class="tbl">dp750_demo.m06.stg_store</span> <span class="kw">AS</span> s
+<span class="kw">ON</span> t.store_id = s.store_id <span class="kw">AND</span> t.is_current
+<span class="kw">WHEN</span> <span class="kw">MATCHED</span> <span class="kw">AND</span> (t.region &lt;&gt; s.region <span class="kw">OR</span> t.store_name &lt;&gt; s.store_name) <span class="kw">THEN</span>
+  <span class="kw">UPDATE</span> <span class="kw">SET</span> t.valid_to = s.changed_at, t.is_current = false
+<span class="kw">WHEN</span> <span class="kw">NOT</span> <span class="kw">MATCHED</span> <span class="kw">THEN</span>
+  <span class="kw">INSERT</span> (store_id, store_name, region, valid_from, valid_to, is_current)
+  <span class="kw">VALUES</span> (s.store_id, s.store_name, s.region, s.changed_at, <span class="kw">TIMESTAMP</span><span class="str">'9999-12-31'</span>, true);
+
+<span class="cm">-- phase 2: new version for every key that has no current row now</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m06.dim_store</span> (store_id, store_name, region, valid_from, valid_to, is_current)
+<span class="kw">SELECT</span> s.store_id, s.store_name, s.region, s.changed_at, <span class="kw">TIMESTAMP</span><span class="str">'9999-12-31'</span>, true
+<span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.stg_store</span> <span class="kw">AS</span> s
+<span class="kw">WHERE</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> (
+  <span class="kw">SELECT</span> <span class="num">1</span> <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.dim_store</span> <span class="kw">AS</span> t
+  <span class="kw">WHERE</span> t.store_id = s.store_id <span class="kw">AND</span> t.is_current
+);
+
+<span class="kw">SELECT</span> store_sk, store_id, region, valid_from, valid_to, is_current
+<span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.dim_store</span> <span class="kw">ORDER</span> <span class="kw">BY</span> store_id, valid_from;
+
+<span class="cm">-- point-in-time: state of the dimension on 15 June 2026</span>
+<span class="kw">SELECT</span> store_id, region <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.dim_store</span>
+<span class="kw">WHERE</span> valid_from &lt;= <span class="kw">TIMESTAMP</span><span class="str">'2026-06-15 12:00:00'</span> <span class="kw">AND</span> valid_to &gt; <span class="kw">TIMESTAMP</span><span class="str">'2026-06-15 12:00:00'</span>
+<span class="kw">ORDER</span> <span class="kw">BY</span> store_id;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> obě fáze berou čas změny ze stejného sloupce <code class="inline">changed_at</code>, takže <code class="inline">valid_to</code> staré verze a <code class="inline">valid_from</code> nové verze se přesně potkají a point-in-time dotaz nemá díru. Otevřený konec <code class="inline">9999-12-31</code> místo NULL drží dotaz jednoduchý. Faktová tabulka pak odkazuje na <code class="inline">store_sk</code>, ne na <code class="inline">store_id</code>.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> kdo ve fázi 2 místo <code class="inline">NOT EXISTS</code> napíše join na historické řádky, dostane u klíče s více uzavřenými verzemi víc kopií nové verze. Druhá past: staging se dvěma řádky pro stejnou prodejnu shodí <code class="inline">MERGE</code> chybou <code class="inline">DELTA_MULTIPLE_SOURCE_ROW_MATCHING_TARGET_ROW_IN_MERGE</code> (ukáže se v kapitole 8). Surrogate key z identity sloupce nemusí jít po jedné: v lektorském workspace dostala nová verze S01 <code class="inline">store_sk = 4</code>, ne 3.</div></div>
+
+  <h3>Krok 5 – Change Data Feed, time travel a RESTORE (6.6)</h3>
+  <ol>
+    <li>Přečti změny od verze 2 přes <code class="inline">table_changes</code>: u S01 uvidíš <code class="inline">update_preimage</code> a <code class="inline">update_postimage</code> (uzavření verze) a dva <code class="inline">insert</code> (S03 a nová verze S01).</li>
+    <li>Udělej „omylem“ <code class="inline">UPDATE</code> bez <code class="inline">WHERE</code>, který přepíše region všem řádkům.</li>
+    <li>V <code class="inline">DESCRIBE HISTORY</code> najdi verzi před chybou (při čistém průchodu verze 3), podívej se na ni přes <code class="inline">VERSION AS OF</code> a vrať tabulku přes <code class="inline">RESTORE</code>.</li>
+    <li>Prodluž retenci logu i datových souborů na 90 dní a ukaž ji v <code class="inline">SHOW TBLPROPERTIES</code>.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="cm">-- row level changes since version 2 (the MERGE)</span>
+<span class="kw">SELECT</span> store_id, region, is_current, _change_type, _commit_version
+<span class="kw">FROM</span> <span class="fn">table_changes</span>(<span class="str">'dp750_demo.m06.dim_store'</span>, <span class="num">2</span>)
+<span class="kw">ORDER</span> <span class="kw">BY</span> _commit_version, store_id, _change_type;
+
+<span class="cm">-- accident: update without WHERE</span>
+<span class="kw">UPDATE</span> <span class="tbl">dp750_demo.m06.dim_store</span> <span class="kw">SET</span> region = <span class="str">'NEZNAMY'</span>;
+
+<span class="kw">SELECT</span> version, operation <span class="kw">FROM</span> (<span class="kw">DESCRIBE</span> <span class="kw">HISTORY</span> <span class="tbl">dp750_demo.m06.dim_store</span>) <span class="kw">ORDER</span> <span class="kw">BY</span> version;
+
+<span class="cm">-- look at the last good version, then roll back to it</span>
+<span class="kw">SELECT</span> store_id, region <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.dim_store</span> <span class="kw">VERSION</span> <span class="kw">AS</span> <span class="kw">OF</span> <span class="num">3</span> <span class="kw">ORDER</span> <span class="kw">BY</span> store_id;
+<span class="kw">RESTORE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.dim_store</span> <span class="kw">TO</span> <span class="kw">VERSION</span> <span class="kw">AS</span> <span class="kw">OF</span> <span class="num">3</span>;
+<span class="kw">SELECT</span> store_id, region, is_current <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.dim_store</span> <span class="kw">ORDER</span> <span class="kw">BY</span> store_id, valid_from;
+
+<span class="cm">-- longer history for audit: set both properties together</span>
+<span class="kw">ALTER</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.dim_store</span> <span class="kw">SET</span> <span class="kw">TBLPROPERTIES</span> (
+  <span class="str">'delta.logRetentionDuration'</span> = <span class="str">'interval 90 days'</span>,
+  <span class="str">'delta.deletedFileRetentionDuration'</span> = <span class="str">'interval 90 days'</span>
+);
+<span class="kw">SHOW</span> <span class="kw">TBLPROPERTIES</span> <span class="tbl">dp750_demo.m06.dim_store</span>;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> SCD Type 2 z kroku 4 je byznysová historie (kde prodejna ležela), CDF a time travel jsou technická historie (kdo a kdy tabulku změnil). <code class="inline">RESTORE</code> je sám nová verze; v historii zůstane i chybný <code class="inline">UPDATE</code>, takže audit nic neztratí.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> číslo verze záleží na tom, kolikrát se buňky pustily. Kdo po kroku 4 znovu pustí jen <code class="inline">MERGE</code> a <code class="inline">INSERT</code> (bez úvodního <code class="inline">DROP</code>) nebo zopakuje <code class="inline">UPDATE</code>, vrátí <code class="inline">RESTORE … VERSION AS OF 3</code> na špatný stav. Vždy nejdřív <code class="inline">DESCRIBE HISTORY</code>. Verze mimo dostupnou historii skončí v <code class="inline">table_changes</code> chybou; CDF navíc zachytí jen změny po svém zapnutí.</div></div>
+
+  <h3>Krok 6 – Granularita: atomická fakta vs. agregát (6.7)</h3>
+  <ol>
+    <li>Nahlas deklaruj grain: „jeden řádek na položku účtenky“. Pak založ faktovou tabulku a naplň ji 3 000 syntetickými položkami z <code class="inline">range()</code>.</li>
+    <li>Nad ní založ view s grainem „prodejna a den“ a porovnej počty řádků: 3 000 proti 30.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="cm">-- grain: one row per receipt line</span>
+<span class="kw">DROP</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">EXISTS</span> <span class="tbl">dp750_demo.m06.fact_sales_line</span>;
+<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.fact_sales_line</span> (
+  receipt_id <span class="kw">INT</span>,
+  line_no <span class="kw">INT</span>,
+  store_sk <span class="kw">BIGINT</span>,
+  sale_date <span class="kw">DATE</span>,
+  product <span class="kw">STRING</span>,
+  qty <span class="kw">INT</span>,
+  amount <span class="kw">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>)
+)
+<span class="kw">CLUSTER</span> <span class="kw">BY</span> (sale_date, store_sk);
+
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m06.fact_sales_line</span>
+<span class="kw">SELECT</span> <span class="num">1000</span> + id <span class="kw">DIV</span> <span class="num">3</span> <span class="kw">AS</span> receipt_id,
+       id % <span class="num">3</span> + <span class="num">1</span> <span class="kw">AS</span> line_no,
+       <span class="kw">CASE</span> <span class="kw">WHEN</span> id % <span class="num">2</span> = <span class="num">0</span> <span class="kw">THEN</span> <span class="num">4</span> <span class="kw">ELSE</span> <span class="num">2</span> <span class="kw">END</span> <span class="kw">AS</span> store_sk,
+       <span class="kw">DATE</span><span class="str">'2026-10-01'</span> + CAST(id % <span class="num">30</span> <span class="kw">AS</span> <span class="kw">INT</span>) <span class="kw">AS</span> sale_date,
+       <span class="fn">element_at</span>(<span class="fn">array</span>(<span class="str">'helma'</span>, <span class="str">'zamek'</span>, <span class="str">'svetlo'</span>, <span class="str">'pumpa'</span>), CAST(id % <span class="num">4</span> <span class="kw">AS</span> <span class="kw">INT</span>) + <span class="num">1</span>) <span class="kw">AS</span> product,
+       CAST(id % <span class="num">5</span> <span class="kw">AS</span> <span class="kw">INT</span>) + <span class="num">1</span> <span class="kw">AS</span> qty,
+       CAST((id % <span class="num">50</span>) * <span class="num">10</span> + <span class="num">99</span> <span class="kw">AS</span> <span class="kw">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>)) <span class="kw">AS</span> amount
+<span class="kw">FROM</span> <span class="fn">range</span>(<span class="num">0</span>, <span class="num">3000</span>) <span class="kw">AS</span> r(id);
+
+<span class="cm">-- aggregate grain: store and day</span>
+<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">VIEW</span> <span class="tbl">dp750_demo.m06.v_sales_store_day</span> <span class="kw">AS</span>
+<span class="kw">SELECT</span> store_sk, sale_date, <span class="fn">count</span>(*) <span class="kw">AS</span> lines, <span class="fn">sum</span>(amount) <span class="kw">AS</span> revenue
+<span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.fact_sales_line</span>
+<span class="kw">GROUP</span> <span class="kw">BY</span> store_sk, sale_date;
+
+<span class="kw">SELECT</span> (<span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.fact_sales_line</span>) <span class="kw">AS</span> atomic_rows,
+       (<span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.v_sales_store_day</span>) <span class="kw">AS</span> aggregate_rows;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> z atomických řádků agregát kdykoli dopočítáš, opačně to nejde: z view už nezjistíš, kolik helem se prodalo. V produkci by agregát byl spíš materialized view; v ukázce stačí obyčejné view, aby nevznikala pipeline na pozadí.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> hodnoty <code class="inline">store_sk</code> 2 a 4 odpovídají klíčům z kroku 4 jen při čistém průchodu. Grain dimenze musí sedět ke grainu faktů: řádek faktu ukazuje na konkrétní verzi prodejny, ne na prodejnu obecně.</div></div>
+
+  <h3>Krok 7 – Managed vs. external tabulky (6.8)</h3>
+  <ol>
+    <li>Založ pomocnou kopii, v <code class="inline">DESCRIBE EXTENDED</code> (nebo už v kroku 2) ukaž <code class="inline">Type = MANAGED</code> a cestu pod <code class="inline">__unitystorage</code>.</li>
+    <li>Tabulku zahoď, ukaž ji v <code class="inline">SHOW TABLES DROPPED</code> a vrať přes <code class="inline">UNDROP</code>; počet řádků je zase 3.</li>
+    <li>Pro kontrast vypiš <code class="inline">SHOW EXTERNAL LOCATIONS</code>: external tabulka by musela ležet pod jednou z nich a <code class="inline">DROP</code> by u ní smazal jen metadata, soubory by ve storage zůstaly.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.tmp_scratch</span> <span class="kw">AS</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.src_receipts</span>;
+<span class="kw">DESCRIBE</span> <span class="kw">EXTENDED</span> <span class="tbl">dp750_demo.m06.tmp_scratch</span>;
+
+<span class="kw">DROP</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.tmp_scratch</span>;
+<span class="kw">SHOW</span> <span class="kw">TABLES</span> <span class="kw">DROPPED</span> <span class="kw">IN</span> <span class="tbl">dp750_demo.m06</span>;
+<span class="kw">UNDROP</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.tmp_scratch</span>;
+<span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.tmp_scratch</span>;
+
+<span class="kw">SHOW</span> <span class="kw">EXTERNAL</span> <span class="kw">LOCATIONS</span>;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> managed znamená, že soubory patří Unity Catalogu: proto funguje <code class="inline">UNDROP</code> (výchozí okno 7 dní), predictive optimization a automatický úklid. External tabulka dává smysl, když soubory musí žít nezávisle nebo je čte jiný systém.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> výpis external locations ukazuje URL storage účtu; při sdílení obrazovky ho ukaž jen krátce. External tabulku v ukázce nezakládej: potřebuješ external location s právem <code class="inline">CREATE EXTERNAL TABLE</code> a lektorský workspace takovou připravenou nemá.</div></div>
+
+  <h3>Krok 8 – Liquid clustering vs. partitioning vs. Z-ORDER (6.9)</h3>
+  <ol>
+    <li>Faktová tabulka z kroku 6 už má <code class="inline">CLUSTER BY (sale_date, store_sk)</code>. Pusť <code class="inline">OPTIMIZE</code> a v <code class="inline">DESCRIBE DETAIL</code> ukaž <code class="inline">clusteringColumns</code>.</li>
+    <li>Přepni klíč na <code class="inline">store_sk</code> a pak na <code class="inline">CLUSTER BY AUTO</code>; obojí bez přepisu dat. <code class="inline">DESCRIBE DETAIL</code> ukáže <code class="inline">clusterByAuto = true</code>.</li>
+    <li>Zkus totéž na partitionované tabulce z kroku 3: příkaz skončí chybou.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="kw">OPTIMIZE</span> <span class="tbl">dp750_demo.m06.fact_sales_line</span>;
+<span class="kw">DESCRIBE</span> <span class="kw">DETAIL</span> <span class="tbl">dp750_demo.m06.fact_sales_line</span>;
+
+<span class="cm">-- change the keys without rewriting data</span>
+<span class="kw">ALTER</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.fact_sales_line</span> <span class="kw">CLUSTER</span> <span class="kw">BY</span> (store_sk);
+<span class="kw">ALTER</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.fact_sales_line</span> <span class="kw">CLUSTER</span> <span class="kw">BY</span> <span class="kw">AUTO</span>;
+<span class="kw">DESCRIBE</span> <span class="kw">DETAIL</span> <span class="tbl">dp750_demo.m06.fact_sales_line</span>;
+
+<span class="cm">-- expected error: clustering cannot be added to a partitioned table this way</span>
+<span class="kw">ALTER</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.sales_by_day</span> <span class="kw">CLUSTER</span> <span class="kw">BY</span> (store_id);</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> u partitioningu je klíč součástí struktury tabulky, u liquid clusteringu je to jen metadata a <code class="inline">OPTIMIZE</code> data přeskupuje inkrementálně. Z-ORDER tu neukazuj na nové tabulce; je to předchůdce, kterého potkáš u zděděných tabulek.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> poslední příkaz skončí <code class="inline">DELTA_ALTER_TABLE_CLUSTER_BY_ON_PARTITIONED_TABLE_NOT_ALLOWED</code>; hláška sama radí převod přes <code class="inline">ALTER TABLE … REPLACE PARTITIONED BY WITH CLUSTER BY</code>. Ten převod (GA od Databricks Runtime 18.1) v ukázce nespouštěj: tabulka z kroku 3 má při dalším průchodu zůstat partitionovaná. <code class="inline">OPTIMIZE</code> nad pár tisíci řádků nic nepřepíše; o výkonu na tak malých datech nic netvrď.</div></div>
+
+  <h3>Úklid</h3>
+  <ol>
+    <li>Nic nemaž, objekty ve schématu <code class="inline">dp750_demo.m06</code> slouží k opakování ukázky. Krok 4 a krok 6 začínají <code class="inline">DROP TABLE</code>, takže druhý průchod začne z čistého stavu.</li>
+    <li>Po kurzu: <code class="inline">DROP SCHEMA dp750_demo.m06 CASCADE;</code> (nebo celkový úklid katalogu <code class="inline">dp750_demo</code>).</li>
+  </ol>
+</div>
+
     <div class="footer-nav">
       <a href="dp750_05_governance.html">← Governance Unity Catalogu</a>
-      <span style="color:var(--text-muted);font-size:13px">Kapitola 6 z 16</span>
+      <span data-view="orig" style="color:var(--text-muted);font-size:13px">Kapitola 6 z 13</span><span data-view="custom" style="color:var(--text-muted);font-size:13px">Kapitola 6 z 16</span>
       <a href="dp750_07_ingest.html" style="margin-left:auto">Ingest dat →</a>
     </div>
   </main>
 </div>
 
-<script>function initTabs(){document.querySelectorAll('.tab-list').forEach(list=>{list.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{const panel=btn.dataset.tab;const container=btn.closest('.tabs');container.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));container.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');container.querySelector('#'+panel).classList.add('active')})})});document.querySelectorAll('.tabs').forEach(t=>{const first=t.querySelector('.tab-btn');if(first)first.classList.add('active');const firstP=t.querySelector('.tab-panel');if(firstP)firstP.classList.add('active')})}
+<script>var T={copy:"Kopírovat",copied:"✓ Zkopírováno",copyFallback:"Ctrl+C",hintShow:"💡 Zobrazit nápovědu",hintHide:"🙈 Skrýt nápovědu",menuOpen:"☰ Kapitoly",menuClose:"✕ Zavřít"};
+/* Sdilene chovani pro CS i EN vetev. Objekt T (UI texty) emituje build.py pred telem
+   tohoto skriptu — viz LANGS v build.py. Zadny text natvrdo, jinak se rozejdou jazyky. */
+function initTabs(){document.querySelectorAll('.tab-list').forEach(list=>{list.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{const panel=btn.dataset.tab;const container=btn.closest('.tabs');container.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));container.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');container.querySelector('#'+panel).classList.add('active')})})});document.querySelectorAll('.tabs').forEach(t=>{if(t.querySelector('.tab-btn.active'))return;const first=t.querySelector('.tab-btn');if(first)first.classList.add('active');const firstP=t.querySelector('.tab-panel');if(firstP)firstP.classList.add('active')})}
 function initCollapsibles(){document.querySelectorAll('.collapsible-header').forEach(h=>{h.addEventListener('click',()=>h.closest('.collapsible').classList.toggle('open'))})}
-function initHints(){document.querySelectorAll('.hint-toggle').forEach(t=>{t.addEventListener('click',()=>{const c=t.nextElementSibling;c.classList.toggle('open');t.textContent=c.classList.contains('open')?'🙈 Skrýt nápovědu':'💡 Zobrazit nápovědu'})})}
-function initCopy(){document.querySelectorAll('.copy-btn').forEach(btn=>{btn.addEventListener('click',()=>{const code=btn.closest('.code-block').querySelector('pre').innerText;function ok(){btn.textContent='✓ Zkopírováno';btn.classList.add('copied');setTimeout(()=>{btn.textContent='Kopírovat';btn.classList.remove('copied')},2000)}function legacy(){try{const ta=document.createElement('textarea');ta.value=code;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok()}catch(e){btn.textContent='Ctrl+C';setTimeout(()=>{btn.textContent='Kopírovat'},2000)}}if(navigator.clipboard){navigator.clipboard.writeText(code).then(ok).catch(legacy)}else{legacy()}})})}
+function initHints(){document.querySelectorAll('.hint-toggle').forEach(t=>{t.addEventListener('click',()=>{const c=t.nextElementSibling;c.classList.toggle('open');t.textContent=c.classList.contains('open')?T.hintHide:T.hintShow})})}
+function initCopy(){document.querySelectorAll('.copy-btn').forEach(btn=>{btn.addEventListener('click',()=>{const code=btn.closest('.code-block').querySelector('pre').innerText;function ok(){btn.textContent=T.copied;btn.classList.add('copied');setTimeout(()=>{btn.textContent=T.copy;btn.classList.remove('copied')},2000)}function legacy(){try{const ta=document.createElement('textarea');ta.value=code;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok()}catch(e){btn.textContent=T.copyFallback;setTimeout(()=>{btn.textContent=T.copy},2000)}}if(navigator.clipboard){navigator.clipboard.writeText(code).then(ok).catch(legacy)}else{legacy()}})})}
 function initTOC(){const sections=document.querySelectorAll('.section');const items=document.querySelectorAll('.toc-item[data-section]');if(!items.length)return;const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){const id=e.target.id;items.forEach(i=>i.classList.toggle('active',i.dataset.section===id))}})},{rootMargin:'-15% 0px -70% 0px'});sections.forEach(s=>obs.observe(s));items.forEach(i=>{i.addEventListener('click',()=>{document.getElementById(i.dataset.section)?.scrollIntoView({behavior:'smooth'})})})}
 function initProgress(){const bar=document.getElementById('pfill');if(!bar)return;window.addEventListener('scroll',()=>{const t=window.scrollY;const h=document.documentElement.scrollHeight-window.innerHeight;bar.style.width=(h>0?t/h*100:0)+'%'})}
-function initChapterMenu(){const btn=document.getElementById('chapBtn');const menu=document.getElementById('chapMenu');const overlay=document.getElementById('chapOverlay');if(!btn)return;const cur=window.location.pathname.split('/').pop()||'index.html';menu.querySelectorAll('.chapter-link').forEach(a=>{if(a.getAttribute('href')===cur)a.classList.add('current')});function close(){menu.classList.remove('open');overlay.classList.remove('open');btn.textContent='☰ Kapitoly'}function open(){menu.classList.add('open');overlay.classList.add('open');btn.textContent='✕ Zavřít'}btn.addEventListener('click',e=>{e.stopPropagation();menu.classList.contains('open')?close():open()});overlay.addEventListener('click',close);document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});menu.querySelectorAll('.chapter-link').forEach(a=>a.addEventListener('click',close))}
-function initViewSwitch(){document.querySelectorAll('[data-view-set]').forEach(b=>b.addEventListener('click',()=>{const m=b.dataset.viewSet;document.documentElement.classList.toggle('mode-orig',m==='orig');try{localStorage.setItem('dp750-view',m)}catch(e){}}))}
+function initChapterMenu(){const btn=document.getElementById('chapBtn');const menu=document.getElementById('chapMenu');const overlay=document.getElementById('chapOverlay');if(!btn)return;const cur=window.location.pathname.split('/').pop()||'index.html';menu.querySelectorAll('.chapter-link').forEach(a=>{if(a.getAttribute('href')===cur)a.classList.add('current')});function close(){menu.classList.remove('open');overlay.classList.remove('open');btn.textContent=T.menuOpen}function open(){menu.classList.add('open');overlay.classList.add('open');btn.textContent=T.menuClose}btn.addEventListener('click',e=>{e.stopPropagation();menu.classList.contains('open')?close():open()});overlay.addEventListener('click',close);document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});menu.querySelectorAll('.chapter-link').forEach(a=>a.addEventListener('click',close))}
+function initViewSwitch(){document.querySelectorAll('[data-view-set]').forEach(b=>b.addEventListener('click',()=>{const m=b.dataset.viewSet;document.documentElement.classList.toggle('mode-custom',m==='custom');try{localStorage.setItem('dp750-view',m)}catch(e){}}))}
 document.addEventListener('DOMContentLoaded',()=>{initChapterMenu();initViewSwitch();initTabs();initCollapsibles();initHints();initCopy();initTOC();initProgress()})</script>
 </body>
 </html>

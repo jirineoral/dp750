@@ -100,14 +100,24 @@ tr:hover td{background:#f9fafb}
 .figure svg{display:block;width:100%;height:auto;max-width:820px;margin:0 auto}
 .figure figcaption{margin-top:10px;font-size:12px;color:var(--text-muted);text-align:center;line-height:1.5}
 code.inline{font-family:var(--font-mono);font-size:.9em;background:var(--accent-light);color:var(--gopas-blue);padding:1px 5px;border-radius:3px}
-[data-view="orig"]{display:none}
-html.mode-orig [data-view="orig"]{display:revert}
-html.mode-orig [data-view="custom"]{display:none}
+/* Vychozi pohled = originalni osnova MOC. Vlastni tridenni osnovu zapina trida
+   mode-custom na <html> (MODE_BOOT v build.py + initViewSwitch). Bez JS => originalni osnova. */
+/* Skryva se vzdy jen pres display:none. Nikdy display:revert - vracel by hodnotu
+   z UA stylu, ne autorskou, a diky vyssi specificite by prebil napr. .callout{display:flex}. */
+html:not(.mode-custom) [data-view="custom"]{display:none}
+html.mode-custom [data-view="orig"]{display:none}
+/* prepinac jazyka v top-nav (kapitoly); vlajky jsou inline SVG - zadny externi request */
+.lang-switch{display:flex;align-items:center;gap:2px;padding:2px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:999px;flex-shrink:0}
+.nav-links .lang-switch>*{display:flex;align-items:center;gap:5px;padding:3px 9px;border:none;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.5px;color:rgba(255,255,255,.6);text-decoration:none}
+.nav-links .lang-switch a:hover{background:rgba(255,255,255,.14);color:#fff}
+.nav-links .lang-switch>.current{background:#fff;color:var(--gopas-blue)}
+.lang-switch svg{display:block;width:18px;height:12px;border-radius:2px;flex-shrink:0}
+@media(max-width:700px){.lang-switch .lang-lbl{display:none}.nav-links .lang-switch>*{padding:4px 7px}}
 .learn-more{display:flex;gap:8px;align-items:baseline;margin:14px 0 0;padding:9px 13px;background:#f8fafc;border:1px solid var(--border);border-left:3px solid var(--gopas-blue);border-radius:6px;font-size:13px;color:var(--text-muted)}
 .learn-more .lm-label{flex-shrink:0;font-weight:600;color:var(--gopas-blue)}
 .learn-more a{color:var(--gopas-blue);text-decoration:none;border-bottom:1px solid rgba(26,58,107,.3)}
 .learn-more a:hover{border-bottom-color:var(--gopas-blue)}</style>
-<script>try{if(localStorage.getItem("dp750-view")==="orig")document.documentElement.className="mode-orig"}catch(e){}</script>
+
 </head>
 <body>
 <div id="chapOverlay" class="chapter-menu-overlay"></div>
@@ -125,16 +135,16 @@ html.mode-orig [data-view="custom"]{display:none}
   <div class="chapter-group">
     <div class="chapter-group-title">MOC — pokračování</div>
     <a class="chapter-link" href="dp750_08_transformace.html">8. Čištění a transformace dat</a>
-    <a class="chapter-link" href="dp750_09_data_quality.html" title="Mimo osnovu zkráceného kurzu">9. Data quality constraints<span data-view="custom" style="opacity:.55;font-size:11px"> · mimo osnovu</span></a>
+    <a class="chapter-link" href="dp750_09_data_quality.html">9. Data quality constraints</a>
     <a class="chapter-link" href="dp750_10_pipelines.html">10. Datové pipelines</a>
     <a class="chapter-link" href="dp750_11_lakeflow_jobs.html">11. Lakeflow Jobs</a>
-    <a class="chapter-link" href="dp750_12_dev_lifecycle.html" title="Mimo osnovu zkráceného kurzu">12. Vývojový lifecycle<span data-view="custom" style="opacity:.55;font-size:11px"> · mimo osnovu</span></a>
+    <a class="chapter-link" href="dp750_12_dev_lifecycle.html">12. Vývojový lifecycle</a>
     <a class="chapter-link" href="dp750_13_monitoring.html">13. Monitoring a optimalizace</a>
     <div data-view="orig" style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1)">
       <a class="chapter-link" href="index.html" style="color:rgba(255,255,255,.5)">🏠 Rozcestník kurzu</a>
     </div>
   </div>
-  <div class="chapter-group" data-view="custom">
+  <div class="chapter-group">
     <div class="chapter-group-title">Pod čarou — den 3</div>
     <a class="chapter-link" href="dp750_14_fabric_prehled.html">14. Průřez Microsoft Fabric</a>
     <a class="chapter-link" href="dp750_15_pbi_fabric_databricks.html">15. Power BI + Fabric + Databricks</a>
@@ -151,7 +161,7 @@ html.mode-orig [data-view="custom"]{display:none}
     <span class="chapter-title-nav">Výběr a konfigurace compute</span>
   </div>
   <div class="nav-links">
-    <button id="chapBtn" class="chapter-menu-btn">☰ Kapitoly</button><a href="index.html" class="home" title="Rozcestník">🏠</a>
+    <div class="lang-switch" role="group" aria-label="Jazyk / Language"><span class="current" aria-current="true"><svg viewBox="0 0 30 20" aria-hidden="true" focusable="false"><rect width="30" height="10" fill="#fff"/><rect y="10" width="30" height="10" fill="#d7141a"/><path d="M0 0 15 10 0 20Z" fill="#11457e"/></svg><span class="lang-lbl">CS</span></span><a href="en/dp750_02_compute.html" title="English version" hreflang="en"><svg viewBox="0 0 60 30" aria-hidden="true" focusable="false"><rect width="60" height="30" fill="#012169"/><path d="M0 0 60 30M60 0 0 30" stroke="#fff" stroke-width="6"/><path d="M0 0 60 30M60 0 0 30" stroke="#c8102e" stroke-width="2"/><path d="M30 0V30M0 15H60" stroke="#fff" stroke-width="10"/><path d="M30 0V30M0 15H60" stroke="#c8102e" stroke-width="6"/></svg><span class="lang-lbl">EN</span></a></div><button id="chapBtn" class="chapter-menu-btn">☰ Kapitoly</button><a href="index.html" class="home" title="Rozcestník">🏠</a>
     <a href="dp750_03_objekty_unity_catalog.html" class="next">Objekty v Unity Catalogu →</a>
   </div>
 </nav>
@@ -167,6 +177,7 @@ html.mode-orig [data-view="custom"]{display:none}
     <a href="#sec-knihovny" class="toc-item" data-section="sec-knihovny">Instalace knihoven</a>
     <a href="#sec-pristup" class="toc-item" data-section="sec-pristup">Řízení přístupu ke compute</a>
     <a href="#sec-lab" class="toc-item" data-section="sec-lab">Lab 2: Select and Configure Compute in Azure Databricks (30 minut)</a>
+    <a href="#sec-runbook" class="toc-item" data-section="sec-runbook">Runbook: ukázka krok za krokem</a>
   </aside>
 
   <main class="main">
@@ -289,7 +300,7 @@ html.mode-orig [data-view="custom"]{display:none}
   </table>
 
   <figure class="figure">
-    <svg viewBox="0 0 820 300" role="img" aria-label="Architektura clusteru s autoscalingem: driver node na on-demand VM koordinuje čtyři worker nodes. První dva workery představují minimum, další dva jsou přerušovaně orámované a přidává či odebírá je autoscaling až do nastaveného maxima. Workery mohou běžet na spot instancích, driver vždy на on-demand.">
+    <svg viewBox="0 0 820 300" role="img" aria-label="Architektura clusteru s autoscalingem: driver node na on-demand VM koordinuje čtyři worker nodes. První dva workery představují minimum, další dva jsou přerušovaně orámované a přidává či odebírá je autoscaling až do nastaveného maxima. Workery mohou běžet na spot instancích, driver vždy na on-demand.">
       <defs>
         <marker id="arr5" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#6b7280"/></marker>
       </defs>
@@ -479,22 +490,128 @@ df = spark.<span class="fn">createDataFrame</span>(pacienti, [<span class="str">
   <div class="callout success"><div class="callout-icon">✓</div><div><strong>Sebekontrola:</strong> <strong>1)</strong> Proč jste pro workery zvolili memory-optimized (E-series) VM, když má cluster dělat joins pacientských dat a laboratorních výsledků? <strong>2)</strong> Co se stane s cluster-scoped knihovnou faker po restartu clusteru — a co s notebook-scoped instalací po konci session? <strong>3)</strong> Který access mode byste zvolili, kdyby cluster sdílelo pět inženýrů, a který pro trénink GPU modelu v R?</div></div>
 </div>
 
+<div class="section" id="sec-runbook">
+  <div class="section-header">
+    <div class="section-num">2.R</div>
+    <h2>Runbook: ukázka krok za krokem</h2>
+  </div>
+  <p>Ukázka porovná serverless, classic compute a SQL warehouse na jednom formuláři a z příkazové řádky, nainstaluje notebook-scoped knihovnu a ukáže oprávnění ke compute. Běží v lektorském workspace; classic cluster se nezakládá, formulář se jen projde.</p>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> běžící serverless SQL warehouse, lokální Databricks CLI přihlášené k workspace (profil podle sebe, v ukázkách <code class="inline">&lt;profil&gt;</code>), prázdný Python notebook. Celá ukázka zabere asi 10 minut.</div></div>
+
+  <h3>Krok 1 – Volba vhodného typu compute</h3>
+  <ol>
+    <li><strong>Compute</strong> v sidebaru: projděte záložky <strong>All-purpose compute</strong>, <strong>Job compute</strong>, <strong>SQL warehouses</strong>, <strong>Pools</strong> a <strong>Policies</strong>.</li>
+    <li>Serverless pro notebook se nevybírá v Compute, ale v notebooku v rozbalovacím menu compute: <strong>Serverless</strong>.</li>
+    <li>Z CLI ukažte, co ve workspace běží:</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">BASH</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm"># SQL warehouses: typ, velikost, auto stop</span>
+databricks warehouses list --profile <span class="str">&lt;profil&gt;</span>
+
+<span class="cm"># classic clustery a pooly (v ciste serverless praxi casto prazdne)</span>
+databricks clusters list --profile <span class="str">&lt;profil&gt;</span>
+databricks instance-pools list --profile <span class="str">&lt;profil&gt;</span></pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> v čerstvém workspace typicky uvidíte jen serverless warehouse s automatickým zastavením po pár minutách nečinnosti a žádný classic cluster. Na serverless se začíná, classic je výjimka pro konkrétní limit (Scala, R, RDD, GPU, vlastní síť).</div></div>
+
+  <h3>Krok 2 – Konfigurace výkonu: VM, workers, autoscaling</h3>
+  <ol>
+    <li><strong>Compute → Create compute</strong>. Formulář projděte a <strong>nic neukládejte</strong>: Databricks Runtime (vyberte LTS), worker type, <strong>Enable autoscaling</strong> s min/max workerů, driver type.</li>
+    <li>Rodiny VM ukažte z CLI, ať je vidět rozdíl paměti při stejném počtu jader:</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">POWERSHELL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm"># ctyri jadra, ruzna pamet a kategorie</span>
+(databricks clusters list-node-types --profile <span class="str">&lt;profil&gt;</span> -o json | ConvertFrom-Json).node_types |
+  Where-Object node_type_id -in <span class="str">'Standard_D4ds_v5'</span>, <span class="str">'Standard_E4ds_v5'</span>, <span class="str">'Standard_F4s_v2'</span> |
+  Select-Object node_type_id, num_cores, memory_mb, category
+
+<span class="cm"># dostupne LTS runtime verze</span>
+(databricks clusters spark-versions --profile <span class="str">&lt;profil&gt;</span> -o json | ConvertFrom-Json).versions.name |
+  Where-Object { $_ -like <span class="str">'*LTS*'</span> }</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> D4ds_v5, E4ds_v5 a F4s_v2 mají všechny 4 jádra, ale 16, 32 a 8 GB paměti a kategorie General Purpose, Memory Optimized a Compute Optimized. Na tom se dá vysvětlit, proč joins chtějí E-series.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> formulář nechte bez uložení: vytvořený cluster hned začne startovat a platit VM. Ve výpisu runtime verzí jsou i varianty ML, Photon a aarch64; pro běžná dema vybírejte prostou LTS.</div></div>
+
+  <h3>Krok 3 – Funkce compute: Photon, policies, pools, auto-termination</h3>
+  <ol>
+    <li>Ve formuláři ukažte <strong>Use Photon Acceleration</strong>, <strong>Terminate after … minutes of inactivity</strong> a pole <strong>Policy</strong>.</li>
+    <li><strong>Compute → Policies</strong>: otevřete předdefinovanou <strong>Job Compute</strong> a ukažte definici. Z CLI totéž:</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">BASH</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm"># policies ve workspace a jejich rodiny</span>
+databricks cluster-policies list --profile <span class="str">&lt;profil&gt;</span>
+
+<span class="cm"># definice rodiny Job Compute (vychozi runtime, spot)</span>
+databricks policy-families get job-cluster --profile <span class="str">&lt;profil&gt;</span></pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> v definici rodiny Job Compute je <code class="inline">spark_version</code> s výchozí hodnotou <code class="inline">auto:latest-lts</code> a <code class="inline">azure_attributes.availability</code> s <code class="inline">SPOT_WITH_FALLBACK_AZURE</code>. Policy je JSON s pravidly a výchozími hodnotami; uživatel ve formuláři vidí jen to, co mu policy dovolí.</div></div>
+
+  <h3>Krok 4 – Instalace knihoven</h3>
+  <ol>
+    <li>V notebooku připojte <strong>Serverless</strong> a spusťte tři buňky. Knihovna je záměrně jiná než v labu:</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm"># bunka 1: notebook-scoped instalace s pinnutou verzi</span>
+%pip install humanize==4.16.0
+
+<span class="cm"># bunka 2: %pip sam Python nerestartuje</span>
+dbutils.library.<span class="fn">restartPython</span>()
+
+<span class="cm"># bunka 3</span>
+<span class="kw">import</span> importlib.metadata <span class="kw">as</span> md
+<span class="kw">import</span> humanize
+<span class="fn">print</span>(md.<span class="fn">version</span>(<span class="str">"humanize"</span>), humanize.<span class="fn">naturalsize</span>(<span class="num">1536000000</span>), humanize.<span class="fn">intcomma</span>(<span class="num">1234567</span>))</pre>
+  </div>
+  <ol start="2">
+    <li>Otevřete druhý notebook na serverless a zkuste <code class="inline">import humanize</code>.</li>
+  </ol>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> první notebook vypíše <code class="inline">4.16.0 1.5 GB 1,234,567</code>. Ve druhém notebooku import selže s <code class="inline">ModuleNotFoundError</code>: notebook-scoped knihovna žije jen v prostředí daného notebooku. Cluster-scoped knihovnu (záložka <strong>Libraries</strong> clusteru) by viděly všechny notebooky na clusteru.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> když serverless nemá odchozí přístup na PyPI, <code class="inline">%pip</code> spadne na síti. Pak se balíčky berou z interního zrcadla nebo jako wheel z volume (<code class="inline">%pip install /Volumes/…/balicek.whl</code>).</div></div>
+
+  <h3>Krok 5 – Řízení přístupu ke compute</h3>
+  <ol>
+    <li>Ve formuláři z kroku 2 rozbalte <strong>Advanced</strong>: access mode je <strong>Auto</strong>; po přepnutí na <strong>Manual</strong> uvidíte <strong>Standard</strong> a <strong>Dedicated</strong>.</li>
+    <li><strong>Compute → SQL warehouses</strong> → warehouse → <strong>Permissions</strong>: úrovně CAN VIEW, CAN USE, CAN MONITOR, CAN MANAGE, IS OWNER. U classic clusteru (pokud nějaký máte) ukažte CAN ATTACH TO, CAN RESTART, CAN MANAGE.</li>
+    <li>Tatáž oprávnění z CLI:</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">BASH</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm"># ID warehouse z kroku 1</span>
+databricks permissions get warehouses <span class="str">&lt;warehouse-id&gt;</span> --profile <span class="str">&lt;profil&gt;</span></pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> na startovacím warehouse obvykle uvidíte skupinu <code class="inline">users</code> s CAN USE a <code class="inline">admins</code> s CAN MANAGE. Kdo smí na compute pracovat, řeší oprávnění na compute; co smí číst, řeší až Unity Catalog (kapitola 4).</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> zkouškové otázky píšou „shared“ a „single user“, UI píše Standard a Dedicated. Je to totéž, jen nové názvy.</div></div>
+
+  <h3>Úklid</h3>
+  <ol>
+    <li>Formulář Create compute zavřete bez uložení a ověřte v <strong>Compute</strong>, že nevznikl žádný cluster.</li>
+    <li>Oba notebooky smažte, nebo je nechte ve vlastní složce; notebook-scoped knihovna zmizí s koncem session sama.</li>
+  </ol>
+</div>
+
     <div class="footer-nav">
       <a href="dp750_01_explore_databricks.html">← Představení Azure Databricks</a>
-      <span style="color:var(--text-muted);font-size:13px">Kapitola 2 z 16</span>
+      <span data-view="orig" style="color:var(--text-muted);font-size:13px">Kapitola 2 z 13</span><span data-view="custom" style="color:var(--text-muted);font-size:13px">Kapitola 2 z 16</span>
       <a href="dp750_03_objekty_unity_catalog.html" style="margin-left:auto">Objekty v Unity Catalogu →</a>
     </div>
   </main>
 </div>
 
-<script>function initTabs(){document.querySelectorAll('.tab-list').forEach(list=>{list.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{const panel=btn.dataset.tab;const container=btn.closest('.tabs');container.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));container.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');container.querySelector('#'+panel).classList.add('active')})})});document.querySelectorAll('.tabs').forEach(t=>{const first=t.querySelector('.tab-btn');if(first)first.classList.add('active');const firstP=t.querySelector('.tab-panel');if(firstP)firstP.classList.add('active')})}
+<script>var T={copy:"Kopírovat",copied:"✓ Zkopírováno",copyFallback:"Ctrl+C",hintShow:"💡 Zobrazit nápovědu",hintHide:"🙈 Skrýt nápovědu",menuOpen:"☰ Kapitoly",menuClose:"✕ Zavřít"};
+/* Sdilene chovani pro CS i EN vetev. Objekt T (UI texty) emituje build.py pred telem
+   tohoto skriptu — viz LANGS v build.py. Zadny text natvrdo, jinak se rozejdou jazyky. */
+function initTabs(){document.querySelectorAll('.tab-list').forEach(list=>{list.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{const panel=btn.dataset.tab;const container=btn.closest('.tabs');container.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));container.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');container.querySelector('#'+panel).classList.add('active')})})});document.querySelectorAll('.tabs').forEach(t=>{if(t.querySelector('.tab-btn.active'))return;const first=t.querySelector('.tab-btn');if(first)first.classList.add('active');const firstP=t.querySelector('.tab-panel');if(firstP)firstP.classList.add('active')})}
 function initCollapsibles(){document.querySelectorAll('.collapsible-header').forEach(h=>{h.addEventListener('click',()=>h.closest('.collapsible').classList.toggle('open'))})}
-function initHints(){document.querySelectorAll('.hint-toggle').forEach(t=>{t.addEventListener('click',()=>{const c=t.nextElementSibling;c.classList.toggle('open');t.textContent=c.classList.contains('open')?'🙈 Skrýt nápovědu':'💡 Zobrazit nápovědu'})})}
-function initCopy(){document.querySelectorAll('.copy-btn').forEach(btn=>{btn.addEventListener('click',()=>{const code=btn.closest('.code-block').querySelector('pre').innerText;function ok(){btn.textContent='✓ Zkopírováno';btn.classList.add('copied');setTimeout(()=>{btn.textContent='Kopírovat';btn.classList.remove('copied')},2000)}function legacy(){try{const ta=document.createElement('textarea');ta.value=code;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok()}catch(e){btn.textContent='Ctrl+C';setTimeout(()=>{btn.textContent='Kopírovat'},2000)}}if(navigator.clipboard){navigator.clipboard.writeText(code).then(ok).catch(legacy)}else{legacy()}})})}
+function initHints(){document.querySelectorAll('.hint-toggle').forEach(t=>{t.addEventListener('click',()=>{const c=t.nextElementSibling;c.classList.toggle('open');t.textContent=c.classList.contains('open')?T.hintHide:T.hintShow})})}
+function initCopy(){document.querySelectorAll('.copy-btn').forEach(btn=>{btn.addEventListener('click',()=>{const code=btn.closest('.code-block').querySelector('pre').innerText;function ok(){btn.textContent=T.copied;btn.classList.add('copied');setTimeout(()=>{btn.textContent=T.copy;btn.classList.remove('copied')},2000)}function legacy(){try{const ta=document.createElement('textarea');ta.value=code;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok()}catch(e){btn.textContent=T.copyFallback;setTimeout(()=>{btn.textContent=T.copy},2000)}}if(navigator.clipboard){navigator.clipboard.writeText(code).then(ok).catch(legacy)}else{legacy()}})})}
 function initTOC(){const sections=document.querySelectorAll('.section');const items=document.querySelectorAll('.toc-item[data-section]');if(!items.length)return;const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){const id=e.target.id;items.forEach(i=>i.classList.toggle('active',i.dataset.section===id))}})},{rootMargin:'-15% 0px -70% 0px'});sections.forEach(s=>obs.observe(s));items.forEach(i=>{i.addEventListener('click',()=>{document.getElementById(i.dataset.section)?.scrollIntoView({behavior:'smooth'})})})}
 function initProgress(){const bar=document.getElementById('pfill');if(!bar)return;window.addEventListener('scroll',()=>{const t=window.scrollY;const h=document.documentElement.scrollHeight-window.innerHeight;bar.style.width=(h>0?t/h*100:0)+'%'})}
-function initChapterMenu(){const btn=document.getElementById('chapBtn');const menu=document.getElementById('chapMenu');const overlay=document.getElementById('chapOverlay');if(!btn)return;const cur=window.location.pathname.split('/').pop()||'index.html';menu.querySelectorAll('.chapter-link').forEach(a=>{if(a.getAttribute('href')===cur)a.classList.add('current')});function close(){menu.classList.remove('open');overlay.classList.remove('open');btn.textContent='☰ Kapitoly'}function open(){menu.classList.add('open');overlay.classList.add('open');btn.textContent='✕ Zavřít'}btn.addEventListener('click',e=>{e.stopPropagation();menu.classList.contains('open')?close():open()});overlay.addEventListener('click',close);document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});menu.querySelectorAll('.chapter-link').forEach(a=>a.addEventListener('click',close))}
-function initViewSwitch(){document.querySelectorAll('[data-view-set]').forEach(b=>b.addEventListener('click',()=>{const m=b.dataset.viewSet;document.documentElement.classList.toggle('mode-orig',m==='orig');try{localStorage.setItem('dp750-view',m)}catch(e){}}))}
+function initChapterMenu(){const btn=document.getElementById('chapBtn');const menu=document.getElementById('chapMenu');const overlay=document.getElementById('chapOverlay');if(!btn)return;const cur=window.location.pathname.split('/').pop()||'index.html';menu.querySelectorAll('.chapter-link').forEach(a=>{if(a.getAttribute('href')===cur)a.classList.add('current')});function close(){menu.classList.remove('open');overlay.classList.remove('open');btn.textContent=T.menuOpen}function open(){menu.classList.add('open');overlay.classList.add('open');btn.textContent=T.menuClose}btn.addEventListener('click',e=>{e.stopPropagation();menu.classList.contains('open')?close():open()});overlay.addEventListener('click',close);document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});menu.querySelectorAll('.chapter-link').forEach(a=>a.addEventListener('click',close))}
+function initViewSwitch(){document.querySelectorAll('[data-view-set]').forEach(b=>b.addEventListener('click',()=>{const m=b.dataset.viewSet;document.documentElement.classList.toggle('mode-custom',m==='custom');try{localStorage.setItem('dp750-view',m)}catch(e){}}))}
 document.addEventListener('DOMContentLoaded',()=>{initChapterMenu();initViewSwitch();initTabs();initCollapsibles();initHints();initCopy();initTOC();initProgress()})</script>
 </body>
 </html>

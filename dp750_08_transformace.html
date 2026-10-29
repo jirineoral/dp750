@@ -100,14 +100,24 @@ tr:hover td{background:#f9fafb}
 .figure svg{display:block;width:100%;height:auto;max-width:820px;margin:0 auto}
 .figure figcaption{margin-top:10px;font-size:12px;color:var(--text-muted);text-align:center;line-height:1.5}
 code.inline{font-family:var(--font-mono);font-size:.9em;background:var(--accent-light);color:var(--gopas-blue);padding:1px 5px;border-radius:3px}
-[data-view="orig"]{display:none}
-html.mode-orig [data-view="orig"]{display:revert}
-html.mode-orig [data-view="custom"]{display:none}
+/* Vychozi pohled = originalni osnova MOC. Vlastni tridenni osnovu zapina trida
+   mode-custom na <html> (MODE_BOOT v build.py + initViewSwitch). Bez JS => originalni osnova. */
+/* Skryva se vzdy jen pres display:none. Nikdy display:revert - vracel by hodnotu
+   z UA stylu, ne autorskou, a diky vyssi specificite by prebil napr. .callout{display:flex}. */
+html:not(.mode-custom) [data-view="custom"]{display:none}
+html.mode-custom [data-view="orig"]{display:none}
+/* prepinac jazyka v top-nav (kapitoly); vlajky jsou inline SVG - zadny externi request */
+.lang-switch{display:flex;align-items:center;gap:2px;padding:2px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:999px;flex-shrink:0}
+.nav-links .lang-switch>*{display:flex;align-items:center;gap:5px;padding:3px 9px;border:none;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.5px;color:rgba(255,255,255,.6);text-decoration:none}
+.nav-links .lang-switch a:hover{background:rgba(255,255,255,.14);color:#fff}
+.nav-links .lang-switch>.current{background:#fff;color:var(--gopas-blue)}
+.lang-switch svg{display:block;width:18px;height:12px;border-radius:2px;flex-shrink:0}
+@media(max-width:700px){.lang-switch .lang-lbl{display:none}.nav-links .lang-switch>*{padding:4px 7px}}
 .learn-more{display:flex;gap:8px;align-items:baseline;margin:14px 0 0;padding:9px 13px;background:#f8fafc;border:1px solid var(--border);border-left:3px solid var(--gopas-blue);border-radius:6px;font-size:13px;color:var(--text-muted)}
 .learn-more .lm-label{flex-shrink:0;font-weight:600;color:var(--gopas-blue)}
 .learn-more a{color:var(--gopas-blue);text-decoration:none;border-bottom:1px solid rgba(26,58,107,.3)}
 .learn-more a:hover{border-bottom-color:var(--gopas-blue)}</style>
-<script>try{if(localStorage.getItem("dp750-view")==="orig")document.documentElement.className="mode-orig"}catch(e){}</script>
+
 </head>
 <body>
 <div id="chapOverlay" class="chapter-menu-overlay"></div>
@@ -125,16 +135,16 @@ html.mode-orig [data-view="custom"]{display:none}
   <div class="chapter-group">
     <div class="chapter-group-title">MOC — pokračování</div>
     <a class="chapter-link" href="dp750_08_transformace.html">8. Čištění a transformace dat</a>
-    <a class="chapter-link" href="dp750_09_data_quality.html" title="Mimo osnovu zkráceného kurzu">9. Data quality constraints<span data-view="custom" style="opacity:.55;font-size:11px"> · mimo osnovu</span></a>
+    <a class="chapter-link" href="dp750_09_data_quality.html">9. Data quality constraints</a>
     <a class="chapter-link" href="dp750_10_pipelines.html">10. Datové pipelines</a>
     <a class="chapter-link" href="dp750_11_lakeflow_jobs.html">11. Lakeflow Jobs</a>
-    <a class="chapter-link" href="dp750_12_dev_lifecycle.html" title="Mimo osnovu zkráceného kurzu">12. Vývojový lifecycle<span data-view="custom" style="opacity:.55;font-size:11px"> · mimo osnovu</span></a>
+    <a class="chapter-link" href="dp750_12_dev_lifecycle.html">12. Vývojový lifecycle</a>
     <a class="chapter-link" href="dp750_13_monitoring.html">13. Monitoring a optimalizace</a>
     <div data-view="orig" style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1)">
       <a class="chapter-link" href="index.html" style="color:rgba(255,255,255,.5)">🏠 Rozcestník kurzu</a>
     </div>
   </div>
-  <div class="chapter-group" data-view="custom">
+  <div class="chapter-group">
     <div class="chapter-group-title">Pod čarou — den 3</div>
     <a class="chapter-link" href="dp750_14_fabric_prehled.html">14. Průřez Microsoft Fabric</a>
     <a class="chapter-link" href="dp750_15_pbi_fabric_databricks.html">15. Power BI + Fabric + Databricks</a>
@@ -151,7 +161,7 @@ html.mode-orig [data-view="custom"]{display:none}
     <span class="chapter-title-nav">Čištění, transformace a load dat</span>
   </div>
   <div class="nav-links">
-    <button id="chapBtn" class="chapter-menu-btn">☰ Kapitoly</button><a href="index.html" class="home" title="Rozcestník">🏠</a>
+    <div class="lang-switch" role="group" aria-label="Jazyk / Language"><span class="current" aria-current="true"><svg viewBox="0 0 30 20" aria-hidden="true" focusable="false"><rect width="30" height="10" fill="#fff"/><rect y="10" width="30" height="10" fill="#d7141a"/><path d="M0 0 15 10 0 20Z" fill="#11457e"/></svg><span class="lang-lbl">CS</span></span><a href="en/dp750_08_transformace.html" title="English version" hreflang="en"><svg viewBox="0 0 60 30" aria-hidden="true" focusable="false"><rect width="60" height="30" fill="#012169"/><path d="M0 0 60 30M60 0 0 30" stroke="#fff" stroke-width="6"/><path d="M0 0 60 30M60 0 0 30" stroke="#c8102e" stroke-width="2"/><path d="M30 0V30M0 15H60" stroke="#fff" stroke-width="10"/><path d="M30 0V30M0 15H60" stroke="#c8102e" stroke-width="6"/></svg><span class="lang-lbl">EN</span></a></div><button id="chapBtn" class="chapter-menu-btn">☰ Kapitoly</button><a href="index.html" class="home" title="Rozcestník">🏠</a>
     <a href="dp750_09_data_quality.html" class="next">Data quality constraints →</a>
   </div>
 </nav>
@@ -169,6 +179,7 @@ html.mode-orig [data-view="custom"]{display:none}
     <a href="#sec-denormalizace-pivoty" class="toc-item" data-section="sec-denormalizace-pivoty">Denormalizace a pivoty</a>
     <a href="#sec-load-merge" class="toc-item" data-section="sec-load-merge">Load: INSERT, append a MERGE</a>
     <a href="#sec-lab" class="toc-item" data-section="sec-lab">Lab 8: Cleansing and Transforming Real Estate Data in Unity Catalog (45 minut)</a>
+    <a href="#sec-runbook" class="toc-item" data-section="sec-runbook">Runbook: ukázka krok za krokem</a>
   </aside>
 
   <main class="main">
@@ -320,10 +331,10 @@ dbutils.data.<span class="fn">summarize</span>(df)</pre>
 
   <div class="tabs">
     <div class="tab-list">
-      <button class="tab-btn" data-tab="tab-08-dup-sql"><span class="tab-icon">🗄️</span>SQL</button>
+      <button class="tab-btn active" data-tab="tab-08-dup-sql"><span class="tab-icon">🗄️</span>SQL</button>
       <button class="tab-btn" data-tab="tab-08-dup-py"><span class="tab-icon">🐍</span>Python</button>
     </div>
-    <div class="tab-panel" id="tab-08-dup-sql">
+    <div class="tab-panel active" id="tab-08-dup-sql">
       <div class="code-block">
         <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
         <pre><span class="cm">-- najit duplicitni radky (vcetne vsech sloupcu)</span>
@@ -663,22 +674,253 @@ UNPIVOT (
   <div class="callout success"><div class="callout-icon">✓</div><div><strong>Sebekontrola:</strong> <strong>1)</strong> Proč pro ceny nemovitostí použijete DECIMAL a ne DOUBLE, a co rozhoduje mezi TIMESTAMP a TIMESTAMP_NTZ? <strong>2)</strong> Jak zajistíte, že po deduplikaci přežije právě nejnovější verze inzerátu? <strong>3)</strong> Kdy sáhnete po LEFT JOIN místo INNER JOIN při spojování inzerátů s prodeji — a co udělá UNPIVOT se statistikami trhu v širokém formátu?</div></div>
 </div>
 
+<div class="section" id="sec-runbook">
+  <div class="section-header">
+    <div class="section-num">8.R</div>
+    <h2>Runbook: ukázka krok za krokem</h2>
+  </div>
+  <p>Ukázka prožene šest syrových objednávek e-shopu s cyklodoplňky celou cestou z bronze do silver a gold: profiling, typy, duplicity a NULL, agregace, joiny, pivot a nakonec load přes <code class="inline">MERGE</code> a <code class="inline">REPLACE WHERE</code>. Běží v lektorském workspace nad syntetickými daty ve schématu <code class="inline">dp750_demo.m08</code>, ne nad daty labu.</p>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> SQL editor na serverless SQL warehouse, existující katalog <code class="inline">dp750_demo</code>. Všechno ostatní založí krok 1. Kroky jdou za sebou, každý stojí na tabulce z předchozího. Asi 10 minut. Data profiling v Catalog Exploreru (záložka <strong>Quality</strong>) jen ukaž, jeho metriky se plní minuty.</div></div>
+
+  <h3>Krok 1 – Profiling dat (8.1)</h3>
+  <ol>
+    <li>Založ bronze tabulku <code class="inline">raw_orders</code>: cena a čas jsou řetězce, objednávka A-1 je tam dvakrát stejná, A-2 ve dvou verzích, A-3 bez ceny, A-4 bez zákazníka.</li>
+    <li>Profiluj jedním dotazem: 6 řádků, 4 objednávky, 1 NULL v ceně, 1 NULL v zákazníkovi.</li>
+    <li>Spočítej statistiky přes <code class="inline">ANALYZE TABLE</code> a ukaž detail sloupce <code class="inline">price_str</code>: <code class="inline">num_nulls = 1</code>, <code class="inline">distinct_count = 4</code>.</li>
+    <li>V Catalog Exploreru otevři tabulku → záložka <strong>Quality</strong> a ukaž, kde se zapíná data profiling. Nezapínej ho, pokud nechceš čekat. Přesné kliky v aktuálním UI si projdi při přípravě.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="kw">CREATE</span> <span class="kw">SCHEMA</span> <span class="kw">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> <span class="tbl">dp750_demo.m08</span>;
+
+<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m08.raw_orders</span> <span class="kw">AS</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">VALUES</span>
+  (<span class="str">'A-1'</span>, <span class="str">'C01'</span>, <span class="str">'helma'</span>,  <span class="str">'1299.00'</span>, <span class="str">'2026-11-02 08:10:00'</span>),
+  (<span class="str">'A-1'</span>, <span class="str">'C01'</span>, <span class="str">'helma'</span>,  <span class="str">'1299.00'</span>, <span class="str">'2026-11-02 08:10:00'</span>),
+  (<span class="str">'A-2'</span>, <span class="str">'C02'</span>, <span class="str">'svetlo'</span>, <span class="str">'349.50'</span>,  <span class="str">'2026-11-02 09:00:00'</span>),
+  (<span class="str">'A-3'</span>, <span class="str">'C03'</span>, <span class="str">'pumpa'</span>,  <span class="kw">NULL</span>,      <span class="str">'2026-11-03 10:00:00'</span>),
+  (<span class="str">'A-4'</span>, <span class="kw">NULL</span>,  <span class="str">'zamek'</span>,  <span class="str">'590.00'</span>,  <span class="str">'2026-11-03 11:30:00'</span>),
+  (<span class="str">'A-2'</span>, <span class="str">'C02'</span>, <span class="str">'svetlo'</span>, <span class="str">'329.50'</span>,  <span class="str">'2026-11-04 12:00:00'</span>)
+<span class="kw">AS</span> t(order_id, customer_id, product, price_str, updated_str);
+
+<span class="cm">-- quick profile: volumes, uniqueness, missing values, ranges</span>
+<span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">AS</span> rows_total,
+       <span class="fn">count</span>(DISTINCT order_id) <span class="kw">AS</span> orders,
+       <span class="fn">count_if</span>(price_str <span class="kw">IS</span> <span class="kw">NULL</span>) <span class="kw">AS</span> price_nulls,
+       <span class="fn">count_if</span>(customer_id <span class="kw">IS</span> <span class="kw">NULL</span>) <span class="kw">AS</span> customer_nulls,
+       <span class="fn">min</span>(updated_str) <span class="kw">AS</span> first_update,
+       <span class="fn">max</span>(updated_str) <span class="kw">AS</span> last_update
+<span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.raw_orders</span>;
+
+<span class="kw">ANALYZE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m08.raw_orders</span> <span class="kw">COMPUTE</span> <span class="kw">STATISTICS</span> <span class="kw">FOR</span> <span class="kw">ALL</span> <span class="kw">COLUMNS</span>;
+<span class="kw">DESC</span> <span class="kw">EXTENDED</span> <span class="tbl">dp750_demo.m08.raw_orders</span> price_str;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> rozdíl 6 řádků proti 4 objednávkám je první varování před duplicitami; bez profilu bys čistil naslepo. Tytéž statistiky z <code class="inline">ANALYZE TABLE</code> používá optimizer.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> u řetězcového sloupce vrátí <code class="inline">DESC EXTENDED</code> <code class="inline">min</code> a <code class="inline">max</code> jako NULL; rozsahy cen uvidíš až po přetypování v kroku 2. Rozsah dat <code class="inline">min(updated_str)</code> funguje jen proto, že řetězce mají formát ISO.</div></div>
+
+  <h3>Krok 2 – Volba datových typů (8.2)</h3>
+  <ol>
+    <li>Ukaž, proč peníze nepatří do <code class="inline">DOUBLE</code>: <code class="inline">0.1 + 0.2</code> v double dá <code class="inline">0.30000000000000004</code>, v decimal <code class="inline">0.3</code>.</li>
+    <li>Ukaž <code class="inline">TIMESTAMP</code> a <code class="inline">TIMESTAMP_NTZ</code> vedle sebe a aktuální session timezone (v lektorském workspace <code class="inline">Etc/UTC</code>).</li>
+    <li>Založ silver kandidáta <code class="inline">orders_typed</code> s explicitními <code class="inline">CAST</code>, s polem tagů a strukturou původu; <code class="inline">DESCRIBE</code> ukáže <code class="inline">decimal(10,2)</code>, <code class="inline">array&lt;string&gt;</code> a <code class="inline">struct</code>.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="kw">SELECT</span> <span class="num">0.1D</span> + <span class="num">0.2D</span> <span class="kw">AS</span> as_double, <span class="num">0.1BD</span> + <span class="num">0.2BD</span> <span class="kw">AS</span> as_decimal;
+
+<span class="kw">SELECT</span> CAST(<span class="str">'2026-11-04 10:00:00'</span> <span class="kw">AS</span> <span class="kw">TIMESTAMP</span>) <span class="kw">AS</span> ts_ltz,
+       CAST(<span class="str">'2026-11-04 10:00:00'</span> <span class="kw">AS</span> <span class="kw">TIMESTAMP_NTZ</span>) <span class="kw">AS</span> ts_ntz,
+       <span class="fn">current_timezone</span>() <span class="kw">AS</span> session_tz;
+
+<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m08.orders_typed</span> <span class="kw">AS</span>
+<span class="kw">SELECT</span> order_id, customer_id, product,
+       CAST(price_str <span class="kw">AS</span> <span class="kw">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>)) <span class="kw">AS</span> price,
+       CAST(updated_str <span class="kw">AS</span> <span class="kw">TIMESTAMP</span>) <span class="kw">AS</span> updated_at,
+       <span class="fn">array</span>(<span class="str">'cyklo'</span>, product) <span class="kw">AS</span> tags,
+       <span class="fn">named_struct</span>(<span class="str">'channel'</span>, <span class="str">'web'</span>, <span class="str">'country'</span>, <span class="str">'CZ'</span>) <span class="kw">AS</span> origin
+<span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.raw_orders</span>;
+
+<span class="kw">DESCRIBE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m08.orders_typed</span>;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> explicitní <code class="inline">CAST</code> hned při přechodu do silver je zároveň dokumentace záměru: kdo čte DDL, ví, že cena je exaktní číslo se dvěma desetinnými místy. <code class="inline">TIMESTAMP</code> se zobrazuje podle session timezone, <code class="inline">TIMESTAMP_NTZ</code> zůstane, jak byl zadán.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> rozdíl mezi <code class="inline">TIMESTAMP</code> a <code class="inline">TIMESTAMP_NTZ</code> je při UTC session na výstupu skoro neviditelný (liší se jen příponou <code class="inline">Z</code>). Na serverless a SQL warehouse je zapnutý ANSI mode: kdyby v ceně byl text, <code class="inline">CAST</code> spadne na <code class="inline">CAST_INVALID_INPUT</code>; tady projde, protože data mají jen NULL, ne nesmysly (na to je kapitola 9).</div></div>
+
+  <h3>Krok 3 – Duplicity a NULL hodnoty (8.3)</h3>
+  <ol>
+    <li>Najdi všechny řádky objednávek, které se opakují: <code class="inline">QUALIFY count(*) OVER (…) &gt; 1</code> vrátí 4 řádky (A-1 dvakrát, A-2 ve dvou verzích).</li>
+    <li>Deduplikuj na nejnovější verzi přes <code class="inline">row_number()</code> řazený podle <code class="inline">updated_at DESC</code> a zároveň ošetři NULL: chybějící zákazník dostane <code class="inline">UNKNOWN</code>, chybějící cena 0.</li>
+    <li>Výsledek <code class="inline">orders_clean</code> má 4 řádky; A-2 má cenu 329,50 ze 4. 11.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="cm">-- every row of an order that appears more than once</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.orders_typed</span>
+<span class="kw">QUALIFY</span> <span class="fn">count</span>(*) <span class="kw">OVER</span> (<span class="kw">PARTITION</span> <span class="kw">BY</span> order_id) &gt; <span class="num">1</span>
+<span class="kw">ORDER</span> <span class="kw">BY</span> order_id, updated_at;
+
+<span class="cm">-- keep the newest version per order, fill missing values</span>
+<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m08.orders_clean</span> <span class="kw">AS</span>
+<span class="kw">SELECT</span> order_id,
+       <span class="fn">coalesce</span>(customer_id, <span class="str">'UNKNOWN'</span>) <span class="kw">AS</span> customer_id,
+       product,
+       <span class="fn">coalesce</span>(price, <span class="num">0</span>) <span class="kw">AS</span> price,
+       updated_at
+<span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.orders_typed</span>
+<span class="kw">QUALIFY</span> <span class="fn">row_number</span>() <span class="kw">OVER</span> (<span class="kw">PARTITION</span> <span class="kw">BY</span> order_id <span class="kw">ORDER</span> <span class="kw">BY</span> updated_at <span class="kw">DESC</span>) = <span class="num">1</span>;
+
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.orders_clean</span> <span class="kw">ORDER</span> <span class="kw">BY</span> order_id;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> <code class="inline">ORDER BY updated_at DESC</code> rozhoduje, která verze přežije; <code class="inline">dropDuplicates()</code> v PySparku nechá jeden z výskytů, ale který, není garantované. U A-1 jsou oba řádky totožné, takže na pořadí nezáleží, u A-2 ano.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> doplnit chybějící cenu nulou je byznysové rozhodnutí, ne technické: průměrná cena teď vyjde nižší a A-3 vypadá jako zboží zdarma. V kroku 4 se proto nulové ceny filtrují. Kdo v Pythonu filtruje NULL přes <code class="inline">!= None</code>, dostane prázdný výsledek; správně <code class="inline">isNull()</code> a <code class="inline">IS NULL</code>.</div></div>
+
+  <h3>Krok 4 – Filtry a agregace (8.4)</h3>
+  <ol>
+    <li>Tržby podle produktu jen z objednávek s cenou nad nulou, jen produkty s tržbou nad 400.</li>
+    <li>Výsledek: helma 1 299 a zámek 590. Světlo (329,50) vypadne až po agregaci kvůli <code class="inline">HAVING</code>, pumpa už ve <code class="inline">WHERE</code>.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="cm">-- WHERE filters rows, HAVING filters groups</span>
+<span class="kw">SELECT</span> product, <span class="fn">count</span>(*) <span class="kw">AS</span> orders, <span class="fn">sum</span>(price) <span class="kw">AS</span> revenue
+<span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.orders_clean</span>
+<span class="kw">WHERE</span> price &gt; <span class="num">0</span>
+<span class="kw">GROUP</span> <span class="kw">BY</span> product
+<span class="kw">HAVING</span> <span class="fn">sum</span>(price) &gt; <span class="num">400</span>
+<span class="kw">ORDER</span> <span class="kw">BY</span> revenue <span class="kw">DESC</span>;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> na jednom dotazu je vidět rozdíl mezi filtrem na řádky a filtrem na skupiny. Filtr co nejdřív zmenší data pro všechno, co následuje.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> sloupec v <code class="inline">SELECT</code>, který není v <code class="inline">GROUP BY</code> ani v agregační funkci, skončí chybou. Kdo dá podmínku na <code class="inline">sum(price)</code> do <code class="inline">WHERE</code>, dostane chybu, protože agregace v té fázi ještě neexistuje.</div></div>
+
+  <h3>Krok 5 – Joins a set operátory (8.5)</h3>
+  <ol>
+    <li>Založ malou tabulku zákazníků (C01, C02 a C09, který nikdy nenakoupil).</li>
+    <li><code class="inline">LEFT JOIN</code>: všechny 4 objednávky, u C03 a UNKNOWN je jméno NULL.</li>
+    <li><code class="inline">LEFT ANTI JOIN</code>: zákazník C09 bez objednávky.</li>
+    <li><code class="inline">UNION</code> proti <code class="inline">UNION ALL</code>: 4 proti 10 řádkům. <code class="inline">EXCEPT</code> mezi bronze a silver vrátí prázdný výsledek, žádná objednávka se neztratila.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m08.customers</span> <span class="kw">AS</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">VALUES</span> (<span class="str">'C01'</span>, <span class="str">'Jana'</span>, <span class="str">'Brno'</span>), (<span class="str">'C02'</span>, <span class="str">'Petr'</span>, <span class="str">'Praha'</span>), (<span class="str">'C09'</span>, <span class="str">'Eva'</span>, <span class="str">'Olomouc'</span>)
+<span class="kw">AS</span> t(customer_id, name, city);
+
+<span class="kw">SELECT</span> o.order_id, o.customer_id, c.name
+<span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.orders_clean</span> o
+<span class="kw">LEFT</span> <span class="kw">JOIN</span> <span class="tbl">dp750_demo.m08.customers</span> c <span class="kw">ON</span> o.customer_id = c.customer_id
+<span class="kw">ORDER</span> <span class="kw">BY</span> o.order_id;
+
+<span class="cm">-- customers who never ordered</span>
+<span class="kw">SELECT</span> c.* <span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.customers</span> c
+<span class="kw">LEFT</span> <span class="kw">ANTI</span> <span class="kw">JOIN</span> <span class="tbl">dp750_demo.m08.orders_clean</span> o <span class="kw">ON</span> o.customer_id = c.customer_id;
+
+<span class="kw">SELECT</span>
+  (<span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">FROM</span> (<span class="kw">SELECT</span> order_id <span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.raw_orders</span>
+                         <span class="kw">UNION</span> <span class="kw">SELECT</span> order_id <span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.orders_clean</span>)) <span class="kw">AS</span> union_rows,
+  (<span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">FROM</span> (<span class="kw">SELECT</span> order_id <span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.raw_orders</span>
+                         <span class="kw">UNION</span> <span class="kw">ALL</span> <span class="kw">SELECT</span> order_id <span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.orders_clean</span>)) <span class="kw">AS</span> union_all_rows;
+
+<span class="cm">-- did cleansing lose any order? (empty = no)</span>
+<span class="kw">SELECT</span> order_id <span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.raw_orders</span>
+<span class="kw">EXCEPT</span>
+<span class="kw">SELECT</span> order_id <span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.orders_clean</span>;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> anti join je nejlevnější data quality kontrola na sirotky a <code class="inline">EXCEPT</code> rychlá kontrola, že čištění neztratilo klíče. Joiny přidávají sloupce, set operátory řádky.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> <code class="inline">UNION</code> deduplikuje, <code class="inline">UNION ALL</code> ne; PySpark <code class="inline">union()</code> se chová jako <code class="inline">UNION ALL</code>. Objednávka zákazníka C03 by v <code class="inline">INNER JOIN</code> zmizela, protože C03 v číselníku není.</div></div>
+
+  <h3>Krok 6 – Denormalizace a pivoty (8.6)</h3>
+  <ol>
+    <li>Založ gold tabulku <code class="inline">gold_orders_wide</code>, kde je jméno a město zákazníka předjoinované k objednávce.</li>
+    <li><code class="inline">PIVOT</code> otočí dny do sloupců: jeden řádek na produkt, tři denní sloupce.</li>
+    <li><code class="inline">UNPIVOT INCLUDE NULLS</code> otočí měsíční plán zpět do řádků; březen bez hodnoty zůstane jako řádek s NULL.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="cm">-- gold: dimension attributes copied into the fact rows</span>
+<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m08.gold_orders_wide</span> <span class="kw">AS</span>
+<span class="kw">SELECT</span> o.order_id, o.product, o.price, o.updated_at, c.name <span class="kw">AS</span> customer_name, c.city
+<span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.orders_clean</span> o
+<span class="kw">LEFT</span> <span class="kw">JOIN</span> <span class="tbl">dp750_demo.m08.customers</span> c <span class="kw">USING</span> (customer_id);
+
+<span class="cm">-- long to wide</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> (<span class="kw">SELECT</span> product, <span class="fn">to_date</span>(updated_at) <span class="kw">AS</span> day, price <span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.orders_clean</span>)
+<span class="kw">PIVOT</span> (<span class="fn">sum</span>(price) <span class="kw">FOR</span> day <span class="kw">IN</span> (<span class="kw">DATE</span><span class="str">'2026-11-02'</span> <span class="kw">AS</span> d02, <span class="kw">DATE</span><span class="str">'2026-11-03'</span> <span class="kw">AS</span> d03, <span class="kw">DATE</span><span class="str">'2026-11-04'</span> <span class="kw">AS</span> d04))
+<span class="kw">ORDER</span> <span class="kw">BY</span> product;
+
+<span class="cm">-- wide to long, keep the missing month</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> (<span class="kw">SELECT</span> <span class="str">'helma'</span> <span class="kw">AS</span> product, <span class="num">10</span> <span class="kw">AS</span> jan, <span class="num">12</span> <span class="kw">AS</span> feb, CAST(<span class="kw">NULL</span> <span class="kw">AS</span> <span class="kw">INT</span>) <span class="kw">AS</span> mar)
+<span class="kw">UNPIVOT</span> <span class="kw">INCLUDE</span> <span class="kw">NULLS</span> (target <span class="kw">FOR</span> month <span class="kw">IN</span> (jan, feb, mar));</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> denormalizace patří do gold, kde se čte; silver zůstává normalizovaný. <code class="inline">PIVOT</code> potřebuje agregaci, protože do jedné buňky může mířit víc řádků.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> hodnoty v <code class="inline">IN (…)</code> u <code class="inline">PIVOT</code> musíš vyjmenovat; nový den se sám jako sloupec neobjeví. Bez <code class="inline">INCLUDE NULLS</code> by <code class="inline">UNPIVOT</code> březen tiše vynechal. Denormalizovaná tabulka se po změně zákazníka sama neaktualizuje.</div></div>
+
+  <h3>Krok 7 – Load: INSERT, MERGE a REPLACE WHERE (8.7)</h3>
+  <ol>
+    <li>Založ cílovou silver tabulku se dvěma staršími objednávkami.</li>
+    <li><code class="inline">MERGE</code> přímo z <code class="inline">orders_typed</code> (s duplicitami) má spadnout.</li>
+    <li><code class="inline">MERGE</code> z deduplikované <code class="inline">orders_clean</code> projde: 2 updaty, 2 inserty. Podmínka <code class="inline">s.updated_at &gt; t.updated_at</code> brání přepsání novějšího staršími daty.</li>
+    <li><code class="inline">INSERT … REPLACE WHERE</code> atomicky nahradí jen řádky ze 3. 11. (oprava ceny o slevu 10 %): zámek má 531,00, ostatní řádky se nezměnily.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m08.silver_orders</span> (
+  order_id <span class="kw">STRING</span>, customer_id <span class="kw">STRING</span>, product <span class="kw">STRING</span>, price <span class="kw">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>), updated_at <span class="kw">TIMESTAMP</span>);
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m08.silver_orders</span> <span class="kw">VALUES</span>
+  (<span class="str">'A-1'</span>, <span class="str">'C01'</span>, <span class="str">'helma'</span>, <span class="num">1199.00</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-10-30 08:00:00'</span>),
+  (<span class="str">'A-2'</span>, <span class="str">'C02'</span>, <span class="str">'svetlo'</span>, <span class="num">349.50</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-10-30 09:00:00'</span>);
+
+<span class="cm">-- expected to fail: the source has two rows for A-1 and for A-2</span>
+<span class="kw">MERGE</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m08.silver_orders</span> <span class="kw">AS</span> t
+<span class="kw">USING</span> <span class="tbl">dp750_demo.m08.orders_typed</span> <span class="kw">AS</span> s
+<span class="kw">ON</span> t.order_id = s.order_id
+<span class="kw">WHEN</span> <span class="kw">MATCHED</span> <span class="kw">THEN</span> <span class="kw">UPDATE</span> <span class="kw">SET</span> t.price = s.price, t.updated_at = s.updated_at
+<span class="kw">WHEN</span> <span class="kw">NOT</span> <span class="kw">MATCHED</span> <span class="kw">THEN</span> <span class="kw">INSERT</span> (order_id, customer_id, product, price, updated_at)
+  <span class="kw">VALUES</span> (s.order_id, s.customer_id, s.product, s.price, s.updated_at);
+
+<span class="cm">-- deduplicated source: upsert works</span>
+<span class="kw">MERGE</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m08.silver_orders</span> <span class="kw">AS</span> t
+<span class="kw">USING</span> <span class="tbl">dp750_demo.m08.orders_clean</span> <span class="kw">AS</span> s
+<span class="kw">ON</span> t.order_id = s.order_id
+<span class="kw">WHEN</span> <span class="kw">MATCHED</span> <span class="kw">AND</span> s.updated_at &gt; t.updated_at <span class="kw">THEN</span>
+  <span class="kw">UPDATE</span> <span class="kw">SET</span> t.price = s.price, t.updated_at = s.updated_at
+<span class="kw">WHEN</span> <span class="kw">NOT</span> <span class="kw">MATCHED</span> <span class="kw">THEN</span> <span class="kw">INSERT</span> (order_id, customer_id, product, price, updated_at)
+  <span class="kw">VALUES</span> (s.order_id, s.customer_id, s.product, s.price, s.updated_at);
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.silver_orders</span> <span class="kw">ORDER</span> <span class="kw">BY</span> order_id;
+
+<span class="cm">-- selective overwrite of one day</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m08.silver_orders</span> <span class="kw">REPLACE</span> <span class="kw">WHERE</span> <span class="fn">to_date</span>(updated_at) = <span class="kw">DATE</span><span class="str">'2026-11-03'</span>
+<span class="kw">SELECT</span> order_id, customer_id, product, price * <span class="num">0.9</span>, updated_at
+<span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.orders_clean</span> <span class="kw">WHERE</span> <span class="fn">to_date</span>(updated_at) = <span class="kw">DATE</span><span class="str">'2026-11-03'</span>;
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.silver_orders</span> <span class="kw">ORDER</span> <span class="kw">BY</span> order_id;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> append pro nové záznamy, overwrite pro full refresh, <code class="inline">MERGE</code> pro upsert a <code class="inline">REPLACE WHERE</code> pro chirurgickou opravu okna. Všechny čtyři jsou atomické transakce nad Delta tabulkou.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> první <code class="inline">MERGE</code> skončí <code class="inline">DELTA_MULTIPLE_SOURCE_ROW_MATCHING_TARGET_ROW_IN_MERGE</code>, protože na jeden cílový řádek míří víc zdrojových; to je přesně důvod kroku 3. Kdyby cílová tabulka A-1 a A-2 neobsahovala, chyba by nenastala (oba zdrojové řádky by šly do <code class="inline">INSERT</code> a vznikly by duplicity).</div></div>
+
+  <h3>Úklid</h3>
+  <ol>
+    <li>Nic nemaž; všechny tabulky v <code class="inline">dp750_demo.m08</code> se při dalším průchodu přepíšou přes <code class="inline">CREATE OR REPLACE</code>.</li>
+    <li>Pokud jsi v kroku 1 zapnul data profiling, vypni ho v záložce <strong>Quality</strong>, ať se dál neúčtuje. Po kurzu <code class="inline">DROP SCHEMA dp750_demo.m08 CASCADE;</code>.</li>
+  </ol>
+</div>
+
     <div class="footer-nav">
       <a href="dp750_07_ingest.html">← Ingest dat</a>
-      <span style="color:var(--text-muted);font-size:13px">Kapitola 8 z 16</span>
+      <span data-view="orig" style="color:var(--text-muted);font-size:13px">Kapitola 8 z 13</span><span data-view="custom" style="color:var(--text-muted);font-size:13px">Kapitola 8 z 16</span>
       <a href="dp750_09_data_quality.html" style="margin-left:auto">Data quality constraints →</a>
     </div>
   </main>
 </div>
 
-<script>function initTabs(){document.querySelectorAll('.tab-list').forEach(list=>{list.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{const panel=btn.dataset.tab;const container=btn.closest('.tabs');container.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));container.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');container.querySelector('#'+panel).classList.add('active')})})});document.querySelectorAll('.tabs').forEach(t=>{const first=t.querySelector('.tab-btn');if(first)first.classList.add('active');const firstP=t.querySelector('.tab-panel');if(firstP)firstP.classList.add('active')})}
+<script>var T={copy:"Kopírovat",copied:"✓ Zkopírováno",copyFallback:"Ctrl+C",hintShow:"💡 Zobrazit nápovědu",hintHide:"🙈 Skrýt nápovědu",menuOpen:"☰ Kapitoly",menuClose:"✕ Zavřít"};
+/* Sdilene chovani pro CS i EN vetev. Objekt T (UI texty) emituje build.py pred telem
+   tohoto skriptu — viz LANGS v build.py. Zadny text natvrdo, jinak se rozejdou jazyky. */
+function initTabs(){document.querySelectorAll('.tab-list').forEach(list=>{list.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{const panel=btn.dataset.tab;const container=btn.closest('.tabs');container.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));container.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');container.querySelector('#'+panel).classList.add('active')})})});document.querySelectorAll('.tabs').forEach(t=>{if(t.querySelector('.tab-btn.active'))return;const first=t.querySelector('.tab-btn');if(first)first.classList.add('active');const firstP=t.querySelector('.tab-panel');if(firstP)firstP.classList.add('active')})}
 function initCollapsibles(){document.querySelectorAll('.collapsible-header').forEach(h=>{h.addEventListener('click',()=>h.closest('.collapsible').classList.toggle('open'))})}
-function initHints(){document.querySelectorAll('.hint-toggle').forEach(t=>{t.addEventListener('click',()=>{const c=t.nextElementSibling;c.classList.toggle('open');t.textContent=c.classList.contains('open')?'🙈 Skrýt nápovědu':'💡 Zobrazit nápovědu'})})}
-function initCopy(){document.querySelectorAll('.copy-btn').forEach(btn=>{btn.addEventListener('click',()=>{const code=btn.closest('.code-block').querySelector('pre').innerText;function ok(){btn.textContent='✓ Zkopírováno';btn.classList.add('copied');setTimeout(()=>{btn.textContent='Kopírovat';btn.classList.remove('copied')},2000)}function legacy(){try{const ta=document.createElement('textarea');ta.value=code;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok()}catch(e){btn.textContent='Ctrl+C';setTimeout(()=>{btn.textContent='Kopírovat'},2000)}}if(navigator.clipboard){navigator.clipboard.writeText(code).then(ok).catch(legacy)}else{legacy()}})})}
+function initHints(){document.querySelectorAll('.hint-toggle').forEach(t=>{t.addEventListener('click',()=>{const c=t.nextElementSibling;c.classList.toggle('open');t.textContent=c.classList.contains('open')?T.hintHide:T.hintShow})})}
+function initCopy(){document.querySelectorAll('.copy-btn').forEach(btn=>{btn.addEventListener('click',()=>{const code=btn.closest('.code-block').querySelector('pre').innerText;function ok(){btn.textContent=T.copied;btn.classList.add('copied');setTimeout(()=>{btn.textContent=T.copy;btn.classList.remove('copied')},2000)}function legacy(){try{const ta=document.createElement('textarea');ta.value=code;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok()}catch(e){btn.textContent=T.copyFallback;setTimeout(()=>{btn.textContent=T.copy},2000)}}if(navigator.clipboard){navigator.clipboard.writeText(code).then(ok).catch(legacy)}else{legacy()}})})}
 function initTOC(){const sections=document.querySelectorAll('.section');const items=document.querySelectorAll('.toc-item[data-section]');if(!items.length)return;const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){const id=e.target.id;items.forEach(i=>i.classList.toggle('active',i.dataset.section===id))}})},{rootMargin:'-15% 0px -70% 0px'});sections.forEach(s=>obs.observe(s));items.forEach(i=>{i.addEventListener('click',()=>{document.getElementById(i.dataset.section)?.scrollIntoView({behavior:'smooth'})})})}
 function initProgress(){const bar=document.getElementById('pfill');if(!bar)return;window.addEventListener('scroll',()=>{const t=window.scrollY;const h=document.documentElement.scrollHeight-window.innerHeight;bar.style.width=(h>0?t/h*100:0)+'%'})}
-function initChapterMenu(){const btn=document.getElementById('chapBtn');const menu=document.getElementById('chapMenu');const overlay=document.getElementById('chapOverlay');if(!btn)return;const cur=window.location.pathname.split('/').pop()||'index.html';menu.querySelectorAll('.chapter-link').forEach(a=>{if(a.getAttribute('href')===cur)a.classList.add('current')});function close(){menu.classList.remove('open');overlay.classList.remove('open');btn.textContent='☰ Kapitoly'}function open(){menu.classList.add('open');overlay.classList.add('open');btn.textContent='✕ Zavřít'}btn.addEventListener('click',e=>{e.stopPropagation();menu.classList.contains('open')?close():open()});overlay.addEventListener('click',close);document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});menu.querySelectorAll('.chapter-link').forEach(a=>a.addEventListener('click',close))}
-function initViewSwitch(){document.querySelectorAll('[data-view-set]').forEach(b=>b.addEventListener('click',()=>{const m=b.dataset.viewSet;document.documentElement.classList.toggle('mode-orig',m==='orig');try{localStorage.setItem('dp750-view',m)}catch(e){}}))}
+function initChapterMenu(){const btn=document.getElementById('chapBtn');const menu=document.getElementById('chapMenu');const overlay=document.getElementById('chapOverlay');if(!btn)return;const cur=window.location.pathname.split('/').pop()||'index.html';menu.querySelectorAll('.chapter-link').forEach(a=>{if(a.getAttribute('href')===cur)a.classList.add('current')});function close(){menu.classList.remove('open');overlay.classList.remove('open');btn.textContent=T.menuOpen}function open(){menu.classList.add('open');overlay.classList.add('open');btn.textContent=T.menuClose}btn.addEventListener('click',e=>{e.stopPropagation();menu.classList.contains('open')?close():open()});overlay.addEventListener('click',close);document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});menu.querySelectorAll('.chapter-link').forEach(a=>a.addEventListener('click',close))}
+function initViewSwitch(){document.querySelectorAll('[data-view-set]').forEach(b=>b.addEventListener('click',()=>{const m=b.dataset.viewSet;document.documentElement.classList.toggle('mode-custom',m==='custom');try{localStorage.setItem('dp750-view',m)}catch(e){}}))}
 document.addEventListener('DOMContentLoaded',()=>{initChapterMenu();initViewSwitch();initTabs();initCollapsibles();initHints();initCopy();initTOC();initProgress()})</script>
 </body>
 </html>

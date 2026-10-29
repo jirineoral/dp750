@@ -100,14 +100,24 @@ tr:hover td{background:#f9fafb}
 .figure svg{display:block;width:100%;height:auto;max-width:820px;margin:0 auto}
 .figure figcaption{margin-top:10px;font-size:12px;color:var(--text-muted);text-align:center;line-height:1.5}
 code.inline{font-family:var(--font-mono);font-size:.9em;background:var(--accent-light);color:var(--gopas-blue);padding:1px 5px;border-radius:3px}
-[data-view="orig"]{display:none}
-html.mode-orig [data-view="orig"]{display:revert}
-html.mode-orig [data-view="custom"]{display:none}
+/* Vychozi pohled = originalni osnova MOC. Vlastni tridenni osnovu zapina trida
+   mode-custom na <html> (MODE_BOOT v build.py + initViewSwitch). Bez JS => originalni osnova. */
+/* Skryva se vzdy jen pres display:none. Nikdy display:revert - vracel by hodnotu
+   z UA stylu, ne autorskou, a diky vyssi specificite by prebil napr. .callout{display:flex}. */
+html:not(.mode-custom) [data-view="custom"]{display:none}
+html.mode-custom [data-view="orig"]{display:none}
+/* prepinac jazyka v top-nav (kapitoly); vlajky jsou inline SVG - zadny externi request */
+.lang-switch{display:flex;align-items:center;gap:2px;padding:2px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:999px;flex-shrink:0}
+.nav-links .lang-switch>*{display:flex;align-items:center;gap:5px;padding:3px 9px;border:none;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.5px;color:rgba(255,255,255,.6);text-decoration:none}
+.nav-links .lang-switch a:hover{background:rgba(255,255,255,.14);color:#fff}
+.nav-links .lang-switch>.current{background:#fff;color:var(--gopas-blue)}
+.lang-switch svg{display:block;width:18px;height:12px;border-radius:2px;flex-shrink:0}
+@media(max-width:700px){.lang-switch .lang-lbl{display:none}.nav-links .lang-switch>*{padding:4px 7px}}
 .learn-more{display:flex;gap:8px;align-items:baseline;margin:14px 0 0;padding:9px 13px;background:#f8fafc;border:1px solid var(--border);border-left:3px solid var(--gopas-blue);border-radius:6px;font-size:13px;color:var(--text-muted)}
 .learn-more .lm-label{flex-shrink:0;font-weight:600;color:var(--gopas-blue)}
 .learn-more a{color:var(--gopas-blue);text-decoration:none;border-bottom:1px solid rgba(26,58,107,.3)}
 .learn-more a:hover{border-bottom-color:var(--gopas-blue)}</style>
-<script>try{if(localStorage.getItem("dp750-view")==="orig")document.documentElement.className="mode-orig"}catch(e){}</script>
+
 </head>
 <body>
 <div id="chapOverlay" class="chapter-menu-overlay"></div>
@@ -125,16 +135,16 @@ html.mode-orig [data-view="custom"]{display:none}
   <div class="chapter-group">
     <div class="chapter-group-title">MOC — pokračování</div>
     <a class="chapter-link" href="dp750_08_transformace.html">8. Čištění a transformace dat</a>
-    <a class="chapter-link" href="dp750_09_data_quality.html" title="Mimo osnovu zkráceného kurzu">9. Data quality constraints<span data-view="custom" style="opacity:.55;font-size:11px"> · mimo osnovu</span></a>
+    <a class="chapter-link" href="dp750_09_data_quality.html">9. Data quality constraints</a>
     <a class="chapter-link" href="dp750_10_pipelines.html">10. Datové pipelines</a>
     <a class="chapter-link" href="dp750_11_lakeflow_jobs.html">11. Lakeflow Jobs</a>
-    <a class="chapter-link" href="dp750_12_dev_lifecycle.html" title="Mimo osnovu zkráceného kurzu">12. Vývojový lifecycle<span data-view="custom" style="opacity:.55;font-size:11px"> · mimo osnovu</span></a>
+    <a class="chapter-link" href="dp750_12_dev_lifecycle.html">12. Vývojový lifecycle</a>
     <a class="chapter-link" href="dp750_13_monitoring.html">13. Monitoring a optimalizace</a>
     <div data-view="orig" style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1)">
       <a class="chapter-link" href="index.html" style="color:rgba(255,255,255,.5)">🏠 Rozcestník kurzu</a>
     </div>
   </div>
-  <div class="chapter-group" data-view="custom">
+  <div class="chapter-group">
     <div class="chapter-group-title">Pod čarou — den 3</div>
     <a class="chapter-link" href="dp750_14_fabric_prehled.html">14. Průřez Microsoft Fabric</a>
     <a class="chapter-link" href="dp750_15_pbi_fabric_databricks.html">15. Power BI + Fabric + Databricks</a>
@@ -151,7 +161,7 @@ html.mode-orig [data-view="custom"]{display:none}
     <span class="chapter-title-nav">Monitoring, troubleshooting a optimalizace</span>
   </div>
   <div class="nav-links">
-    <button id="chapBtn" class="chapter-menu-btn">☰ Kapitoly</button><a href="index.html" class="home" title="Rozcestník">🏠</a>
+    <div class="lang-switch" role="group" aria-label="Jazyk / Language"><span class="current" aria-current="true"><svg viewBox="0 0 30 20" aria-hidden="true" focusable="false"><rect width="30" height="10" fill="#fff"/><rect y="10" width="30" height="10" fill="#d7141a"/><path d="M0 0 15 10 0 20Z" fill="#11457e"/></svg><span class="lang-lbl">CS</span></span><a href="en/dp750_13_monitoring.html" title="English version" hreflang="en"><svg viewBox="0 0 60 30" aria-hidden="true" focusable="false"><rect width="60" height="30" fill="#012169"/><path d="M0 0 60 30M60 0 0 30" stroke="#fff" stroke-width="6"/><path d="M0 0 60 30M60 0 0 30" stroke="#c8102e" stroke-width="2"/><path d="M30 0V30M0 15H60" stroke="#fff" stroke-width="10"/><path d="M30 0V30M0 15H60" stroke="#c8102e" stroke-width="6"/></svg><span class="lang-lbl">EN</span></a></div><button id="chapBtn" class="chapter-menu-btn">☰ Kapitoly</button><a href="index.html" class="home" title="Rozcestník">🏠</a>
     <a href="dp750_14_fabric_prehled.html" class="next">Průřez Microsoft Fabric →</a>
   </div>
 </nav>
@@ -167,6 +177,7 @@ html.mode-orig [data-view="custom"]{display:none}
     <a href="#sec-skew-spill-shuffle" class="toc-item" data-section="sec-skew-spill-shuffle">Caching, skew, spill a shuffle</a>
     <a href="#sec-log-analytics" class="toc-item" data-section="sec-log-analytics">Log streaming do Azure Log Analytics</a>
     <a href="#sec-lab" class="toc-item" data-section="sec-lab">Lab 13: Monitor, Troubleshoot, and Optimize Workloads (45 minut)</a>
+    <a href="#sec-runbook" class="toc-item" data-section="sec-runbook">Runbook: ukázka krok za krokem</a>
   </aside>
 
   <main class="main">
@@ -629,22 +640,204 @@ final = salted.<span class="fn">groupBy</span>(<span class="str">"customer_id"</
   <div class="callout success"><div class="callout-icon">✓</div><div><strong>Sebekontrola:</strong> <strong>1)</strong> Podle čeho v Summary Metrics stage poznáte data skew a jaké je orientační pravidlo pro poměr Max vs. 75. percentil? <strong>2)</strong> Které tasky znovu spustí repair run u selhaného Lakeflow Jobu? <strong>3)</strong> Proč broadcast join eliminuje shuffle velké tabulky a co ho podle výchozích limitů omezuje?</div></div>
 </div>
 
+<div class="section" id="sec-runbook">
+  <div class="section-header">
+    <div class="section-num">13.R</div>
+    <h2>Runbook: ukázka krok za krokem</h2>
+  </div>
+  <p>Ukázka projde tři vrstvy pozorovatelnosti: kolik co stojí ze system tables, kde a proč selhal job z ukázky modulu 11, jak ve Spark UI vypadá skew a jak ho AQE rozbije, a co ze stejných událostí vidí Azure Log Analytics. Běží v lektorském workspace na syntetických datech (<code class="inline">spark.range</code>) a na historii vlastních běhů, ne na labu.</p>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> serverless SQL warehouse; classic cluster (Dedicated, aktuální LTS runtime, Photon vypnutý, single node, auto-termination 30 minut) pusť na začátku výkladu, start trvá minuty; notebook z kroku 4 připojený na tento cluster; den předem běhy jobu <code class="inline">dp750-demo-m11</code> z modulu 11 včetně selhání a repairu; v Azure portálu diagnostic setting workspace s kategoriemi <code class="inline">jobs</code> a <code class="inline">clusters</code> do Log Analytics workspace. Přístup k <code class="inline">system.billing</code> a <code class="inline">system.lakeflow</code> (account admin ho má, ostatním ho uděluje admin). Asi 15 minut přípravy, ukázka 10 minut.</div></div>
+
+  <h3>Krok 1 – Monitoring a řízení spotřeby clusterů</h3>
+  <ol>
+    <li>Compute → demo cluster → záložka Metrics: hardware (CPU, paměť), Spark (tasky, shuffle), přepnutí na jednotlivé uzly. V Configuration ukaž auto-termination.</li>
+    <li>SQL Warehouses → warehouse → Monitoring: běžící a čekající dotazy, počet clusterů.</li>
+    <li>SQL editor: nejdřív ceník (jobs compute vs. all-purpose vs. serverless), pak náklady za 30 dní podle produktu a SKU a denní trend s rozlišením serverless.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm">-- aktualni ceny za DBU (list price, USD); nazvy serverless SKU obsahuji region (zde West Europe, v jinem regionu upravte priponu)</span>
+<span class="kw">SELECT</span> <span class="col">sku_name</span>, <span class="col">pricing</span>.<span class="col">effective_list</span>.<span class="col">default</span> <span class="kw">AS</span> <span class="col">list_price_usd</span>, <span class="col">usage_unit</span>
+<span class="kw">FROM</span> <span class="tbl">system.billing.list_prices</span>
+<span class="kw">WHERE</span> <span class="col">price_end_time</span> <span class="kw">IS NULL</span>
+  <span class="kw">AND</span> <span class="col">sku_name</span> <span class="kw">IN</span> (<span class="str">'PREMIUM_JOBS_COMPUTE'</span>, <span class="str">'PREMIUM_ALL_PURPOSE_COMPUTE'</span>,
+                   <span class="str">'PREMIUM_JOBS_SERVERLESS_COMPUTE_EU_WEST'</span>, <span class="str">'PREMIUM_SERVERLESS_SQL_COMPUTE_EU_WEST'</span>,
+                   <span class="str">'PREMIUM_ALL_PURPOSE_SERVERLESS_COMPUTE_EU_WEST'</span>)
+<span class="kw">ORDER BY</span> <span class="col">list_price_usd</span>;
+
+<span class="cm">-- naklady za 30 dni podle workspace, produktu a SKU</span>
+<span class="kw">SELECT</span> u.<span class="col">workspace_id</span>, u.<span class="col">billing_origin_product</span>, u.<span class="col">sku_name</span>,
+       <span class="fn">round</span>(<span class="fn">sum</span>(u.<span class="col">usage_quantity</span>), <span class="num">2</span>) <span class="kw">AS</span> <span class="col">dbu</span>,
+       <span class="fn">round</span>(<span class="fn">sum</span>(u.<span class="col">usage_quantity</span> * p.<span class="col">pricing</span>.<span class="col">effective_list</span>.<span class="col">default</span>), <span class="num">2</span>) <span class="kw">AS</span> <span class="col">list_cost_usd</span>
+<span class="kw">FROM</span> <span class="tbl">system.billing.usage</span> <span class="kw">AS</span> u
+<span class="kw">JOIN</span> <span class="tbl">system.billing.list_prices</span> <span class="kw">AS</span> p
+  <span class="kw">ON</span> u.<span class="col">sku_name</span> <span class="op">=</span> p.<span class="col">sku_name</span> <span class="kw">AND</span> u.<span class="col">cloud</span> <span class="op">=</span> p.<span class="col">cloud</span> <span class="kw">AND</span> u.<span class="col">usage_unit</span> <span class="op">=</span> p.<span class="col">usage_unit</span>
+ <span class="kw">AND</span> u.<span class="col">usage_end_time</span> <span class="op">&gt;=</span> p.<span class="col">price_start_time</span>
+ <span class="kw">AND</span> (p.<span class="col">price_end_time</span> <span class="kw">IS NULL OR</span> u.<span class="col">usage_end_time</span> <span class="op">&lt;</span> p.<span class="col">price_end_time</span>)
+<span class="kw">WHERE</span> u.<span class="col">usage_date</span> <span class="op">&gt;=</span> <span class="fn">current_date</span>() <span class="op">-</span> <span class="kw">INTERVAL</span> <span class="num">30</span> <span class="kw">DAYS</span>
+<span class="kw">GROUP BY ALL</span>
+<span class="kw">ORDER BY</span> <span class="col">list_cost_usd</span> <span class="kw">DESC</span>;
+
+<span class="cm">-- denni trend DBU, serverless zvlast</span>
+<span class="kw">SELECT</span> <span class="col">usage_date</span>, <span class="col">product_features</span>.<span class="col">is_serverless</span> <span class="kw">AS</span> <span class="col">serverless</span>,
+       <span class="fn">round</span>(<span class="fn">sum</span>(<span class="col">usage_quantity</span>), <span class="num">2</span>) <span class="kw">AS</span> <span class="col">dbu</span>
+<span class="kw">FROM</span> <span class="tbl">system.billing.usage</span>
+<span class="kw">WHERE</span> <span class="col">usage_date</span> <span class="op">&gt;=</span> <span class="fn">current_date</span>() <span class="op">-</span> <span class="kw">INTERVAL</span> <span class="num">30</span> <span class="kw">DAYS</span>
+<span class="kw">GROUP BY ALL</span>
+<span class="kw">ORDER BY</span> <span class="col">usage_date</span>;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> z ceníku je hned vidět, proč patří produkční zátěž na jobs compute, ne na all-purpose cluster. <code class="inline">system.billing.usage</code> je za celý account; pro jeden workspace přidej filtr na <code class="inline">workspace_id</code>.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> v čerstvě založeném workspace vrátí dotazy na <code class="inline">usage</code> prázdný výsledek, záznamy přibývají se zpožděním (řádově hodiny). SKU, které v <code class="inline">list_prices</code> nemá odpovídající řádek, <code class="inline">JOIN</code> vynechá. Ceny jsou list price, ne vaše smluvní.</div></div>
+
+  <h3>Krok 2 – Troubleshooting a oprava Lakeflow Jobs</h3>
+  <ol>
+    <li>Jobs &amp; Pipelines → <code class="inline">dp750-demo-m11</code> → Runs → matrix view. Najeď myší na červenou buňku <code class="inline">daily_load</code>: chybová zpráva <code class="inline">ValueError</code>. Vedle je sloupec repairu se zelenými tasky.</li>
+    <li>Klikni na selhaný task: Task run details s výstupem. Ukaž tlačítko Diagnose Error.</li>
+    <li>V SQL editoru stejný příběh z <code class="inline">system.lakeflow</code>: běhy s výsledkem a dobou trvání a selhané tasky s kódem ukončení napříč joby.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm">-- behy za 30 dni: vysledek a delka (beh muze mit vic radku po hodinovych usecich)</span>
+<span class="kw">SELECT</span> <span class="col">job_id</span>, <span class="col">run_id</span>,
+       <span class="fn">min</span>(<span class="col">period_start_time</span>) <span class="kw">AS</span> <span class="col">run_start</span>,
+       <span class="fn">timestampdiff</span>(SECOND, <span class="fn">min</span>(<span class="col">period_start_time</span>), <span class="fn">max</span>(<span class="col">period_end_time</span>)) <span class="kw">AS</span> <span class="col">duration_s</span>,
+       <span class="fn">max_by</span>(<span class="col">result_state</span>, <span class="col">period_end_time</span>) <span class="kw">AS</span> <span class="col">result_state</span>,
+       <span class="fn">max_by</span>(<span class="col">termination_code</span>, <span class="col">period_end_time</span>) <span class="kw">AS</span> <span class="col">termination_code</span>
+<span class="kw">FROM</span> <span class="tbl">system.lakeflow.job_run_timeline</span>
+<span class="kw">WHERE</span> <span class="col">period_start_time</span> <span class="op">&gt;=</span> <span class="fn">current_timestamp</span>() <span class="op">-</span> <span class="kw">INTERVAL</span> <span class="num">30</span> <span class="kw">DAYS</span>
+<span class="kw">GROUP BY</span> <span class="col">job_id</span>, <span class="col">run_id</span>
+<span class="kw">ORDER BY</span> <span class="col">run_start</span> <span class="kw">DESC</span>;
+
+<span class="cm">-- ktere tasky padaji nejcasteji a s jakym kodem</span>
+<span class="kw">SELECT</span> <span class="col">job_id</span>, <span class="col">task_key</span>, <span class="col">result_state</span>, <span class="col">termination_code</span>, <span class="fn">count</span>(*) <span class="kw">AS</span> <span class="col">attempts</span>
+<span class="kw">FROM</span> <span class="tbl">system.lakeflow.job_task_run_timeline</span>
+<span class="kw">WHERE</span> <span class="col">period_start_time</span> <span class="op">&gt;=</span> <span class="fn">current_timestamp</span>() <span class="op">-</span> <span class="kw">INTERVAL</span> <span class="num">30</span> <span class="kw">DAYS</span>
+  <span class="kw">AND</span> <span class="col">result_state</span> <span class="kw">NOT IN</span> (<span class="str">'SUCCEEDED'</span>)
+<span class="kw">GROUP BY ALL</span>
+<span class="kw">ORDER BY</span> <span class="col">attempts</span> <span class="kw">DESC</span>;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> matrix view odpoví na „kde" u jednoho jobu, system tables na „jak často a kde všude" napříč účtem. Opakovaně stejný task = chyba v kódu nebo konfiguraci; selhání náhodně po různých tascích = spíš compute.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> výsledek je na dvou úrovních s různými hodnotami. Celý běh skončí třeba <code class="inline">ERROR</code>, zatímco task v něm <code class="inline">FAILED</code> s <code class="inline">RUN_EXECUTION_ERROR</code>; filtr na jednu hodnotu druhou úroveň mine. Řádky bez <code class="inline">result_state</code> jsou mezistavy běžících běhů.</div></div>
+
+  <h3>Krok 3 – Troubleshooting Spark jobs a notebooků</h3>
+  <ol>
+    <li>Na demo clusteru pusť buňku 1 z kroku 4 a v jejím výstupu rozbal Spark Jobs → odkaz na job. Ve Spark UI ukaž Jobs Timeline a strukturu job → stage → task.</li>
+    <li>Pro SQL warehouse stejná otázka jinou cestou: v SQL editoru najdi nejdelší dotazy za den a u jednoho otevři Query History → See query profile.</li>
+    <li>V Compute → cluster → Event log ukaž, kde hledat problémy prostředí (start, resize, ukončení).</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm">-- nejdelsi dotazy za posledni den</span>
+<span class="kw">SELECT</span> <span class="col">statement_type</span>, <span class="col">execution_status</span>,
+       <span class="fn">round</span>(<span class="col">total_duration_ms</span> / <span class="num">1000</span>, <span class="num">1</span>) <span class="kw">AS</span> <span class="col">total_s</span>,
+       <span class="fn">round</span>(<span class="col">waiting_for_compute_duration_ms</span> / <span class="num">1000</span>, <span class="num">1</span>) <span class="kw">AS</span> <span class="col">wait_compute_s</span>,
+       <span class="col">read_rows</span>, <span class="col">spilled_local_bytes</span>, <span class="col">shuffle_read_bytes</span>, <span class="col">from_result_cache</span>,
+       <span class="fn">left</span>(<span class="col">statement_text</span>, <span class="num">60</span>) <span class="kw">AS</span> <span class="col">sql_start</span>
+<span class="kw">FROM</span> <span class="tbl">system.query.history</span>
+<span class="kw">WHERE</span> <span class="col">start_time</span> <span class="op">&gt;=</span> <span class="fn">current_timestamp</span>() <span class="op">-</span> <span class="kw">INTERVAL</span> <span class="num">1</span> <span class="kw">DAY</span>
+<span class="kw">ORDER BY</span> <span class="col">total_duration_ms</span> <span class="kw">DESC</span>
+<span class="kw">LIMIT</span> <span class="num">10</span>;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> tři rodiny selhání (kód, zdroje, prostředí) mají tři různá místa: chybová zpráva, Spark UI a metriky, Event log. Sloupce <code class="inline">spilled_local_bytes</code> a <code class="inline">shuffle_read_bytes</code> v historii dotazů jsou rychlé síto, než otevřeš profil.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> restart clusteru vymaže historii Spark UI. Než ho uděláš, ulož si, co potřebuješ. Serverless compute pro notebooky záložku Metrics nemá, tam slouží query profile.</div></div>
+
+  <h3>Krok 4 – Caching, skew, spill a shuffle</h3>
+  <ol>
+    <li>Buňka 0: ukaž stav disk cache a AQE na clusteru.</li>
+    <li>Buňka 1 (AQE vypnuté, broadcast vypnutý): 90 % řádků má klíč 0. Ve Spark UI otevři stage joinu → Summary Metrics: Max duration výrazně nad 75. percentilem, totéž u Shuffle Read. Podívej se i na Spill.</li>
+    <li>Buňka 2 (AQE zapnuté, nižší práh pro skew): v záložce SQL / DataFrame otevři dotaz a v plánu najdi <code class="inline">SortMergeJoin</code> s <code class="inline">isSkew=true</code>; tasky stage jsou vyrovnanější.</li>
+    <li>Buňka 3: broadcast join jako alternativa, shuffle u menší strany zmizí.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="kw">from</span> pyspark.sql <span class="kw">import</span> functions <span class="kw">as</span> F
+
+<span class="cm"># bunka 0: aktualni stav</span>
+<span class="fn">print</span>(spark.conf.<span class="fn">get</span>(<span class="str">"spark.databricks.io.cache.enabled"</span>))
+<span class="fn">print</span>(spark.conf.<span class="fn">get</span>(<span class="str">"spark.databricks.optimizer.adaptive.enabled"</span>))
+
+<span class="cm"># bunka 1: skew bez AQE a bez broadcastu</span>
+spark.conf.<span class="fn">set</span>(<span class="str">"spark.databricks.optimizer.adaptive.enabled"</span>, <span class="str">"false"</span>)
+spark.conf.<span class="fn">set</span>(<span class="str">"spark.sql.adaptive.enabled"</span>, <span class="str">"false"</span>)
+spark.conf.<span class="fn">set</span>(<span class="str">"spark.sql.autoBroadcastJoinThreshold"</span>, <span class="str">"-1"</span>)
+
+readings = (spark.<span class="fn">range</span>(<span class="num">0</span>, <span class="num">20_000_000</span>)
+            .<span class="fn">withColumn</span>(<span class="str">"sensor_key"</span>, F.<span class="fn">when</span>(F.<span class="fn">col</span>(<span class="str">"id"</span>) % <span class="num">10</span> &lt; <span class="num">9</span>, F.<span class="fn">lit</span>(<span class="num">0</span>))
+                                       .<span class="fn">otherwise</span>(F.<span class="fn">col</span>(<span class="str">"id"</span>) % <span class="num">1000</span>)))
+sensors = (spark.<span class="fn">range</span>(<span class="num">0</span>, <span class="num">1000</span>)
+           .<span class="fn">withColumnRenamed</span>(<span class="str">"id"</span>, <span class="str">"sensor_key"</span>)
+           .<span class="fn">withColumn</span>(<span class="str">"site"</span>, F.<span class="fn">concat</span>(F.<span class="fn">lit</span>(<span class="str">"site-"</span>), F.<span class="fn">col</span>(<span class="str">"sensor_key"</span>) % <span class="num">20</span>)))
+
+(readings.<span class="fn">join</span>(sensors, <span class="str">"sensor_key"</span>).<span class="fn">groupBy</span>(<span class="str">"site"</span>).<span class="fn">count</span>()
+ .write.<span class="fn">format</span>(<span class="str">"noop"</span>).<span class="fn">mode</span>(<span class="str">"overwrite"</span>).<span class="fn">save</span>())
+
+<span class="cm"># bunka 2: stejny dotaz s AQE; prah snizeny jen kvuli malym demo datum</span>
+spark.conf.<span class="fn">set</span>(<span class="str">"spark.databricks.optimizer.adaptive.enabled"</span>, <span class="str">"true"</span>)
+spark.conf.<span class="fn">set</span>(<span class="str">"spark.sql.adaptive.enabled"</span>, <span class="str">"true"</span>)
+spark.conf.<span class="fn">set</span>(<span class="str">"spark.databricks.adaptive.autoBroadcastJoinThreshold"</span>, <span class="str">"-1"</span>)
+spark.conf.<span class="fn">set</span>(<span class="str">"spark.sql.adaptive.skewJoin.enabled"</span>, <span class="str">"true"</span>)
+spark.conf.<span class="fn">set</span>(<span class="str">"spark.sql.adaptive.skewJoin.skewedPartitionThresholdInBytes"</span>, <span class="str">"16MB"</span>)
+
+(readings.<span class="fn">join</span>(sensors, <span class="str">"sensor_key"</span>).<span class="fn">groupBy</span>(<span class="str">"site"</span>).<span class="fn">count</span>()
+ .write.<span class="fn">format</span>(<span class="str">"noop"</span>).<span class="fn">mode</span>(<span class="str">"overwrite"</span>).<span class="fn">save</span>())
+
+<span class="cm"># bunka 3: explicitni broadcast male tabulky</span>
+(readings.<span class="fn">join</span>(F.<span class="fn">broadcast</span>(sensors), <span class="str">"sensor_key"</span>).<span class="fn">groupBy</span>(<span class="str">"site"</span>).<span class="fn">count</span>()
+ .write.<span class="fn">format</span>(<span class="str">"noop"</span>).<span class="fn">mode</span>(<span class="str">"overwrite"</span>).<span class="fn">save</span>())</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> pravidlo z dokumentace: Max o víc než 50 % nad 75. percentilem znamená skew. AQE ho řeší jen u sort merge a shuffle hash joinu a jen když je partition nad oběma prahy (výchozí 256 MB a pětinásobek mediánu); proto je v ukázce práh snížený a v produkci ho bez důvodu neměň. Formát <code class="inline">noop</code> spustí celý výpočet, ale nic nezapíše.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> na serverless tyto Spark konfigurace nastavit nejdou, proto classic cluster. Se zapnutým Photonem skew ve Spark UI skoro neuvidíš. Když se <code class="inline">isSkew</code> v plánu neobjeví, partition je pod prahem; sniž ho (například na <code class="inline">8MB</code>), nebo ukaž jen rozdíl v Summary Metrics.</div></div>
+
+  <h3>Krok 5 – Log streaming do Azure Log Analytics</h3>
+  <ol>
+    <li>Azure portál → Azure Databricks workspace → Monitoring → Diagnostic settings: ukaž nastavení s kategoriemi <code class="inline">jobs</code> a <code class="inline">clusters</code> a cílem Log Analytics workspace. Řekni, že to typicky nastavuje platformní admin a vyžaduje Premium.</li>
+    <li>Log Analytics workspace → Logs: první dotaz ukáže, jaké akce jobů dorazily, druhý selhání a repair z ukázky modulu 11.</li>
+    <li>Z druhého dotazu ukaž New alert rule (podmínka a action group). Pravidlo neukládej.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">KQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm">// jake akce jobu dorazily za posledni den</span>
+DatabricksJobs
+| <span class="kw">where</span> TimeGenerated &gt; <span class="fn">ago</span>(<span class="num">1d</span>)
+| <span class="kw">summarize</span> events = <span class="fn">count</span>() <span class="kw">by</span> ActionName
+| <span class="kw">order by</span> events <span class="kw">desc</span>
+
+<span class="cm">// selhani a repair za tyden, s parametry pozadavku</span>
+DatabricksJobs
+| <span class="kw">where</span> TimeGenerated &gt; <span class="fn">ago</span>(<span class="num">7d</span>)
+| <span class="kw">where</span> ActionName <span class="kw">in</span> (<span class="str">"runFailed"</span>, <span class="str">"runSucceeded"</span>, <span class="str">"repairRun"</span>)
+| <span class="kw">project</span> TimeGenerated, ActionName, Identity, RequestParams
+| <span class="kw">order by</span> TimeGenerated <span class="kw">desc</span></pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> system tables jsou přirozená cesta uvnitř Databricks, Log Analytics je pro firmy, které monitorují víc služeb na jednom místě a chtějí alerty a action groups z Azure Monitor. Stejná událost (selhaný běh) je vidět v obou.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> diagnostic setting nesbírá zpětně. Když vznikl až po bězích jobu, dotaz nic nevrátí; pusť job znovu a vrať se k výsledku po pauze. Kategorie jdou do oddělených tabulek: běhy jobů v <code class="inline">DatabricksJobs</code>, clustery v <code class="inline">DatabricksClusters</code>.</div></div>
+
+  <h3>Úklid</h3>
+  <ol>
+    <li>Demo cluster hned Terminate (auto-termination je pojistka, ne plán).</li>
+    <li>Diagnostic setting a Log Analytics workspace nech do konce kurzu, pak je smaž spolu s ostatními demo prostředky. Job <code class="inline">dp750-demo-m11</code> smaž po kurzu.</li>
+  </ol>
+</div>
+
     <div class="footer-nav">
       <a href="dp750_12_dev_lifecycle.html">← Vývojový lifecycle</a>
-      <span style="color:var(--text-muted);font-size:13px">Kapitola 13 z 16</span>
+      <span data-view="orig" style="color:var(--text-muted);font-size:13px">Kapitola 13 z 13</span><span data-view="custom" style="color:var(--text-muted);font-size:13px">Kapitola 13 z 16</span>
       <a href="dp750_14_fabric_prehled.html" style="margin-left:auto">Průřez Microsoft Fabric →</a>
     </div>
   </main>
 </div>
 
-<script>function initTabs(){document.querySelectorAll('.tab-list').forEach(list=>{list.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{const panel=btn.dataset.tab;const container=btn.closest('.tabs');container.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));container.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');container.querySelector('#'+panel).classList.add('active')})})});document.querySelectorAll('.tabs').forEach(t=>{const first=t.querySelector('.tab-btn');if(first)first.classList.add('active');const firstP=t.querySelector('.tab-panel');if(firstP)firstP.classList.add('active')})}
+<script>var T={copy:"Kopírovat",copied:"✓ Zkopírováno",copyFallback:"Ctrl+C",hintShow:"💡 Zobrazit nápovědu",hintHide:"🙈 Skrýt nápovědu",menuOpen:"☰ Kapitoly",menuClose:"✕ Zavřít"};
+/* Sdilene chovani pro CS i EN vetev. Objekt T (UI texty) emituje build.py pred telem
+   tohoto skriptu — viz LANGS v build.py. Zadny text natvrdo, jinak se rozejdou jazyky. */
+function initTabs(){document.querySelectorAll('.tab-list').forEach(list=>{list.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{const panel=btn.dataset.tab;const container=btn.closest('.tabs');container.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));container.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');container.querySelector('#'+panel).classList.add('active')})})});document.querySelectorAll('.tabs').forEach(t=>{if(t.querySelector('.tab-btn.active'))return;const first=t.querySelector('.tab-btn');if(first)first.classList.add('active');const firstP=t.querySelector('.tab-panel');if(firstP)firstP.classList.add('active')})}
 function initCollapsibles(){document.querySelectorAll('.collapsible-header').forEach(h=>{h.addEventListener('click',()=>h.closest('.collapsible').classList.toggle('open'))})}
-function initHints(){document.querySelectorAll('.hint-toggle').forEach(t=>{t.addEventListener('click',()=>{const c=t.nextElementSibling;c.classList.toggle('open');t.textContent=c.classList.contains('open')?'🙈 Skrýt nápovědu':'💡 Zobrazit nápovědu'})})}
-function initCopy(){document.querySelectorAll('.copy-btn').forEach(btn=>{btn.addEventListener('click',()=>{const code=btn.closest('.code-block').querySelector('pre').innerText;function ok(){btn.textContent='✓ Zkopírováno';btn.classList.add('copied');setTimeout(()=>{btn.textContent='Kopírovat';btn.classList.remove('copied')},2000)}function legacy(){try{const ta=document.createElement('textarea');ta.value=code;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok()}catch(e){btn.textContent='Ctrl+C';setTimeout(()=>{btn.textContent='Kopírovat'},2000)}}if(navigator.clipboard){navigator.clipboard.writeText(code).then(ok).catch(legacy)}else{legacy()}})})}
+function initHints(){document.querySelectorAll('.hint-toggle').forEach(t=>{t.addEventListener('click',()=>{const c=t.nextElementSibling;c.classList.toggle('open');t.textContent=c.classList.contains('open')?T.hintHide:T.hintShow})})}
+function initCopy(){document.querySelectorAll('.copy-btn').forEach(btn=>{btn.addEventListener('click',()=>{const code=btn.closest('.code-block').querySelector('pre').innerText;function ok(){btn.textContent=T.copied;btn.classList.add('copied');setTimeout(()=>{btn.textContent=T.copy;btn.classList.remove('copied')},2000)}function legacy(){try{const ta=document.createElement('textarea');ta.value=code;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok()}catch(e){btn.textContent=T.copyFallback;setTimeout(()=>{btn.textContent=T.copy},2000)}}if(navigator.clipboard){navigator.clipboard.writeText(code).then(ok).catch(legacy)}else{legacy()}})})}
 function initTOC(){const sections=document.querySelectorAll('.section');const items=document.querySelectorAll('.toc-item[data-section]');if(!items.length)return;const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){const id=e.target.id;items.forEach(i=>i.classList.toggle('active',i.dataset.section===id))}})},{rootMargin:'-15% 0px -70% 0px'});sections.forEach(s=>obs.observe(s));items.forEach(i=>{i.addEventListener('click',()=>{document.getElementById(i.dataset.section)?.scrollIntoView({behavior:'smooth'})})})}
 function initProgress(){const bar=document.getElementById('pfill');if(!bar)return;window.addEventListener('scroll',()=>{const t=window.scrollY;const h=document.documentElement.scrollHeight-window.innerHeight;bar.style.width=(h>0?t/h*100:0)+'%'})}
-function initChapterMenu(){const btn=document.getElementById('chapBtn');const menu=document.getElementById('chapMenu');const overlay=document.getElementById('chapOverlay');if(!btn)return;const cur=window.location.pathname.split('/').pop()||'index.html';menu.querySelectorAll('.chapter-link').forEach(a=>{if(a.getAttribute('href')===cur)a.classList.add('current')});function close(){menu.classList.remove('open');overlay.classList.remove('open');btn.textContent='☰ Kapitoly'}function open(){menu.classList.add('open');overlay.classList.add('open');btn.textContent='✕ Zavřít'}btn.addEventListener('click',e=>{e.stopPropagation();menu.classList.contains('open')?close():open()});overlay.addEventListener('click',close);document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});menu.querySelectorAll('.chapter-link').forEach(a=>a.addEventListener('click',close))}
-function initViewSwitch(){document.querySelectorAll('[data-view-set]').forEach(b=>b.addEventListener('click',()=>{const m=b.dataset.viewSet;document.documentElement.classList.toggle('mode-orig',m==='orig');try{localStorage.setItem('dp750-view',m)}catch(e){}}))}
+function initChapterMenu(){const btn=document.getElementById('chapBtn');const menu=document.getElementById('chapMenu');const overlay=document.getElementById('chapOverlay');if(!btn)return;const cur=window.location.pathname.split('/').pop()||'index.html';menu.querySelectorAll('.chapter-link').forEach(a=>{if(a.getAttribute('href')===cur)a.classList.add('current')});function close(){menu.classList.remove('open');overlay.classList.remove('open');btn.textContent=T.menuOpen}function open(){menu.classList.add('open');overlay.classList.add('open');btn.textContent=T.menuClose}btn.addEventListener('click',e=>{e.stopPropagation();menu.classList.contains('open')?close():open()});overlay.addEventListener('click',close);document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});menu.querySelectorAll('.chapter-link').forEach(a=>a.addEventListener('click',close))}
+function initViewSwitch(){document.querySelectorAll('[data-view-set]').forEach(b=>b.addEventListener('click',()=>{const m=b.dataset.viewSet;document.documentElement.classList.toggle('mode-custom',m==='custom');try{localStorage.setItem('dp750-view',m)}catch(e){}}))}
 document.addEventListener('DOMContentLoaded',()=>{initChapterMenu();initViewSwitch();initTabs();initCollapsibles();initHints();initCopy();initTOC();initProgress()})</script>
 </body>
 </html>

@@ -100,14 +100,24 @@ tr:hover td{background:#f9fafb}
 .figure svg{display:block;width:100%;height:auto;max-width:820px;margin:0 auto}
 .figure figcaption{margin-top:10px;font-size:12px;color:var(--text-muted);text-align:center;line-height:1.5}
 code.inline{font-family:var(--font-mono);font-size:.9em;background:var(--accent-light);color:var(--gopas-blue);padding:1px 5px;border-radius:3px}
-[data-view="orig"]{display:none}
-html.mode-orig [data-view="orig"]{display:revert}
-html.mode-orig [data-view="custom"]{display:none}
+/* Vychozi pohled = originalni osnova MOC. Vlastni tridenni osnovu zapina trida
+   mode-custom na <html> (MODE_BOOT v build.py + initViewSwitch). Bez JS => originalni osnova. */
+/* Skryva se vzdy jen pres display:none. Nikdy display:revert - vracel by hodnotu
+   z UA stylu, ne autorskou, a diky vyssi specificite by prebil napr. .callout{display:flex}. */
+html:not(.mode-custom) [data-view="custom"]{display:none}
+html.mode-custom [data-view="orig"]{display:none}
+/* prepinac jazyka v top-nav (kapitoly); vlajky jsou inline SVG - zadny externi request */
+.lang-switch{display:flex;align-items:center;gap:2px;padding:2px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:999px;flex-shrink:0}
+.nav-links .lang-switch>*{display:flex;align-items:center;gap:5px;padding:3px 9px;border:none;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.5px;color:rgba(255,255,255,.6);text-decoration:none}
+.nav-links .lang-switch a:hover{background:rgba(255,255,255,.14);color:#fff}
+.nav-links .lang-switch>.current{background:#fff;color:var(--gopas-blue)}
+.lang-switch svg{display:block;width:18px;height:12px;border-radius:2px;flex-shrink:0}
+@media(max-width:700px){.lang-switch .lang-lbl{display:none}.nav-links .lang-switch>*{padding:4px 7px}}
 .learn-more{display:flex;gap:8px;align-items:baseline;margin:14px 0 0;padding:9px 13px;background:#f8fafc;border:1px solid var(--border);border-left:3px solid var(--gopas-blue);border-radius:6px;font-size:13px;color:var(--text-muted)}
 .learn-more .lm-label{flex-shrink:0;font-weight:600;color:var(--gopas-blue)}
 .learn-more a{color:var(--gopas-blue);text-decoration:none;border-bottom:1px solid rgba(26,58,107,.3)}
 .learn-more a:hover{border-bottom-color:var(--gopas-blue)}</style>
-<script>try{if(localStorage.getItem("dp750-view")==="orig")document.documentElement.className="mode-orig"}catch(e){}</script>
+
 </head>
 <body>
 <div id="chapOverlay" class="chapter-menu-overlay"></div>
@@ -125,16 +135,16 @@ html.mode-orig [data-view="custom"]{display:none}
   <div class="chapter-group">
     <div class="chapter-group-title">MOC — pokračování</div>
     <a class="chapter-link" href="dp750_08_transformace.html">8. Čištění a transformace dat</a>
-    <a class="chapter-link" href="dp750_09_data_quality.html" title="Mimo osnovu zkráceného kurzu">9. Data quality constraints<span data-view="custom" style="opacity:.55;font-size:11px"> · mimo osnovu</span></a>
+    <a class="chapter-link" href="dp750_09_data_quality.html">9. Data quality constraints</a>
     <a class="chapter-link" href="dp750_10_pipelines.html">10. Datové pipelines</a>
     <a class="chapter-link" href="dp750_11_lakeflow_jobs.html">11. Lakeflow Jobs</a>
-    <a class="chapter-link" href="dp750_12_dev_lifecycle.html" title="Mimo osnovu zkráceného kurzu">12. Vývojový lifecycle<span data-view="custom" style="opacity:.55;font-size:11px"> · mimo osnovu</span></a>
+    <a class="chapter-link" href="dp750_12_dev_lifecycle.html">12. Vývojový lifecycle</a>
     <a class="chapter-link" href="dp750_13_monitoring.html">13. Monitoring a optimalizace</a>
     <div data-view="orig" style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1)">
       <a class="chapter-link" href="index.html" style="color:rgba(255,255,255,.5)">🏠 Rozcestník kurzu</a>
     </div>
   </div>
-  <div class="chapter-group" data-view="custom">
+  <div class="chapter-group">
     <div class="chapter-group-title">Pod čarou — den 3</div>
     <a class="chapter-link" href="dp750_14_fabric_prehled.html">14. Průřez Microsoft Fabric</a>
     <a class="chapter-link" href="dp750_15_pbi_fabric_databricks.html">15. Power BI + Fabric + Databricks</a>
@@ -151,7 +161,7 @@ html.mode-orig [data-view="custom"]{display:none}
     <span class="chapter-title-nav">Data quality constraints</span>
   </div>
   <div class="nav-links">
-    <button id="chapBtn" class="chapter-menu-btn">☰ Kapitoly</button><a href="index.html" class="home" title="Rozcestník">🏠</a>
+    <div class="lang-switch" role="group" aria-label="Jazyk / Language"><span class="current" aria-current="true"><svg viewBox="0 0 30 20" aria-hidden="true" focusable="false"><rect width="30" height="10" fill="#fff"/><rect y="10" width="30" height="10" fill="#d7141a"/><path d="M0 0 15 10 0 20Z" fill="#11457e"/></svg><span class="lang-lbl">CS</span></span><a href="en/dp750_09_data_quality.html" title="English version" hreflang="en"><svg viewBox="0 0 60 30" aria-hidden="true" focusable="false"><rect width="60" height="30" fill="#012169"/><path d="M0 0 60 30M60 0 0 30" stroke="#fff" stroke-width="6"/><path d="M0 0 60 30M60 0 0 30" stroke="#c8102e" stroke-width="2"/><path d="M30 0V30M0 15H60" stroke="#fff" stroke-width="10"/><path d="M30 0V30M0 15H60" stroke="#c8102e" stroke-width="6"/></svg><span class="lang-lbl">EN</span></a></div><button id="chapBtn" class="chapter-menu-btn">☰ Kapitoly</button><a href="index.html" class="home" title="Rozcestník">🏠</a>
     <a href="dp750_10_pipelines.html" class="next">Datové pipelines →</a>
   </div>
 </nav>
@@ -167,6 +177,7 @@ html.mode-orig [data-view="custom"]{display:none}
     <a href="#sec-schema-drift" class="toc-item" data-section="sec-schema-drift">Detekce a řízení schema drift</a>
     <a href="#sec-expectations" class="toc-item" data-section="sec-expectations">Data quality přes pipeline expectations</a>
     <a href="#sec-lab" class="toc-item" data-section="sec-lab">Lab 9: Implement and Manage Data Quality Constraints in Unity Catalog (45 minut)</a>
+    <a href="#sec-runbook" class="toc-item" data-section="sec-runbook">Runbook: ukázka krok za krokem</a>
   </aside>
 
   <main class="main">
@@ -174,9 +185,8 @@ html.mode-orig [data-view="custom"]{display:none}
       <div class="hero-tag">DP-750 · Kapitola 9</div>
       <h1>Data quality constraints</h1>
       <div class="hero-subtitle">Validační kontroly, kontroly datových typů, schema drift a pipeline expectations</div>
-      <div class="hero-meta"><span>🗂 Plnění dat do Unity Catalogu, ETL a Pipelines</span><span data-view="custom">⚠️ Mimo osnovu zkráceného kurzu</span></div>
+      <div class="hero-meta"><span>🗂 Plnění dat do Unity Catalogu, ETL a Pipelines</span></div>
     </div>
-<div class="callout info" data-view="custom"><div class="callout-icon">ℹ️</div><div><strong>Mimo osnovu zkráceného kurzu:</strong> tento modul je součástí oficiálního čtyřdenního kurzu DP-750. Ve zkrácené třídenní verzi ho na kurzu neprobíráme — kapitola slouží k samostudiu a odkazovaný lab k ní zůstává plně k dispozici.</div></div>
 
 <div class="objectives">
   <h3>Cíle kapitoly</h3>
@@ -450,10 +460,10 @@ html.mode-orig [data-view="custom"]{display:none}
   </table>
   <div class="tabs">
     <div class="tab-list">
-      <button class="tab-btn" data-tab="tab-09-py"><span class="tab-icon">🐍</span>Python</button>
+      <button class="tab-btn active" data-tab="tab-09-py"><span class="tab-icon">🐍</span>Python</button>
       <button class="tab-btn" data-tab="tab-09-sql"><span class="tab-icon">🗄️</span>SQL</button>
     </div>
-    <div class="tab-panel" id="tab-09-py">
+    <div class="tab-panel active" id="tab-09-py">
       <div class="code-block">
         <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
         <pre><span class="kw">from</span> pyspark <span class="kw">import</span> pipelines <span class="kw">as</span> dp
@@ -512,22 +522,268 @@ html.mode-orig [data-view="custom"]{display:none}
   <div class="callout success"><div class="callout-icon">✓</div><div><strong>Sebekontrola:</strong> <strong>1)</strong> Jaký je rozdíl mezi chováním <code class="inline">@dp.expect</code> a <code class="inline">@dp.expect_or_drop</code> při porušení pravidla? <strong>2)</strong> Proč PRIMARY KEY constraint v Unity Catalogu nezabrání duplicitám a čím unikátnost pohlídáte? <strong>3)</strong> Kam se v režimu <code class="inline">rescue</code> ukládají data z nečekaných sloupců a jak zjistíte, že tam něco přibylo?</div></div>
 </div>
 
+<div class="section" id="sec-runbook">
+  <div class="section-header">
+    <div class="section-num">9.R</div>
+    <h2>Runbook: ukázka krok za krokem</h2>
+  </div>
+  <p>Ukázka hlídá kvalitu dat přepravce zásilek ve všech vrstvách obrany: schema enforcement, constraints, <code class="inline">try_cast</code> s karanténou, schema drift a nakonec expectations v pipeline. Běží v lektorském workspace nad syntetickými daty ve schématu <code class="inline">dp750_demo.m09</code>, ne nad daty labu.</p>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> SQL editor na serverless SQL warehouse pro kroky 1 až 4, Python notebook <code class="inline">m09_drift</code> na <strong>Serverless</strong> pro Auto Loader v kroku 4 a pro krok 5 Lakeflow pipeline s jedním zdrojovým souborem (výchozí katalog <code class="inline">dp750_demo</code>, schéma <code class="inline">m09</code>, serverless), založená a jednou spuštěná den předem, ať ve třídě nečekáš na první start. Pipeline čte tabulku <code class="inline">shipments_raw</code> z kroku 3; čísla v kroku 5 platí pro stav po kroku 4 (před krokem 4 vyjdou 3 řádky místo 4). Asi 12 minut. Kroky 1 a 2 záměrně končí chybami; v SQL editoru spouštěj příkazy po jednom (označ a Ctrl+Enter), jinak se běh zastaví na první chybě.</div></div>
+
+  <h3>Krok 1 – Vrstvy obrany: schema enforcement (9.1)</h3>
+  <ol>
+    <li>Založ tabulku zásilek se sloupcem <code class="inline">shipment_id INT NOT NULL</code> a vlož jeden platný řádek.</li>
+    <li>Vlož text do celočíselného sloupce: zápis spadne na <code class="inline">CAST_INVALID_INPUT</code>.</li>
+    <li>Vlož řádek s navíc sloupcem <code class="inline">service</code>: zápis spadne na <code class="inline">DELTA_METADATA_MISMATCH</code>. Tabulka se sama nerozšíří.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="kw">CREATE</span> <span class="kw">SCHEMA</span> <span class="kw">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> <span class="tbl">dp750_demo.m09</span>;
+
+<span class="kw">DROP</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">EXISTS</span> <span class="tbl">dp750_demo.m09.shipments</span>;
+<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m09.shipments</span> (
+  shipment_id <span class="kw">INT</span> <span class="kw">NOT</span> <span class="kw">NULL</span>, ship_date <span class="kw">DATE</span>, weight_kg <span class="kw">DECIMAL</span>(<span class="num">8</span>,<span class="num">2</span>), carrier <span class="kw">STRING</span>);
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m09.shipments</span> <span class="kw">VALUES</span> (<span class="num">1</span>, <span class="kw">DATE</span><span class="str">'2026-11-02'</span>, <span class="num">2.50</span>, <span class="str">'PPL'</span>);
+
+<span class="cm">-- expected error: wrong type</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m09.shipments</span> <span class="kw">VALUES</span> (<span class="str">'dva'</span>, <span class="kw">DATE</span><span class="str">'2026-11-02'</span>, <span class="num">1.00</span>, <span class="str">'PPL'</span>);
+
+<span class="cm">-- expected error: unknown column</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m09.shipments</span>
+<span class="kw">SELECT</span> <span class="num">2</span> <span class="kw">AS</span> shipment_id, <span class="kw">DATE</span><span class="str">'2026-11-02'</span> <span class="kw">AS</span> ship_date, <span class="num">1.00</span> <span class="kw">AS</span> weight_kg, <span class="str">'PPL'</span> <span class="kw">AS</span> carrier, <span class="str">'express'</span> <span class="kw">AS</span> service;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> schema enforcement je první vrstva a je zapnutá vždy, nic nenastavuješ. Další vrstvy (constraints, expectations, monitoring) chytají to, co strukturou projde, ale obsahově je to špatně.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> chyba u <code class="inline">'dva'</code> není z Delta Lake, ale z ANSI přetypování (hláška sama radí <code class="inline">try_cast</code>). Řešení je přetypovat už ve zdrojovém dotazu, ne spoléhat na zápis.</div></div>
+
+  <h3>Krok 2 – Constraints na Delta tabulkách (9.2)</h3>
+  <ol>
+    <li>Vlož NULL do <code class="inline">shipment_id</code>: <code class="inline">DELTA_NOT_NULL_CONSTRAINT_VIOLATED</code>.</li>
+    <li>Přidej <code class="inline">CHECK (weight_kg &gt; 0)</code> a vlož dávku dvou řádků, z nichž jeden má zápornou váhu. Spadne celá dávka (<code class="inline">DELTA_VIOLATE_CONSTRAINT_WITH_VALUES</code>) a v tabulce zůstane pořád 1 řádek.</li>
+    <li>Vlož zásilku dopravce „Kuryr“ a pak zkus přidat constraint na povolené dopravce: <code class="inline">ALTER TABLE</code> odmítne, protože existující řádek pravidlo porušuje (<code class="inline">DELTA_NEW_CHECK_CONSTRAINT_VIOLATION</code>).</li>
+    <li>Založ číselník dopravců s <code class="inline">PRIMARY KEY</code> a vlož stejný klíč dvakrát: projde, PK je jen informativní.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="cm">-- expected error: NOT NULL</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m09.shipments</span> <span class="kw">VALUES</span> (<span class="kw">NULL</span>, <span class="kw">DATE</span><span class="str">'2026-11-02'</span>, <span class="num">1.00</span>, <span class="str">'PPL'</span>);
+
+<span class="kw">ALTER</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m09.shipments</span> <span class="kw">ADD</span> <span class="kw">CONSTRAINT</span> positive_weight <span class="kw">CHECK</span> (weight_kg &gt; <span class="num">0</span>);
+
+<span class="cm">-- expected error: one bad row fails the whole batch</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m09.shipments</span> <span class="kw">VALUES</span>
+  (<span class="num">2</span>, <span class="kw">DATE</span><span class="str">'2026-11-03'</span>, <span class="num">4.00</span>, <span class="str">'GLS'</span>),
+  (<span class="num">3</span>, <span class="kw">DATE</span><span class="str">'2026-11-03'</span>, -<span class="num">1.00</span>, <span class="str">'GLS'</span>);
+<span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">AS</span> rows_now <span class="kw">FROM</span> <span class="tbl">dp750_demo.m09.shipments</span>;
+
+<span class="cm">-- new constraint is checked against existing data</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m09.shipments</span> <span class="kw">VALUES</span> (<span class="num">5</span>, <span class="kw">DATE</span><span class="str">'2026-11-04'</span>, <span class="num">3.00</span>, <span class="str">'Kuryr'</span>);
+<span class="kw">ALTER</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m09.shipments</span> <span class="kw">ADD</span> <span class="kw">CONSTRAINT</span> known_carrier <span class="kw">CHECK</span> (carrier <span class="kw">IN</span> (<span class="str">'PPL'</span>, <span class="str">'GLS'</span>, <span class="str">'DPD'</span>));
+
+<span class="cm">-- primary key is informational: duplicates are accepted</span>
+<span class="kw">DROP</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">EXISTS</span> <span class="tbl">dp750_demo.m09.carriers</span>;
+<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m09.carriers</span> (
+  carrier <span class="kw">STRING</span> <span class="kw">NOT</span> <span class="kw">NULL</span>, name <span class="kw">STRING</span>, <span class="kw">CONSTRAINT</span> carriers_pk <span class="kw">PRIMARY</span> <span class="kw">KEY</span> (carrier));
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m09.carriers</span> <span class="kw">VALUES</span> (<span class="str">'PPL'</span>, <span class="str">'PPL CZ'</span>), (<span class="str">'PPL'</span>, <span class="str">'PPL duplicita'</span>);
+<span class="kw">SELECT</span> carrier, <span class="fn">count</span>(*) <span class="kw">AS</span> n <span class="kw">FROM</span> <span class="tbl">dp750_demo.m09.carriers</span> <span class="kw">GROUP</span> <span class="kw">BY</span> carrier;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> constraint chrání tabulku před každým zapisovatelem, i mimo pipeline. Je to tvrdá pojistka: jeden špatný řádek shodí celou transakci, proto se špatné řádky filtrují dřív (krok 3 a 5).</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> kdo přichází z klasické databáze, čeká, že se odmítne jen špatný řádek a dobrý projde. Tady nevznikne ani zásilka 2. A <code class="inline">PRIMARY KEY</code> unikátnost nevynutí: v číselníku je PPL dvakrát. Hlídat se musí deduplikací nebo expectation.</div></div>
+
+  <h3>Krok 3 – Kontroly datových typů: cast a try_cast (9.3)</h3>
+  <ol>
+    <li>Založ bronze tabulku <code class="inline">shipments_raw</code> s řetězci: S-2 má datum v českém formátu, S-3 váhu „cca 3 kg“.</li>
+    <li><code class="inline">try_cast</code> vrátí u S-2 datum NULL a u S-3 váhu NULL; <code class="inline">cast</code> nad stejným sloupcem spadne na <code class="inline">CAST_INVALID_INPUT</code>.</li>
+    <li>Ukaž, že datum z jiného formátu se dá zachránit funkcí <code class="inline">to_date</code> s maskou.</li>
+    <li>Karanténní vzor: platné řádky do <code class="inline">shipments_clean</code> (2), neplatné s důvodem a časem do <code class="inline">shipments_quarantine</code> (2).</li>
+    <li>Zkus <code class="inline">CHECK</code> s <code class="inline">try_cast</code> nad bronze tabulkou: odmítne se, protože S-2 už v tabulce leží.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m09.shipments_raw</span> <span class="kw">AS</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">VALUES</span>
+  (<span class="str">'S-1'</span>, <span class="str">'2026-11-02'</span>, <span class="str">'2.50'</span>),
+  (<span class="str">'S-2'</span>, <span class="str">'02.11.2026'</span>, <span class="str">'1.20'</span>),
+  (<span class="str">'S-3'</span>, <span class="str">'2026-11-03'</span>, <span class="str">'cca 3 kg'</span>),
+  (<span class="str">'S-4'</span>, <span class="str">'2026-11-04'</span>, <span class="str">'0.80'</span>)
+<span class="kw">AS</span> t(shipment_ref, ship_date_str, weight_str);
+
+<span class="cm">-- soft validation: failed conversion = NULL</span>
+<span class="kw">SELECT</span> shipment_ref,
+       <span class="fn">try_cast</span>(ship_date_str <span class="kw">AS</span> <span class="kw">DATE</span>) <span class="kw">AS</span> ship_date,
+       <span class="fn">try_cast</span>(weight_str <span class="kw">AS</span> <span class="kw">DECIMAL</span>(<span class="num">8</span>,<span class="num">2</span>)) <span class="kw">AS</span> weight_kg
+<span class="kw">FROM</span> <span class="tbl">dp750_demo.m09.shipments_raw</span>;
+
+<span class="cm">-- expected error: hard validation</span>
+<span class="kw">SELECT</span> <span class="fn">cast</span>(weight_str <span class="kw">AS</span> <span class="kw">DECIMAL</span>(<span class="num">8</span>,<span class="num">2</span>)) <span class="kw">FROM</span> <span class="tbl">dp750_demo.m09.shipments_raw</span>;
+
+<span class="kw">SELECT</span> <span class="fn">to_date</span>(<span class="str">'02.11.2026'</span>, <span class="str">'dd.MM.yyyy'</span>) <span class="kw">AS</span> parsed;
+
+<span class="cm">-- quarantine pattern</span>
+<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m09.shipments_clean</span> (
+  shipment_ref <span class="kw">STRING</span> <span class="kw">NOT</span> <span class="kw">NULL</span>, ship_date <span class="kw">DATE</span> <span class="kw">NOT</span> <span class="kw">NULL</span>, weight_kg <span class="kw">DECIMAL</span>(<span class="num">8</span>,<span class="num">2</span>) <span class="kw">NOT</span> <span class="kw">NULL</span>);
+<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m09.shipments_quarantine</span> (
+  shipment_ref <span class="kw">STRING</span>, ship_date_str <span class="kw">STRING</span>, weight_str <span class="kw">STRING</span>, reason <span class="kw">STRING</span>, quarantined_at <span class="kw">TIMESTAMP</span>);
+
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m09.shipments_clean</span>
+<span class="kw">SELECT</span> shipment_ref, <span class="fn">try_cast</span>(ship_date_str <span class="kw">AS</span> <span class="kw">DATE</span>), <span class="fn">try_cast</span>(weight_str <span class="kw">AS</span> <span class="kw">DECIMAL</span>(<span class="num">8</span>,<span class="num">2</span>))
+<span class="kw">FROM</span> <span class="tbl">dp750_demo.m09.shipments_raw</span>
+<span class="kw">WHERE</span> <span class="fn">try_cast</span>(ship_date_str <span class="kw">AS</span> <span class="kw">DATE</span>) <span class="kw">IS</span> <span class="kw">NOT</span> <span class="kw">NULL</span>
+  <span class="kw">AND</span> <span class="fn">try_cast</span>(weight_str <span class="kw">AS</span> <span class="kw">DECIMAL</span>(<span class="num">8</span>,<span class="num">2</span>)) <span class="kw">IS</span> <span class="kw">NOT</span> <span class="kw">NULL</span>;
+
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m09.shipments_quarantine</span>
+<span class="kw">SELECT</span> shipment_ref, ship_date_str, weight_str,
+       <span class="kw">CASE</span> <span class="kw">WHEN</span> <span class="fn">try_cast</span>(ship_date_str <span class="kw">AS</span> <span class="kw">DATE</span>) <span class="kw">IS</span> <span class="kw">NULL</span> <span class="kw">THEN</span> <span class="str">'invalid date'</span> <span class="kw">ELSE</span> <span class="str">'invalid weight'</span> <span class="kw">END</span>,
+       <span class="fn">current_timestamp</span>()
+<span class="kw">FROM</span> <span class="tbl">dp750_demo.m09.shipments_raw</span>
+<span class="kw">WHERE</span> <span class="fn">try_cast</span>(ship_date_str <span class="kw">AS</span> <span class="kw">DATE</span>) <span class="kw">IS</span> <span class="kw">NULL</span>
+   <span class="kw">OR</span> <span class="fn">try_cast</span>(weight_str <span class="kw">AS</span> <span class="kw">DECIMAL</span>(<span class="num">8</span>,<span class="num">2</span>)) <span class="kw">IS</span> <span class="kw">NULL</span>;
+
+<span class="kw">SELECT</span> <span class="str">'clean'</span> <span class="kw">AS</span> target, <span class="fn">count</span>(*) <span class="kw">AS</span> n <span class="kw">FROM</span> <span class="tbl">dp750_demo.m09.shipments_clean</span>
+<span class="kw">UNION</span> <span class="kw">ALL</span>
+<span class="kw">SELECT</span> <span class="str">'quarantine'</span>, <span class="fn">count</span>(*) <span class="kw">FROM</span> <span class="tbl">dp750_demo.m09.shipments_quarantine</span>;
+
+<span class="cm">-- expected error: S-2 already violates the rule</span>
+<span class="kw">ALTER</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m09.shipments_raw</span>
+  <span class="kw">ADD</span> <span class="kw">CONSTRAINT</span> date_parsable <span class="kw">CHECK</span> (<span class="fn">try_cast</span>(ship_date_str <span class="kw">AS</span> <span class="kw">DATE</span>) <span class="kw">IS</span> <span class="kw">NOT</span> <span class="kw">NULL</span>);</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> <code class="inline">cast</code> je tvrdá validace (chci o problému vědět hned), <code class="inline">try_cast</code> měkká (chci špatné řádky odklonit). Karanténa znamená, že se nic neztratí a je co reklamovat u zdroje.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> tohle je past labu 9: text labu tvrdí, že nepovedený cast vrátí NULL. Na serverless a SQL warehouse s ANSI mode to neplatí; účastníkům řekni předem „použijte <code class="inline">try_cast</code>“. Hláška u <code class="inline">cast</code> může uvádět jiný typ než <code class="inline">DECIMAL(8,2)</code> (např. <code class="inline">DECIMAL(10,0)</code>); nenech se tím zmást, rozhoduje kód chyby.</div></div>
+
+  <h3>Krok 4 – Detekce a řízení schema drift (9.4)</h3>
+  <ol>
+    <li>SQL: připrav dávku změn s novým sloupcem <code class="inline">handling</code>. Obyčejný <code class="inline">MERGE … UPDATE SET * … INSERT *</code> projde, ale nový sloupec tiše zahodí.</li>
+    <li><code class="inline">MERGE WITH SCHEMA EVOLUTION</code> sloupec do cílové tabulky přidá; S-1 má <code class="inline">handling = fragile</code>, přibyla zásilka S-9.</li>
+    <li>Notebook, buňka 1: Auto Loader v režimu <code class="inline">rescue</code> načte první JSON soubor (2 zásilky) do <code class="inline">shipments_bronze</code>.</li>
+    <li>Buňka 2: přijde soubor s váhou „heavy“ a s novým polem <code class="inline">handling</code>. Stream nespadne, obě odchylky skončí v <code class="inline">_rescued_data</code> i s cestou k souboru; schéma tabulky se nezměnilo.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m09.shipments_changes</span> <span class="kw">AS</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">VALUES</span>
+  (<span class="str">'S-1'</span>, <span class="str">'2026-11-02'</span>, <span class="str">'2.60'</span>, <span class="str">'fragile'</span>),
+  (<span class="str">'S-9'</span>, <span class="str">'2026-11-05'</span>, <span class="str">'5.00'</span>, <span class="kw">NULL</span>)
+<span class="kw">AS</span> t(shipment_ref, ship_date_str, weight_str, handling);
+
+<span class="cm">-- passes, but the new column handling is silently ignored</span>
+<span class="kw">MERGE</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m09.shipments_raw</span> <span class="kw">AS</span> t
+<span class="kw">USING</span> <span class="tbl">dp750_demo.m09.shipments_changes</span> <span class="kw">AS</span> s <span class="kw">ON</span> t.shipment_ref = s.shipment_ref
+<span class="kw">WHEN</span> <span class="kw">MATCHED</span> <span class="kw">THEN</span> <span class="kw">UPDATE</span> <span class="kw">SET</span> *
+<span class="kw">WHEN</span> <span class="kw">NOT</span> <span class="kw">MATCHED</span> <span class="kw">THEN</span> <span class="kw">INSERT</span> *;
+
+<span class="cm">-- adds handling to the target table</span>
+<span class="kw">MERGE</span> <span class="kw">WITH</span> <span class="kw">SCHEMA</span> <span class="kw">EVOLUTION</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m09.shipments_raw</span> <span class="kw">AS</span> t
+<span class="kw">USING</span> <span class="tbl">dp750_demo.m09.shipments_changes</span> <span class="kw">AS</span> s <span class="kw">ON</span> t.shipment_ref = s.shipment_ref
+<span class="kw">WHEN</span> <span class="kw">MATCHED</span> <span class="kw">THEN</span> <span class="kw">UPDATE</span> <span class="kw">SET</span> *
+<span class="kw">WHEN</span> <span class="kw">NOT</span> <span class="kw">MATCHED</span> <span class="kw">THEN</span> <span class="kw">INSERT</span> *;
+
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m09.shipments_raw</span> <span class="kw">ORDER</span> <span class="kw">BY</span> shipment_ref;</pre>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="cm"># cell 1: bronze ingest in rescue mode</span>
+spark.<span class="fn">sql</span>(<span class="str">"CREATE VOLUME IF NOT EXISTS dp750_demo.m09.landing"</span>)
+base = <span class="str">"/Volumes/dp750_demo/m09/landing"</span>
+
+<span class="cm"># reset before a repeated run</span>
+spark.<span class="fn">sql</span>(<span class="str">"DROP TABLE IF EXISTS dp750_demo.m09.shipments_bronze"</span>)
+<span class="kw">for</span> p <span class="kw">in</span> [<span class="str">"events"</span>, <span class="str">"_checkpoints"</span>, <span class="str">"_schemas"</span>]:
+    dbutils.fs.<span class="fn">rm</span>(<span class="str">f"{base}/{p}"</span>, <span class="kw">True</span>)
+
+dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/events/day1.json"</span>,
+    <span class="str">'{"shipment_ref": "S-10", "weight_kg": "2.50"}\n'</span>
+    <span class="str">'{"shipment_ref": "S-11", "weight_kg": "0.90"}\n'</span>, <span class="kw">True</span>)
+
+<span class="kw">def</span> <span class="fn">load_bronze</span>():
+    q = (spark.readStream
+         .<span class="fn">format</span>(<span class="str">"cloudFiles"</span>)
+         .<span class="fn">option</span>(<span class="str">"cloudFiles.format"</span>, <span class="str">"json"</span>)
+         .<span class="fn">option</span>(<span class="str">"cloudFiles.schemaLocation"</span>, <span class="str">f"{base}/_schemas/shipments"</span>)
+         .<span class="fn">option</span>(<span class="str">"cloudFiles.schemaHints"</span>, <span class="str">"weight_kg DECIMAL(8,2)"</span>)
+         .<span class="fn">option</span>(<span class="str">"cloudFiles.schemaEvolutionMode"</span>, <span class="str">"rescue"</span>)
+         .<span class="fn">load</span>(<span class="str">f"{base}/events"</span>)
+         .writeStream
+         .<span class="fn">option</span>(<span class="str">"checkpointLocation"</span>, <span class="str">f"{base}/_checkpoints/shipments"</span>)
+         .<span class="fn">trigger</span>(availableNow=<span class="kw">True</span>)
+         .<span class="fn">toTable</span>(<span class="str">"dp750_demo.m09.shipments_bronze"</span>))
+    q.<span class="fn">awaitTermination</span>()
+
+<span class="fn">load_bronze</span>()</pre>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="cm"># cell 2: drifted file arrives (bad type + new field)</span>
+dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/events/day2.json"</span>,
+    <span class="str">'{"shipment_ref": "S-12", "weight_kg": "heavy"}\n'</span>
+    <span class="str">'{"shipment_ref": "S-13", "weight_kg": "1.10", "handling": "fragile"}\n'</span>, <span class="kw">True</span>)
+<span class="fn">load_bronze</span>()
+<span class="fn">display</span>(spark.<span class="fn">sql</span>(<span class="str">""</span>"SELECT shipment_ref, weight_kg, _rescued_data
+                     FROM dp750_demo.m09.shipments_bronze ORDER BY shipment_ref<span class="str">""</span>"))</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> <code class="inline">rescue</code> je produkční kompromis: pipeline kvůli struktuře nespadne a nic se neztratí. Neprázdný <code class="inline">_rescued_data</code> je signál k alertu a k rozhovoru se zdrojovým týmem. Pro <code class="inline">MERGE</code> je protějškem <code class="inline">WITH SCHEMA EVOLUTION</code>.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> první <code class="inline">MERGE</code> bez evoluce nehlásí žádnou chybu ani varování a sloupec <code class="inline">handling</code> prostě chybí; to je nejzrádnější podoba driftu. Checkpoint a schema location patří do volume, ne do <code class="inline">/tmp</code> (DBFS root je vypnutý). Když druhá buňka nic nenačte, zbyl checkpoint ze zkoušky a reset v buňce 1 se nepustil.</div></div>
+
+  <h3>Krok 5 – Expectations v pipeline (9.5)</h3>
+  <ol>
+    <li>Otevři předem připravenou pipeline (<strong>Jobs &amp; Pipelines</strong> → název pipeline) a ukaž zdrojový soubor níže: <code class="inline">try_cast</code> převede typy, <code class="inline">expect</code> jen počítá, <code class="inline">expect_or_drop</code> zahazuje.</li>
+    <li>Spusť update. Po doběhnutí klikni na dataset <code class="inline">shipments_validated</code> → záložka <strong>Data quality</strong> v pravém panelu.</li>
+    <li>Očekávaný výsledek nad daty po kroku 4 (S-1, S-2, S-3, S-4, S-9): <code class="inline">valid_date</code> zahodí S-2, <code class="inline">weight_present</code> u S-3 jen započítá porušení, dataset má 4 řádky.</li>
+    <li>Ukaž stejné metriky v event logu (SQL níže, ID pipeline najdeš v jejím detailu).</li>
+    <li>Volitelně přepiš <code class="inline">@dp.expect</code> na <code class="inline">@dp.expect_or_fail</code> a spusť znovu: update selže; podle Learn se u <code class="inline">fail</code> metriky nezaznamenají, chybová událost v event logu ale vzorek porušujících dat ukáže.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="kw">from</span> pyspark <span class="kw">import</span> pipelines <span class="kw">as</span> dp
+<span class="kw">from</span> pyspark.sql.functions <span class="kw">import</span> expr
+
+<span class="fn">@dp.materialized_view</span>(name=<span class="str">"shipments_validated"</span>)
+<span class="fn">@dp.expect</span>(<span class="str">"weight_present"</span>, <span class="str">"weight_kg IS NOT NULL"</span>)
+<span class="fn">@dp.expect_or_drop</span>(<span class="str">"valid_date"</span>, <span class="str">"ship_date IS NOT NULL"</span>)
+<span class="kw">def</span> <span class="fn">shipments_validated</span>():
+    <span class="kw">return</span> (spark.read.<span class="fn">table</span>(<span class="str">"dp750_demo.m09.shipments_raw"</span>)
+            .<span class="fn">select</span>(<span class="str">"shipment_ref"</span>,
+                    <span class="fn">expr</span>(<span class="str">"try_cast(ship_date_str AS DATE)"</span>).<span class="fn">alias</span>(<span class="str">"ship_date"</span>),
+                    <span class="fn">expr</span>(<span class="str">"try_cast(weight_str AS DECIMAL(8,2))"</span>).<span class="fn">alias</span>(<span class="str">"weight_kg"</span>)))</pre>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="cm">-- replace the placeholder with the pipeline ID</span>
+<span class="kw">SELECT</span> timestamp,
+       <span class="fn">explode</span>(<span class="fn">from_json</span>(details:flow_progress.data_quality.expectations,
+         <span class="str">'array&lt;struct&lt;name:string, dataset:string, passed_records:bigint, failed_records:bigint&gt;&gt;'</span>)) <span class="kw">AS</span> expectation
+<span class="kw">FROM</span> <span class="fn">event_log</span>(<span class="str">'&lt;pipeline-id&gt;'</span>)
+<span class="kw">WHERE</span> event_type = <span class="str">'flow_progress'</span>
+  <span class="kw">AND</span> details:flow_progress.data_quality.expectations <span class="kw">IS</span> <span class="kw">NOT</span> <span class="kw">NULL</span>
+<span class="kw">ORDER</span> <span class="kw">BY</span> timestamp <span class="kw">DESC</span>;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> constraint chrání tabulku, expectation řídí tok v pipeline a k tomu dává metriky. Oba mechanismy se doplňují: <code class="inline">warn</code> na trend, <code class="inline">drop</code> na řádky, které lze zahodit, <code class="inline">fail</code> na stav, kdy se má zastavit svět.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> kdo v pipeline nechá <code class="inline">col(...).cast(...)</code> místo <code class="inline">try_cast</code>, shodí update na <code class="inline">CAST_INVALID_INPUT</code> dřív, než se expectations vůbec vyhodnotí (stejná past jako v labu 9). Záložka <strong>Data quality</strong> je prázdná, dokud flow nedoběhne. Postup v UI a dotaz na event log odpovídají Learn (<em>Manage data quality with pipeline expectations</em>, <em>Pipeline event log</em>); při přípravě krok jednou projdi celý.</div></div>
+
+  <h3>Úklid</h3>
+  <ol>
+    <li>Tabulky a volume v <code class="inline">dp750_demo.m09</code> nech; kroky 1 až 4 se dají pustit znovu (začínají <code class="inline">DROP</code> nebo <code class="inline">CREATE OR REPLACE</code>, notebook má reset).</li>
+    <li>Pipeline z kroku 5 smaž po kurzu v <strong>Jobs &amp; Pipelines</strong>; její tabulky zmizí s <code class="inline">DROP SCHEMA dp750_demo.m09 CASCADE;</code> nebo s celkovým úklidem katalogu.</li>
+  </ol>
+</div>
+
     <div class="footer-nav">
       <a href="dp750_08_transformace.html">← Čištění a transformace dat</a>
-      <span style="color:var(--text-muted);font-size:13px">Kapitola 9 z 16</span>
+      <span data-view="orig" style="color:var(--text-muted);font-size:13px">Kapitola 9 z 13</span><span data-view="custom" style="color:var(--text-muted);font-size:13px">Kapitola 9 z 16</span>
       <a href="dp750_10_pipelines.html" style="margin-left:auto">Datové pipelines →</a>
     </div>
   </main>
 </div>
 
-<script>function initTabs(){document.querySelectorAll('.tab-list').forEach(list=>{list.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{const panel=btn.dataset.tab;const container=btn.closest('.tabs');container.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));container.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');container.querySelector('#'+panel).classList.add('active')})})});document.querySelectorAll('.tabs').forEach(t=>{const first=t.querySelector('.tab-btn');if(first)first.classList.add('active');const firstP=t.querySelector('.tab-panel');if(firstP)firstP.classList.add('active')})}
+<script>var T={copy:"Kopírovat",copied:"✓ Zkopírováno",copyFallback:"Ctrl+C",hintShow:"💡 Zobrazit nápovědu",hintHide:"🙈 Skrýt nápovědu",menuOpen:"☰ Kapitoly",menuClose:"✕ Zavřít"};
+/* Sdilene chovani pro CS i EN vetev. Objekt T (UI texty) emituje build.py pred telem
+   tohoto skriptu — viz LANGS v build.py. Zadny text natvrdo, jinak se rozejdou jazyky. */
+function initTabs(){document.querySelectorAll('.tab-list').forEach(list=>{list.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{const panel=btn.dataset.tab;const container=btn.closest('.tabs');container.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));container.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');container.querySelector('#'+panel).classList.add('active')})})});document.querySelectorAll('.tabs').forEach(t=>{if(t.querySelector('.tab-btn.active'))return;const first=t.querySelector('.tab-btn');if(first)first.classList.add('active');const firstP=t.querySelector('.tab-panel');if(firstP)firstP.classList.add('active')})}
 function initCollapsibles(){document.querySelectorAll('.collapsible-header').forEach(h=>{h.addEventListener('click',()=>h.closest('.collapsible').classList.toggle('open'))})}
-function initHints(){document.querySelectorAll('.hint-toggle').forEach(t=>{t.addEventListener('click',()=>{const c=t.nextElementSibling;c.classList.toggle('open');t.textContent=c.classList.contains('open')?'🙈 Skrýt nápovědu':'💡 Zobrazit nápovědu'})})}
-function initCopy(){document.querySelectorAll('.copy-btn').forEach(btn=>{btn.addEventListener('click',()=>{const code=btn.closest('.code-block').querySelector('pre').innerText;function ok(){btn.textContent='✓ Zkopírováno';btn.classList.add('copied');setTimeout(()=>{btn.textContent='Kopírovat';btn.classList.remove('copied')},2000)}function legacy(){try{const ta=document.createElement('textarea');ta.value=code;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok()}catch(e){btn.textContent='Ctrl+C';setTimeout(()=>{btn.textContent='Kopírovat'},2000)}}if(navigator.clipboard){navigator.clipboard.writeText(code).then(ok).catch(legacy)}else{legacy()}})})}
+function initHints(){document.querySelectorAll('.hint-toggle').forEach(t=>{t.addEventListener('click',()=>{const c=t.nextElementSibling;c.classList.toggle('open');t.textContent=c.classList.contains('open')?T.hintHide:T.hintShow})})}
+function initCopy(){document.querySelectorAll('.copy-btn').forEach(btn=>{btn.addEventListener('click',()=>{const code=btn.closest('.code-block').querySelector('pre').innerText;function ok(){btn.textContent=T.copied;btn.classList.add('copied');setTimeout(()=>{btn.textContent=T.copy;btn.classList.remove('copied')},2000)}function legacy(){try{const ta=document.createElement('textarea');ta.value=code;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok()}catch(e){btn.textContent=T.copyFallback;setTimeout(()=>{btn.textContent=T.copy},2000)}}if(navigator.clipboard){navigator.clipboard.writeText(code).then(ok).catch(legacy)}else{legacy()}})})}
 function initTOC(){const sections=document.querySelectorAll('.section');const items=document.querySelectorAll('.toc-item[data-section]');if(!items.length)return;const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){const id=e.target.id;items.forEach(i=>i.classList.toggle('active',i.dataset.section===id))}})},{rootMargin:'-15% 0px -70% 0px'});sections.forEach(s=>obs.observe(s));items.forEach(i=>{i.addEventListener('click',()=>{document.getElementById(i.dataset.section)?.scrollIntoView({behavior:'smooth'})})})}
 function initProgress(){const bar=document.getElementById('pfill');if(!bar)return;window.addEventListener('scroll',()=>{const t=window.scrollY;const h=document.documentElement.scrollHeight-window.innerHeight;bar.style.width=(h>0?t/h*100:0)+'%'})}
-function initChapterMenu(){const btn=document.getElementById('chapBtn');const menu=document.getElementById('chapMenu');const overlay=document.getElementById('chapOverlay');if(!btn)return;const cur=window.location.pathname.split('/').pop()||'index.html';menu.querySelectorAll('.chapter-link').forEach(a=>{if(a.getAttribute('href')===cur)a.classList.add('current')});function close(){menu.classList.remove('open');overlay.classList.remove('open');btn.textContent='☰ Kapitoly'}function open(){menu.classList.add('open');overlay.classList.add('open');btn.textContent='✕ Zavřít'}btn.addEventListener('click',e=>{e.stopPropagation();menu.classList.contains('open')?close():open()});overlay.addEventListener('click',close);document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});menu.querySelectorAll('.chapter-link').forEach(a=>a.addEventListener('click',close))}
-function initViewSwitch(){document.querySelectorAll('[data-view-set]').forEach(b=>b.addEventListener('click',()=>{const m=b.dataset.viewSet;document.documentElement.classList.toggle('mode-orig',m==='orig');try{localStorage.setItem('dp750-view',m)}catch(e){}}))}
+function initChapterMenu(){const btn=document.getElementById('chapBtn');const menu=document.getElementById('chapMenu');const overlay=document.getElementById('chapOverlay');if(!btn)return;const cur=window.location.pathname.split('/').pop()||'index.html';menu.querySelectorAll('.chapter-link').forEach(a=>{if(a.getAttribute('href')===cur)a.classList.add('current')});function close(){menu.classList.remove('open');overlay.classList.remove('open');btn.textContent=T.menuOpen}function open(){menu.classList.add('open');overlay.classList.add('open');btn.textContent=T.menuClose}btn.addEventListener('click',e=>{e.stopPropagation();menu.classList.contains('open')?close():open()});overlay.addEventListener('click',close);document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});menu.querySelectorAll('.chapter-link').forEach(a=>a.addEventListener('click',close))}
+function initViewSwitch(){document.querySelectorAll('[data-view-set]').forEach(b=>b.addEventListener('click',()=>{const m=b.dataset.viewSet;document.documentElement.classList.toggle('mode-custom',m==='custom');try{localStorage.setItem('dp750-view',m)}catch(e){}}))}
 document.addEventListener('DOMContentLoaded',()=>{initChapterMenu();initViewSwitch();initTabs();initCollapsibles();initHints();initCopy();initTOC();initProgress()})</script>
 </body>
 </html>

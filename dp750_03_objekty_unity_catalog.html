@@ -100,14 +100,24 @@ tr:hover td{background:#f9fafb}
 .figure svg{display:block;width:100%;height:auto;max-width:820px;margin:0 auto}
 .figure figcaption{margin-top:10px;font-size:12px;color:var(--text-muted);text-align:center;line-height:1.5}
 code.inline{font-family:var(--font-mono);font-size:.9em;background:var(--accent-light);color:var(--gopas-blue);padding:1px 5px;border-radius:3px}
-[data-view="orig"]{display:none}
-html.mode-orig [data-view="orig"]{display:revert}
-html.mode-orig [data-view="custom"]{display:none}
+/* Vychozi pohled = originalni osnova MOC. Vlastni tridenni osnovu zapina trida
+   mode-custom na <html> (MODE_BOOT v build.py + initViewSwitch). Bez JS => originalni osnova. */
+/* Skryva se vzdy jen pres display:none. Nikdy display:revert - vracel by hodnotu
+   z UA stylu, ne autorskou, a diky vyssi specificite by prebil napr. .callout{display:flex}. */
+html:not(.mode-custom) [data-view="custom"]{display:none}
+html.mode-custom [data-view="orig"]{display:none}
+/* prepinac jazyka v top-nav (kapitoly); vlajky jsou inline SVG - zadny externi request */
+.lang-switch{display:flex;align-items:center;gap:2px;padding:2px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:999px;flex-shrink:0}
+.nav-links .lang-switch>*{display:flex;align-items:center;gap:5px;padding:3px 9px;border:none;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.5px;color:rgba(255,255,255,.6);text-decoration:none}
+.nav-links .lang-switch a:hover{background:rgba(255,255,255,.14);color:#fff}
+.nav-links .lang-switch>.current{background:#fff;color:var(--gopas-blue)}
+.lang-switch svg{display:block;width:18px;height:12px;border-radius:2px;flex-shrink:0}
+@media(max-width:700px){.lang-switch .lang-lbl{display:none}.nav-links .lang-switch>*{padding:4px 7px}}
 .learn-more{display:flex;gap:8px;align-items:baseline;margin:14px 0 0;padding:9px 13px;background:#f8fafc;border:1px solid var(--border);border-left:3px solid var(--gopas-blue);border-radius:6px;font-size:13px;color:var(--text-muted)}
 .learn-more .lm-label{flex-shrink:0;font-weight:600;color:var(--gopas-blue)}
 .learn-more a{color:var(--gopas-blue);text-decoration:none;border-bottom:1px solid rgba(26,58,107,.3)}
 .learn-more a:hover{border-bottom-color:var(--gopas-blue)}</style>
-<script>try{if(localStorage.getItem("dp750-view")==="orig")document.documentElement.className="mode-orig"}catch(e){}</script>
+
 </head>
 <body>
 <div id="chapOverlay" class="chapter-menu-overlay"></div>
@@ -125,16 +135,16 @@ html.mode-orig [data-view="custom"]{display:none}
   <div class="chapter-group">
     <div class="chapter-group-title">MOC — pokračování</div>
     <a class="chapter-link" href="dp750_08_transformace.html">8. Čištění a transformace dat</a>
-    <a class="chapter-link" href="dp750_09_data_quality.html" title="Mimo osnovu zkráceného kurzu">9. Data quality constraints<span data-view="custom" style="opacity:.55;font-size:11px"> · mimo osnovu</span></a>
+    <a class="chapter-link" href="dp750_09_data_quality.html">9. Data quality constraints</a>
     <a class="chapter-link" href="dp750_10_pipelines.html">10. Datové pipelines</a>
     <a class="chapter-link" href="dp750_11_lakeflow_jobs.html">11. Lakeflow Jobs</a>
-    <a class="chapter-link" href="dp750_12_dev_lifecycle.html" title="Mimo osnovu zkráceného kurzu">12. Vývojový lifecycle<span data-view="custom" style="opacity:.55;font-size:11px"> · mimo osnovu</span></a>
+    <a class="chapter-link" href="dp750_12_dev_lifecycle.html">12. Vývojový lifecycle</a>
     <a class="chapter-link" href="dp750_13_monitoring.html">13. Monitoring a optimalizace</a>
     <div data-view="orig" style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1)">
       <a class="chapter-link" href="index.html" style="color:rgba(255,255,255,.5)">🏠 Rozcestník kurzu</a>
     </div>
   </div>
-  <div class="chapter-group" data-view="custom">
+  <div class="chapter-group">
     <div class="chapter-group-title">Pod čarou — den 3</div>
     <a class="chapter-link" href="dp750_14_fabric_prehled.html">14. Průřez Microsoft Fabric</a>
     <a class="chapter-link" href="dp750_15_pbi_fabric_databricks.html">15. Power BI + Fabric + Databricks</a>
@@ -151,7 +161,7 @@ html.mode-orig [data-view="custom"]{display:none}
     <span class="chapter-title-nav">Objekty v Unity Catalogu</span>
   </div>
   <div class="nav-links">
-    <button id="chapBtn" class="chapter-menu-btn">☰ Kapitoly</button><a href="index.html" class="home" title="Rozcestník">🏠</a>
+    <div class="lang-switch" role="group" aria-label="Jazyk / Language"><span class="current" aria-current="true"><svg viewBox="0 0 30 20" aria-hidden="true" focusable="false"><rect width="30" height="10" fill="#fff"/><rect y="10" width="30" height="10" fill="#d7141a"/><path d="M0 0 15 10 0 20Z" fill="#11457e"/></svg><span class="lang-lbl">CS</span></span><a href="en/dp750_03_objekty_unity_catalog.html" title="English version" hreflang="en"><svg viewBox="0 0 60 30" aria-hidden="true" focusable="false"><rect width="60" height="30" fill="#012169"/><path d="M0 0 60 30M60 0 0 30" stroke="#fff" stroke-width="6"/><path d="M0 0 60 30M60 0 0 30" stroke="#c8102e" stroke-width="2"/><path d="M30 0V30M0 15H60" stroke="#fff" stroke-width="10"/><path d="M30 0V30M0 15H60" stroke="#c8102e" stroke-width="6"/></svg><span class="lang-lbl">EN</span></a></div><button id="chapBtn" class="chapter-menu-btn">☰ Kapitoly</button><a href="index.html" class="home" title="Rozcestník">🏠</a>
     <a href="dp750_04_zabezpeceni.html" class="next">Zabezpečení Unity Catalogu →</a>
   </div>
 </nav>
@@ -170,6 +180,7 @@ html.mode-orig [data-view="custom"]{display:none}
     <a href="#sec-foreign-catalog" class="toc-item" data-section="sec-foreign-catalog">Foreign catalog a Lakehouse Federation</a>
     <a href="#sec-genie-instructions" class="toc-item" data-section="sec-genie-instructions">AI/BI Genie instructions</a>
     <a href="#sec-lab" class="toc-item" data-section="sec-lab">Lab 3: Create and Organize Objects in Unity Catalog (45 minut)</a>
+    <a href="#sec-runbook" class="toc-item" data-section="sec-runbook">Runbook: ukázka krok za krokem</a>
   </aside>
 
   <main class="main">
@@ -271,10 +282,10 @@ html.mode-orig [data-view="custom"]{display:none}
 
   <div class="tabs">
     <div class="tab-list">
-      <button class="tab-btn" data-tab="tab-03-catalog-sql"><span class="tab-icon">🗄️</span>SQL</button>
+      <button class="tab-btn active" data-tab="tab-03-catalog-sql"><span class="tab-icon">🗄️</span>SQL</button>
       <button class="tab-btn" data-tab="tab-03-catalog-ui"><span class="tab-icon">🖱️</span>Catalog Explorer</button>
     </div>
-    <div class="tab-panel" id="tab-03-catalog-sql">
+    <div class="tab-panel active" id="tab-03-catalog-sql">
       <div class="code-block">
         <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
         <pre><span class="cm">-- katalog s dedikovanym managed storage</span>
@@ -704,22 +715,289 @@ $$;
   <div class="callout success"><div class="callout-icon">✓</div><div><strong>Sebekontrola:</strong> <strong>1)</strong> Co se stane s datovými soubory při <code class="inline">DROP TABLE</code> u managed vs. external tabulky? <strong>2)</strong> Vynucují PK/FK constraints v Unity Catalogu referenční integritu při zápisu — a k čemu tedy slouží? <strong>3)</strong> Jaký je rozdíl mezi connection a foreign catalogem v Lakehouse Federation a která privilegia potřebujete k jejich vytvoření?</div></div>
 </div>
 
+<div class="section" id="sec-runbook">
+  <div class="section-header">
+    <div class="section-num">3.R</div>
+    <h2>Runbook: ukázka krok za krokem</h2>
+  </div>
+  <p>Ukázka postaví malý namespace pro sdílená kola v Brně: katalog, schéma, tabulky s PK/FK, view, materialized view, volume, funkce, proceduru a tagy, a na konci obnoví smazanou tabulku. Běží v lektorském workspace v katalogu <code class="inline">dp750_demo</code>, schéma <code class="inline">m03</code>, na syntetických datech.</p>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> serverless SQL warehouse (materialized view a Python UDF na něm běží), katalog <code class="inline">dp750_demo</code>, privilegium <code class="inline">CREATE CATALOG</code> na metastoru pro krok 2 a malý CSV soubor <code class="inline">station_status.csv</code> pro krok 5 (obsah je v kroku). Celá ukázka zabere asi 15 minut.</div></div>
+
+  <h3>Krok 1 – Třívrstvý namespace a naming conventions</h3>
+  <ol>
+    <li>V SQL editoru projděte hierarchii shora dolů:</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="kw">SELECT</span> <span class="fn">current_metastore</span>();
+<span class="kw">SHOW CATALOGS</span>;
+<span class="kw">SHOW SCHEMAS IN</span> <span class="tbl">dp750_demo</span>;
+
+<span class="cm">-- velikost pismen se v nazvech objektu ztraci</span>
+<span class="kw">SELECT</span> table_schema, table_name
+<span class="kw">FROM</span> <span class="tbl">system.information_schema.tables</span>
+<span class="kw">WHERE</span> table_catalog = <span class="str">'dp750_demo'</span>
+<span class="kw">ORDER BY</span> <span class="num">1</span>, <span class="num">2</span>;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> nad katalogy je jeden metastore pro region. Přes <code class="inline">information_schema</code> se dá konvence kontrolovat dotazem, třeba v CI: všechna jména jsou lowercase, žádné <code class="inline">_v2_final</code>.</div></div>
+
+  <h3>Krok 2 – Vytvoření katalogu</h3>
+  <ol>
+    <li>Zkuste založit katalog bez úložiště, ať účastníci vidí chybu:</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="kw">CREATE CATALOG IF NOT EXISTS</span> <span class="tbl">dp750_m03_sandbox</span> <span class="kw">COMMENT</span> <span class="str">'Docasny katalog z dema modulu 3'</span>;
+
+<span class="cm">-- kde lezi uloziste katalogu workspace</span>
+<span class="kw">DESCRIBE CATALOG EXTENDED</span> <span class="tbl">&lt;katalog_workspace&gt;</span>;
+
+<span class="cm">-- druhy pokus s managed location pod Storage Root z predchoziho prikazu</span>
+<span class="kw">CREATE CATALOG IF NOT EXISTS</span> <span class="tbl">dp750_m03_sandbox</span>
+<span class="kw">MANAGED LOCATION</span> <span class="str">'&lt;storage_root&gt;/dp750_m03_sandbox'</span>
+<span class="kw">COMMENT</span> <span class="str">'Docasny katalog z dema modulu 3'</span>;
+
+<span class="kw">SHOW SCHEMAS IN</span> <span class="tbl">dp750_m03_sandbox</span>;</pre>
+  </div>
+  <ol start="2">
+    <li>Catalog Explorer → <code class="inline">dp750_m03_sandbox</code> → záložka <strong>Workspaces</strong>: ukažte volbu <strong>All workspaces have access</strong> (workspace bindings).</li>
+  </ol>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> v lektorském workspace metastore nemá vlastní storage root a první příkaz skončí chybou <code class="inline">INVALID_STATE … Metastore storage root URL does not exist</code>. Chyba sama radí buď <code class="inline">MANAGED LOCATION</code>, nebo založení přes UI s Default Storage. Nový katalog má hned schémata <code class="inline">default</code> a <code class="inline">information_schema</code>.</div></div>
+
+  <h3>Krok 3 – Vytvoření schématu</h3>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="kw">CREATE SCHEMA IF NOT EXISTS</span> <span class="tbl">dp750_demo.m03</span> <span class="kw">COMMENT</span> <span class="str">'Demo modulu 3: sdilena kola Brno'</span>;
+<span class="kw">DESCRIBE SCHEMA EXTENDED</span> <span class="tbl">dp750_demo.m03</span>;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> schéma bez vlastní managed location ukládá do úložiště katalogu. Řetězec fallbacku je schema → catalog → metastore; tady končí na katalogu, protože metastore úložiště nemá.</div></div>
+
+  <h3>Krok 4 – Tabulky a views</h3>
+  <ol>
+    <li>Dvě managed tabulky s PK/FK, data a pokus o duplicitní klíč:</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750_demo.m03.stations</span> (
+  station_id   <span class="kw">INT NOT NULL COMMENT</span> <span class="str">'ID stanice'</span>,
+  station_name <span class="kw">STRING</span>,
+  district     <span class="kw">STRING</span>,
+  <span class="kw">CONSTRAINT</span> stations_pk <span class="kw">PRIMARY KEY</span> (station_id)
+) <span class="kw">COMMENT</span> <span class="str">'Stanice sdilenych kol'</span>;
+
+<span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750_demo.m03.rides</span> (
+  ride_id    <span class="kw">BIGINT NOT NULL</span>,
+  station_id <span class="kw">INT</span>,
+  started_at <span class="kw">TIMESTAMP</span>,
+  minutes    <span class="kw">INT</span>,
+  price_czk  <span class="kw">DECIMAL</span>(<span class="num">6</span>,<span class="num">2</span>),
+  <span class="kw">CONSTRAINT</span> rides_pk <span class="kw">PRIMARY KEY</span> (ride_id),
+  <span class="kw">CONSTRAINT</span> rides_stations_fk <span class="kw">FOREIGN KEY</span> (station_id) <span class="kw">REFERENCES</span> <span class="tbl">dp750_demo.m03.stations</span> (station_id)
+) <span class="kw">COMMENT</span> <span class="str">'Jednotlive vypujcky kol'</span>;
+
+<span class="kw">INSERT INTO</span> <span class="tbl">dp750_demo.m03.stations</span> <span class="kw">VALUES</span>
+  (<span class="num">1</span>, <span class="str">'Hlavní nádraží'</span>, <span class="str">'Brno-střed'</span>), (<span class="num">2</span>, <span class="str">'Mendlovo náměstí'</span>, <span class="str">'Brno-střed'</span>),
+  (<span class="num">3</span>, <span class="str">'Královo Pole nádraží'</span>, <span class="str">'Královo Pole'</span>), (<span class="num">4</span>, <span class="str">'Líšeň Jírova'</span>, <span class="str">'Líšeň'</span>);
+
+<span class="kw">INSERT INTO</span> <span class="tbl">dp750_demo.m03.rides</span> <span class="kw">VALUES</span>
+  (<span class="num">1001</span>, <span class="num">1</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-10-01 07:42:00'</span>, <span class="num">12</span>, <span class="num">25.00</span>),
+  (<span class="num">1002</span>, <span class="num">2</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-10-01 08:05:00'</span>, <span class="num">48</span>, <span class="num">75.00</span>),
+  (<span class="num">1003</span>, <span class="num">3</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-10-01 16:30:00'</span>, <span class="num">7</span>, <span class="num">25.00</span>),
+  (<span class="num">1004</span>, <span class="num">1</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-10-02 09:10:00'</span>, <span class="num">95</span>, <span class="num">150.00</span>),
+  (<span class="num">1005</span>, <span class="num">4</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-10-02 17:45:00'</span>, <span class="num">22</span>, <span class="num">25.00</span>);
+
+<span class="cm">-- PK se nevynucuje: projde to</span>
+<span class="kw">INSERT INTO</span> <span class="tbl">dp750_demo.m03.stations</span> <span class="kw">VALUES</span> (<span class="num">1</span>, <span class="str">'Duplicitni stanice'</span>, <span class="str">'Brno-střed'</span>);
+<span class="kw">SELECT</span> station_id, <span class="fn">count</span>(*) <span class="kw">AS</span> n <span class="kw">FROM</span> <span class="tbl">dp750_demo.m03.stations</span> <span class="kw">GROUP BY</span> station_id <span class="kw">HAVING</span> <span class="fn">count</span>(*) &gt; <span class="num">1</span>;
+<span class="kw">DELETE FROM</span> <span class="tbl">dp750_demo.m03.stations</span> <span class="kw">WHERE</span> station_name = <span class="str">'Duplicitni stanice'</span>;</pre>
+  </div>
+  <ol start="2">
+    <li>Standardní view a materialized view nad stejnými tabulkami:</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="kw">CREATE OR REPLACE VIEW</span> <span class="tbl">dp750_demo.m03.vw_long_rides</span>
+<span class="kw">COMMENT</span> <span class="str">'Vypujcky delsi nez 30 minut'</span> <span class="kw">AS</span>
+<span class="kw">SELECT</span> r.ride_id, s.station_name, r.minutes, r.price_czk
+<span class="kw">FROM</span> <span class="tbl">dp750_demo.m03.rides</span> r
+<span class="kw">JOIN</span> <span class="tbl">dp750_demo.m03.stations</span> s <span class="kw">ON</span> r.station_id = s.station_id
+<span class="kw">WHERE</span> r.minutes &gt; <span class="num">30</span>;
+
+<span class="kw">CREATE OR REPLACE MATERIALIZED VIEW</span> <span class="tbl">dp750_demo.m03.mv_rides_by_district</span> <span class="kw">AS</span>
+<span class="kw">SELECT</span> s.district, <span class="fn">count</span>(*) <span class="kw">AS</span> rides, <span class="fn">sum</span>(r.price_czk) <span class="kw">AS</span> revenue_czk
+<span class="kw">FROM</span> <span class="tbl">dp750_demo.m03.rides</span> r
+<span class="kw">JOIN</span> <span class="tbl">dp750_demo.m03.stations</span> s <span class="kw">ON</span> r.station_id = s.station_id
+<span class="kw">GROUP BY</span> s.district;
+
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m03.vw_long_rides</span>;
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m03.mv_rides_by_district</span> <span class="kw">ORDER BY</span> rides <span class="kw">DESC</span>;
+<span class="kw">DESCRIBE TABLE EXTENDED</span> <span class="tbl">dp750_demo.m03.rides</span>;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> duplicitní <code class="inline">station_id = 1</code> se uloží, protože PK/FK jsou jen informační (pro optimizer, Genie a dokumentaci). View vrátí dvě dlouhé výpůjčky, MV tři městské části (Brno-střed 3 výpůjčky). <code class="inline">DESCRIBE TABLE EXTENDED</code> ukáže <code class="inline">Type = MANAGED</code>.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> materialized view zakládejte na SQL warehouse; když editor omylem běží na jiném compute, zkontrolujte výběr compute vpravo nahoře. Data se v MV nemění sama: po změně zdroje pusťte <code class="inline">REFRESH MATERIALIZED VIEW</code> (krok 6).</div></div>
+
+  <h3>Krok 5 – Volumes: governance pro soubory</h3>
+  <ol>
+    <li>Založte volume a nahrajte do něj CSV. Buď v Catalog Exploreru (volume → <strong>Upload to this volume</strong>), nebo z CLI:</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="kw">CREATE VOLUME IF NOT EXISTS</span> <span class="tbl">dp750_demo.m03.raw_exports</span> <span class="kw">COMMENT</span> <span class="str">'CSV exporty z terminalu stanic'</span>;</pre>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">BASH</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm"># obsah station_status.csv:</span>
+<span class="cm"># station_id,checked_at,bikes_available</span>
+<span class="cm"># 1,2026-10-03T07:00:00,8</span>
+<span class="cm"># 2,2026-10-03T07:00:00,3</span>
+<span class="cm"># 3,2026-10-03T07:00:00,0</span>
+databricks fs cp station_status.csv dbfs:/Volumes/dp750_demo/m03/raw_exports/station_status.csv --profile <span class="str">&lt;profil&gt;</span></pre>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="kw">LIST</span> <span class="str">'/Volumes/dp750_demo/m03/raw_exports'</span>;
+
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="fn">read_files</span>(<span class="str">'/Volumes/dp750_demo/m03/raw_exports/station_status.csv'</span>,
+                        format =&gt; <span class="str">'csv'</span>, header =&gt; <span class="kw">true</span>);</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> soubor má cestu <code class="inline">/Volumes/katalog/schema/volume/…</code> a čte se bez klíčů a connection stringů. <code class="inline">read_files</code> odvodí typy a přidá sloupec <code class="inline">_rescued_data</code> pro hodnoty, které do schématu nesednou.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> v Git Bash na Windows přepíše shell cestu <code class="inline">/Volumes/…</code> na windowsovou. Před příkazem nastavte <code class="inline">export MSYS_NO_PATHCONV=1</code>, nebo pusťte příkaz z PowerShellu.</div></div>
+
+  <h3>Krok 6 – DDL operace: funkce, procedury, ALTER a tagy</h3>
+  <ol>
+    <li>SQL funkce, Python funkce a procedura s kontrolou vstupu:</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="kw">CREATE OR REPLACE FUNCTION</span> <span class="tbl">dp750_demo.m03.fn_tariff</span>(minutes <span class="kw">INT</span>)
+<span class="kw">RETURNS STRING</span>
+<span class="kw">COMMENT</span> <span class="str">'Tarifni pasmo podle delky vypujcky'</span>
+<span class="kw">RETURN CASE WHEN</span> minutes &lt;= <span class="num">15</span> <span class="kw">THEN</span> <span class="str">'zaklad'</span>
+            <span class="kw">WHEN</span> minutes &lt;= <span class="num">60</span> <span class="kw">THEN</span> <span class="str">'stredni'</span>
+            <span class="kw">ELSE</span> <span class="str">'dlouha'</span> <span class="kw">END</span>;
+
+<span class="kw">CREATE OR REPLACE FUNCTION</span> <span class="tbl">dp750_demo.m03.fn_station_code</span>(name <span class="kw">STRING</span>)
+<span class="kw">RETURNS STRING</span>
+<span class="kw">LANGUAGE PYTHON</span>
+<span class="kw">AS</span> $$
+import unicodedata
+if name is None: return None
+ascii_name = unicodedata.normalize('NFKD', name).encode('ascii', 'ignore').decode()
+return ascii_name.upper().replace(' ', '_')[:12]
+$$;
+
+<span class="kw">SELECT</span> r.ride_id, r.minutes,
+       <span class="fn">dp750_demo.m03.fn_tariff</span>(r.minutes) <span class="kw">AS</span> tarif,
+       <span class="fn">dp750_demo.m03.fn_station_code</span>(s.station_name) <span class="kw">AS</span> kod
+<span class="kw">FROM</span> <span class="tbl">dp750_demo.m03.rides</span> r <span class="kw">JOIN</span> <span class="tbl">dp750_demo.m03.stations</span> s <span class="kw">USING</span> (station_id)
+<span class="kw">ORDER BY</span> r.ride_id;
+
+<span class="kw">CREATE OR REPLACE PROCEDURE</span> <span class="tbl">dp750_demo.m03.sp_add_ride</span>(
+  <span class="kw">IN</span> p_ride_id <span class="kw">BIGINT</span>, <span class="kw">IN</span> p_station_id <span class="kw">INT</span>, <span class="kw">IN</span> p_minutes <span class="kw">INT</span>)
+<span class="kw">LANGUAGE SQL SQL SECURITY INVOKER</span>
+<span class="kw">AS BEGIN</span>
+  <span class="kw">IF</span> p_minutes &lt;= <span class="num">0</span> <span class="kw">THEN</span>
+    <span class="kw">SIGNAL SQLSTATE</span> <span class="str">'22003'</span> <span class="kw">SET</span> MESSAGE_TEXT = <span class="str">'Delka vypujcky musi byt kladna'</span>;
+  <span class="kw">END IF</span>;
+  <span class="kw">INSERT INTO</span> <span class="tbl">dp750_demo.m03.rides</span> <span class="kw">VALUES</span> (p_ride_id, p_station_id, <span class="fn">current_timestamp</span>(), p_minutes,
+    <span class="kw">CASE WHEN</span> p_minutes &lt;= <span class="num">15</span> <span class="kw">THEN</span> <span class="num">25.00</span> <span class="kw">WHEN</span> p_minutes &lt;= <span class="num">60</span> <span class="kw">THEN</span> <span class="num">75.00</span> <span class="kw">ELSE</span> <span class="num">150.00</span> <span class="kw">END</span>);
+<span class="kw">END</span>;
+
+<span class="kw">CALL</span> <span class="fn">dp750_demo.m03.sp_add_ride</span>(<span class="num">1006</span>, <span class="num">2</span>, <span class="num">33</span>);
+<span class="kw">CALL</span> <span class="fn">dp750_demo.m03.sp_add_ride</span>(<span class="num">1007</span>, <span class="num">2</span>, <span class="num">0</span>);   <span class="cm">-- zamerna chyba</span>
+<span class="kw">REFRESH MATERIALIZED VIEW</span> <span class="tbl">dp750_demo.m03.mv_rides_by_district</span>;</pre>
+  </div>
+  <ol start="2">
+    <li>ALTER: nový sloupec, rozšíření typu a tagy:</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="kw">ALTER TABLE</span> <span class="tbl">dp750_demo.m03.rides</span> <span class="kw">ADD COLUMN</span> bike_type <span class="kw">STRING COMMENT</span> <span class="str">'mechanicke nebo elektro'</span>;
+
+<span class="cm">-- prvni pokus selze, druhy po zapnuti type widening projde</span>
+<span class="kw">ALTER TABLE</span> <span class="tbl">dp750_demo.m03.rides</span> <span class="kw">ALTER COLUMN</span> minutes <span class="kw">TYPE BIGINT</span>;
+<span class="kw">ALTER TABLE</span> <span class="tbl">dp750_demo.m03.rides</span> <span class="kw">SET TBLPROPERTIES</span> (<span class="str">'delta.enableTypeWidening'</span> = <span class="str">'true'</span>);
+<span class="kw">ALTER TABLE</span> <span class="tbl">dp750_demo.m03.rides</span> <span class="kw">ALTER COLUMN</span> minutes <span class="kw">TYPE BIGINT</span>;
+
+<span class="kw">ALTER SCHEMA</span> <span class="tbl">dp750_demo.m03</span> <span class="kw">SET TAGS</span> (<span class="str">'domain'</span> = <span class="str">'mobilita'</span>, <span class="str">'environment'</span> = <span class="str">'demo'</span>);
+<span class="kw">ALTER TABLE</span> <span class="tbl">dp750_demo.m03.rides</span> <span class="kw">SET TAGS</span> (<span class="str">'data_owner'</span> = <span class="str">'provoz'</span>);
+
+<span class="kw">SELECT</span> schema_name, tag_name, tag_value
+<span class="kw">FROM</span> <span class="tbl">system.information_schema.schema_tags</span>
+<span class="kw">WHERE</span> catalog_name = <span class="str">'dp750_demo'</span> <span class="kw">AND</span> schema_name = <span class="str">'m03'</span>;</pre>
+  </div>
+  <ol start="3">
+    <li>Obnova smazané managed tabulky (na kopii, ať nerozbijete view a MV):</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750_demo.m03.tmp_rides_copy</span> <span class="kw">AS SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m03.rides</span>;
+<span class="kw">DROP TABLE</span> <span class="tbl">dp750_demo.m03.tmp_rides_copy</span>;
+<span class="kw">SHOW TABLES DROPPED IN</span> <span class="tbl">dp750_demo.m03</span>;
+<span class="kw">UNDROP TABLE</span> <span class="tbl">dp750_demo.m03.tmp_rides_copy</span>;
+<span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">FROM</span> <span class="tbl">dp750_demo.m03.tmp_rides_copy</span>;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> funkce i procedura jsou objekty Unity Catalogu s vlastníkem a granty (<code class="inline">EXECUTE</code>). Druhé <code class="inline">CALL</code> skončí <code class="inline">USER_RAISED_EXCEPTION … SQLSTATE: 22003</code> a nic nevloží. Tagy schématu najdete v <code class="inline">information_schema.schema_tags</code>. <code class="inline">UNDROP</code> vrátí managed tabulku i s daty; okno je podle dokumentace 7 dní.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> <code class="inline">ALTER COLUMN … TYPE BIGINT</code> bez zapnutého <code class="inline">delta.enableTypeWidening</code> skončí chybou <code class="inline">DELTA_UNSUPPORTED_ALTER_TABLE_CHANGE_COL_OP</code>. Tělo Python UDF se kontroluje až při volání: funkce s chybným odsazením se vytvoří bez chyby a spadne na <code class="inline">UDF_USER_CODE_ERROR … IndentationError</code> teprve v <code class="inline">SELECT</code>. Proto jsou podmínky výše jednořádkové.</div></div>
+
+  <h3>Krok 7 – Foreign catalog a Lakehouse Federation</h3>
+  <ol>
+    <li>Catalog → ikona <strong>+</strong> nahoře v panelu → <strong>Create a connection</strong>. Projděte průvodce (Connection type, Authentication) a ukažte, že na konci rovnou nabízí založení foreign catalogu. <strong>Nic neukládejte</strong>, pokud nemáte připravenou testovací databázi.</li>
+    <li>V SQL ukažte, že connection je samostatný objekt, a šablonu obou příkazů:</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="kw">SHOW CONNECTIONS</span>;
+
+<span class="cm">-- sablona, spoustejte jen proti vlastni testovaci databazi</span>
+<span class="kw">CREATE CONNECTION</span> pg_bikes_test <span class="kw">TYPE</span> postgresql
+<span class="kw">OPTIONS</span> (
+  host <span class="str">'&lt;host&gt;'</span>, port <span class="str">'5432'</span>,
+  user <span class="fn">secret</span>(<span class="str">'&lt;scope&gt;'</span>, <span class="str">'&lt;klic-uzivatel&gt;'</span>),
+  password <span class="fn">secret</span>(<span class="str">'&lt;scope&gt;'</span>, <span class="str">'&lt;klic-heslo&gt;'</span>)
+);
+<span class="kw">CREATE FOREIGN CATALOG IF NOT EXISTS</span> <span class="tbl">bikes_ops</span>
+<span class="kw">USING CONNECTION</span> pg_bikes_test <span class="kw">OPTIONS</span> (database <span class="str">'&lt;databaze&gt;'</span>);</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> connection drží adresu a přihlášení (přes secret, ne v textu), foreign catalog zrcadlí jednu databázi. Dotaz pak počítá zdrojová databáze, Unity Catalog jen řídí přístup a audit.</div></div>
+
+  <h3>Krok 8 – AI/BI Genie instructions</h3>
+  <ol>
+    <li>Sidebar → <strong>Genie Agents</strong> (dříve Genie spaces) → <strong>New</strong>, jako zdroje vyberte <code class="inline">stations</code>, <code class="inline">rides</code> a <code class="inline">mv_rides_by_district</code> → <strong>Create</strong>.</li>
+    <li>Ukažte, že join mezi tabulkami si Genie odvodil z PK/FK z kroku 4.</li>
+    <li>V <strong>Configure</strong> přidejte obecnou textovou instrukci „Tržby počítej ze sloupce price_czk v Kč, výpůjčky delší než 60 minut jsou dlouhé.“ a na záložce <strong>Examples</strong> vzorový dotaz s otázkou „Kolik vydělala která městská část?“ a SQL nad <code class="inline">mv_rides_by_district</code>.</li>
+    <li>Položte otázku „Které stanice mají dlouhé výpůjčky?“ a přes <strong>Show generated code</strong> zkontrolujte SQL.</li>
+  </ol>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> komentáře, PK/FK a jasná jména z předchozích kroků jsou kontext, který Genie čte sám. Ruční instrukce dávejte až na to, co z metadat vyčíst nejde.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> Genie Agent potřebuje pro/serverless SQL warehouse a zapnuté partner-powered AI funkce na úrovni accountu a workspace. Bez nich ikona v sidebaru je, ale agent nepůjde použít.</div></div>
+
+  <h3>Úklid</h3>
+  <ol>
+    <li>Ihned po ukázce: <code class="inline">DROP CATALOG dp750_m03_sandbox CASCADE;</code></li>
+    <li>Genie Agent smažte (menu ⋮ → <strong>Move to trash</strong>), pokud ho nechcete dál ukazovat.</li>
+    <li>Schéma <code class="inline">dp750_demo.m03</code> nechte do konce kurzu (Catalog Explorer v dalších modulech). Po kurzu: <code class="inline">DROP SCHEMA dp750_demo.m03 CASCADE;</code></li>
+  </ol>
+</div>
+
     <div class="footer-nav">
       <a href="dp750_02_compute.html">← Výběr a konfigurace compute</a>
-      <span style="color:var(--text-muted);font-size:13px">Kapitola 3 z 16</span>
+      <span data-view="orig" style="color:var(--text-muted);font-size:13px">Kapitola 3 z 13</span><span data-view="custom" style="color:var(--text-muted);font-size:13px">Kapitola 3 z 16</span>
       <a href="dp750_04_zabezpeceni.html" style="margin-left:auto">Zabezpečení Unity Catalogu →</a>
     </div>
   </main>
 </div>
 
-<script>function initTabs(){document.querySelectorAll('.tab-list').forEach(list=>{list.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{const panel=btn.dataset.tab;const container=btn.closest('.tabs');container.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));container.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');container.querySelector('#'+panel).classList.add('active')})})});document.querySelectorAll('.tabs').forEach(t=>{const first=t.querySelector('.tab-btn');if(first)first.classList.add('active');const firstP=t.querySelector('.tab-panel');if(firstP)firstP.classList.add('active')})}
+<script>var T={copy:"Kopírovat",copied:"✓ Zkopírováno",copyFallback:"Ctrl+C",hintShow:"💡 Zobrazit nápovědu",hintHide:"🙈 Skrýt nápovědu",menuOpen:"☰ Kapitoly",menuClose:"✕ Zavřít"};
+/* Sdilene chovani pro CS i EN vetev. Objekt T (UI texty) emituje build.py pred telem
+   tohoto skriptu — viz LANGS v build.py. Zadny text natvrdo, jinak se rozejdou jazyky. */
+function initTabs(){document.querySelectorAll('.tab-list').forEach(list=>{list.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{const panel=btn.dataset.tab;const container=btn.closest('.tabs');container.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));container.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');container.querySelector('#'+panel).classList.add('active')})})});document.querySelectorAll('.tabs').forEach(t=>{if(t.querySelector('.tab-btn.active'))return;const first=t.querySelector('.tab-btn');if(first)first.classList.add('active');const firstP=t.querySelector('.tab-panel');if(firstP)firstP.classList.add('active')})}
 function initCollapsibles(){document.querySelectorAll('.collapsible-header').forEach(h=>{h.addEventListener('click',()=>h.closest('.collapsible').classList.toggle('open'))})}
-function initHints(){document.querySelectorAll('.hint-toggle').forEach(t=>{t.addEventListener('click',()=>{const c=t.nextElementSibling;c.classList.toggle('open');t.textContent=c.classList.contains('open')?'🙈 Skrýt nápovědu':'💡 Zobrazit nápovědu'})})}
-function initCopy(){document.querySelectorAll('.copy-btn').forEach(btn=>{btn.addEventListener('click',()=>{const code=btn.closest('.code-block').querySelector('pre').innerText;function ok(){btn.textContent='✓ Zkopírováno';btn.classList.add('copied');setTimeout(()=>{btn.textContent='Kopírovat';btn.classList.remove('copied')},2000)}function legacy(){try{const ta=document.createElement('textarea');ta.value=code;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok()}catch(e){btn.textContent='Ctrl+C';setTimeout(()=>{btn.textContent='Kopírovat'},2000)}}if(navigator.clipboard){navigator.clipboard.writeText(code).then(ok).catch(legacy)}else{legacy()}})})}
+function initHints(){document.querySelectorAll('.hint-toggle').forEach(t=>{t.addEventListener('click',()=>{const c=t.nextElementSibling;c.classList.toggle('open');t.textContent=c.classList.contains('open')?T.hintHide:T.hintShow})})}
+function initCopy(){document.querySelectorAll('.copy-btn').forEach(btn=>{btn.addEventListener('click',()=>{const code=btn.closest('.code-block').querySelector('pre').innerText;function ok(){btn.textContent=T.copied;btn.classList.add('copied');setTimeout(()=>{btn.textContent=T.copy;btn.classList.remove('copied')},2000)}function legacy(){try{const ta=document.createElement('textarea');ta.value=code;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok()}catch(e){btn.textContent=T.copyFallback;setTimeout(()=>{btn.textContent=T.copy},2000)}}if(navigator.clipboard){navigator.clipboard.writeText(code).then(ok).catch(legacy)}else{legacy()}})})}
 function initTOC(){const sections=document.querySelectorAll('.section');const items=document.querySelectorAll('.toc-item[data-section]');if(!items.length)return;const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){const id=e.target.id;items.forEach(i=>i.classList.toggle('active',i.dataset.section===id))}})},{rootMargin:'-15% 0px -70% 0px'});sections.forEach(s=>obs.observe(s));items.forEach(i=>{i.addEventListener('click',()=>{document.getElementById(i.dataset.section)?.scrollIntoView({behavior:'smooth'})})})}
 function initProgress(){const bar=document.getElementById('pfill');if(!bar)return;window.addEventListener('scroll',()=>{const t=window.scrollY;const h=document.documentElement.scrollHeight-window.innerHeight;bar.style.width=(h>0?t/h*100:0)+'%'})}
-function initChapterMenu(){const btn=document.getElementById('chapBtn');const menu=document.getElementById('chapMenu');const overlay=document.getElementById('chapOverlay');if(!btn)return;const cur=window.location.pathname.split('/').pop()||'index.html';menu.querySelectorAll('.chapter-link').forEach(a=>{if(a.getAttribute('href')===cur)a.classList.add('current')});function close(){menu.classList.remove('open');overlay.classList.remove('open');btn.textContent='☰ Kapitoly'}function open(){menu.classList.add('open');overlay.classList.add('open');btn.textContent='✕ Zavřít'}btn.addEventListener('click',e=>{e.stopPropagation();menu.classList.contains('open')?close():open()});overlay.addEventListener('click',close);document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});menu.querySelectorAll('.chapter-link').forEach(a=>a.addEventListener('click',close))}
-function initViewSwitch(){document.querySelectorAll('[data-view-set]').forEach(b=>b.addEventListener('click',()=>{const m=b.dataset.viewSet;document.documentElement.classList.toggle('mode-orig',m==='orig');try{localStorage.setItem('dp750-view',m)}catch(e){}}))}
+function initChapterMenu(){const btn=document.getElementById('chapBtn');const menu=document.getElementById('chapMenu');const overlay=document.getElementById('chapOverlay');if(!btn)return;const cur=window.location.pathname.split('/').pop()||'index.html';menu.querySelectorAll('.chapter-link').forEach(a=>{if(a.getAttribute('href')===cur)a.classList.add('current')});function close(){menu.classList.remove('open');overlay.classList.remove('open');btn.textContent=T.menuOpen}function open(){menu.classList.add('open');overlay.classList.add('open');btn.textContent=T.menuClose}btn.addEventListener('click',e=>{e.stopPropagation();menu.classList.contains('open')?close():open()});overlay.addEventListener('click',close);document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});menu.querySelectorAll('.chapter-link').forEach(a=>a.addEventListener('click',close))}
+function initViewSwitch(){document.querySelectorAll('[data-view-set]').forEach(b=>b.addEventListener('click',()=>{const m=b.dataset.viewSet;document.documentElement.classList.toggle('mode-custom',m==='custom');try{localStorage.setItem('dp750-view',m)}catch(e){}}))}
 document.addEventListener('DOMContentLoaded',()=>{initChapterMenu();initViewSwitch();initTabs();initCollapsibles();initHints();initCopy();initTOC();initProgress()})</script>
 </body>
 </html>

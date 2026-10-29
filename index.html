@@ -100,15 +100,29 @@ tr:hover td{background:#f9fafb}
 .figure svg{display:block;width:100%;height:auto;max-width:820px;margin:0 auto}
 .figure figcaption{margin-top:10px;font-size:12px;color:var(--text-muted);text-align:center;line-height:1.5}
 code.inline{font-family:var(--font-mono);font-size:.9em;background:var(--accent-light);color:var(--gopas-blue);padding:1px 5px;border-radius:3px}
-[data-view="orig"]{display:none}
-html.mode-orig [data-view="orig"]{display:revert}
-html.mode-orig [data-view="custom"]{display:none}
+/* Vychozi pohled = originalni osnova MOC. Vlastni tridenni osnovu zapina trida
+   mode-custom na <html> (MODE_BOOT v build.py + initViewSwitch). Bez JS => originalni osnova. */
+/* Skryva se vzdy jen pres display:none. Nikdy display:revert - vracel by hodnotu
+   z UA stylu, ne autorskou, a diky vyssi specificite by prebil napr. .callout{display:flex}. */
+html:not(.mode-custom) [data-view="custom"]{display:none}
+html.mode-custom [data-view="orig"]{display:none}
+/* prepinac jazyka v top-nav (kapitoly); vlajky jsou inline SVG - zadny externi request */
+.lang-switch{display:flex;align-items:center;gap:2px;padding:2px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:999px;flex-shrink:0}
+.nav-links .lang-switch>*{display:flex;align-items:center;gap:5px;padding:3px 9px;border:none;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.5px;color:rgba(255,255,255,.6);text-decoration:none}
+.nav-links .lang-switch a:hover{background:rgba(255,255,255,.14);color:#fff}
+.nav-links .lang-switch>.current{background:#fff;color:var(--gopas-blue)}
+.lang-switch svg{display:block;width:18px;height:12px;border-radius:2px;flex-shrink:0}
+@media(max-width:700px){.lang-switch .lang-lbl{display:none}.nav-links .lang-switch>*{padding:4px 7px}}
 .learn-more{display:flex;gap:8px;align-items:baseline;margin:14px 0 0;padding:9px 13px;background:#f8fafc;border:1px solid var(--border);border-left:3px solid var(--gopas-blue);border-radius:6px;font-size:13px;color:var(--text-muted)}
 .learn-more .lm-label{flex-shrink:0;font-weight:600;color:var(--gopas-blue)}
 .learn-more a{color:var(--gopas-blue);text-decoration:none;border-bottom:1px solid rgba(26,58,107,.3)}
 .learn-more a:hover{border-bottom-color:var(--gopas-blue)}
 body { overflow: auto !important; }
-.index-hero { background: linear-gradient(135deg, #1a3a6b 0%, #2d5a9e 100%); color: white; padding: 64px 48px; text-align: center; }
+.index-hero { position: relative; background: linear-gradient(135deg, #1a3a6b 0%, #2d5a9e 100%); color: white; padding: 64px 48px; text-align: center; }
+.index-hero .lang-switch { position: absolute; top: 18px; right: 22px; }
+.index-hero .lang-switch > * { display: flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: .5px; color: rgba(255,255,255,.6); text-decoration: none; transition: all .15s; white-space: nowrap; }
+.index-hero .lang-switch a:hover { background: rgba(255,255,255,.14); color: #fff; }
+.index-hero .lang-switch > .current { background: #fff; color: #1a3a6b; }
 .index-hero .logo { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; opacity: .6; margin-bottom: 16px; }
 .index-hero h1 { font-size: 36px; font-weight: 700; margin-bottom: 12px; }
 .index-hero p { font-size: 17px; opacity: .8; max-width: 620px; margin: 0 auto 24px; }
@@ -143,9 +157,9 @@ body { overflow: auto !important; }
 .view-switch { display: inline-flex; gap: 4px; padding: 4px; background: #eef2f7; border: 1px solid #e2e8f0; border-radius: 999px; margin-bottom: 10px; }
 .view-btn { font-family: var(--font-ui); font-size: 13px; font-weight: 600; padding: 8px 18px; border: none; border-radius: 999px; background: transparent; color: #64748b; cursor: pointer; transition: all .15s; white-space: nowrap; }
 .view-btn:hover { color: #1a3a6b; }
-.view-btn[data-view-set="custom"] { background: #1a3a6b; color: #fff; box-shadow: 0 1px 3px rgba(26,58,107,.3); }
-html.mode-orig .view-btn[data-view-set="custom"] { background: transparent; color: #64748b; box-shadow: none; }
-html.mode-orig .view-btn[data-view-set="orig"] { background: #1a3a6b; color: #fff; box-shadow: 0 1px 3px rgba(26,58,107,.3); }
+.view-btn[data-view-set="orig"] { background: #1a3a6b; color: #fff; box-shadow: 0 1px 3px rgba(26,58,107,.3); }
+html.mode-custom .view-btn[data-view-set="orig"] { background: transparent; color: #64748b; box-shadow: none; }
+html.mode-custom .view-btn[data-view-set="custom"] { background: #1a3a6b; color: #fff; box-shadow: 0 1px 3px rgba(26,58,107,.3); }
 .view-note { font-size: 14px; color: #6b7280; margin-bottom: 28px; }
 .osnova-blok { margin-bottom: 12px; }
 .osnova-blok:last-child { margin-bottom: 0; }
@@ -155,33 +169,25 @@ html.mode-orig .view-btn[data-view-set="orig"] { background: #1a3a6b; color: #ff
 .osnova-blok li em { color: #94a3b8; font-style: normal; font-size: 12px; }
 .osnova-podcarou { margin-top: 14px; padding-top: 12px; border-top: 1px dashed #cbd5e1; }
 .collapsible.osnova-box { margin-bottom: 32px; }
-@media (max-width: 700px) { .index-hero { padding: 40px 20px; } .index-content { padding: 28px 16px; } .view-switch { display: flex; flex-direction: column; border-radius: 12px; } .view-btn { border-radius: 8px; } }</style>
-<script>try{if(localStorage.getItem("dp750-view")==="orig")document.documentElement.className="mode-orig"}catch(e){}</script>
+@media (max-width: 700px) { .index-hero { padding: 56px 20px 40px; } .index-hero .lang-switch { top: 14px; right: 14px; } .index-content { padding: 28px 16px; } .view-switch { display: flex; flex-direction: column; border-radius: 12px; } .view-btn { border-radius: 8px; } }</style>
+
 </head>
 <body>
 
 <div class="index-hero">
+<div class="lang-switch" role="group" aria-label="Jazyk / Language"><span class="current" aria-current="true"><svg viewBox="0 0 30 20" aria-hidden="true" focusable="false"><rect width="30" height="10" fill="#fff"/><rect y="10" width="30" height="10" fill="#d7141a"/><path d="M0 0 15 10 0 20Z" fill="#11457e"/></svg><span class="lang-lbl">CS</span></span><a href="en/index.html" title="English version" hreflang="en"><svg viewBox="0 0 60 30" aria-hidden="true" focusable="false"><rect width="60" height="30" fill="#012169"/><path d="M0 0 60 30M60 0 0 30" stroke="#fff" stroke-width="6"/><path d="M0 0 60 30M60 0 0 30" stroke="#c8102e" stroke-width="2"/><path d="M30 0V30M0 15H60" stroke="#fff" stroke-width="10"/><path d="M30 0V30M0 15H60" stroke="#c8102e" stroke-width="6"/></svg><span class="lang-lbl">EN</span></a></div>
   <h1>Data engineering s Azure Databricks</h1>
-  <p data-view="custom">Podkladové materiály ke kurzu DP-750 ve zkrácené třídenní verzi — od workspace, compute a Unity Catalogu přes ETL a pipelines až po propojení s Microsoft Fabric a Power BI.</p>
   <p data-view="orig">Podkladové materiály ke kurzu DP-750 v rozsahu originální osnovy Microsoftu — od workspace, compute a Unity Catalogu přes ETL a pipelines až po monitoring a optimalizaci workloadů.</p>
   <div class="tags">
-    <span class="tag" data-view="custom">🎓 DP-750 · 3 dny</span>
     <span class="tag" data-view="orig">🎓 DP-750 · 4 dny</span>
     <span class="tag">🧱 Azure Databricks</span>
     <span class="tag">🗂 Unity Catalog</span>
-    <span class="tag" data-view="custom">🔷 Microsoft Fabric</span>
+    <span class="tag">🔷 Microsoft Fabric</span>
     <span class="tag">📜 Zkouška DP-750</span>
   </div>
 </div>
 
 <div class="index-content">
-
-  <div class="view-switch" role="group" aria-label="Zobrazení osnovy kurzu">
-    <button type="button" class="view-btn" data-view-set="custom">🎓 Osnova tohoto kurzu · 3 dny</button>
-    <button type="button" class="view-btn" data-view-set="orig">📘 Originál osnova DP-750 · 4 dny</button>
-  </div>
-  <p class="view-note" data-view="custom">Zkrácená třídenní verze: 13 modulů oficiální osnovy (dva z nich zůstávají na samostudium) plus tři vlastní témata pod čarou.</p>
-  <p class="view-note" data-view="orig">Oficiální čtyřdenní osnova Microsoftu: 13 modulů DP-750 v původním pořadí, bez vlastních doplňků.</p>
 
 <div class="how-to">
     <h3>ℹ️ Jak používat tyto materiály</h3>
@@ -190,234 +196,8 @@ html.mode-orig .view-btn[data-view-set="orig"] { background: #1a3a6b; color: #ff
       <li>Mezi kapitolami se pohybujete tlačítky vpravo nahoře nebo přes <strong>☰ Kapitoly</strong>. Obsah aktuální kapitoly je v levém postranním panelu.</li>
       <li>Rozbalovací sekce otevřete kliknutím, ukázky kódu zkopírujete tlačítkem <em>Kopírovat</em>.</li>
       <li>Kapitoly odpovídají 1:1 modulům oficiálního kurzu <strong>DP-750</strong>. Praktická část = oficiální laby na GitHubu (anglicky) — na kurzu je lektor prochází jako dema; jsou krokové a samoobslužné, takže si je můžete kdykoli projít i sami.</li>
-      <li data-view="custom">Kapitoly se štítkem <strong>Mimo osnovu · samostudium</strong> jsou součástí oficiálního čtyřdenního kurzu, ale ve zkrácené třídenní verzi se neprobírají.</li>
-      <li>Přepínačem nahoře volíte, jestli chcete vidět <strong>osnovu tohoto kurzu</strong> (vlastní bloky + témata pod čarou), nebo <strong>originální osnovu MOC</strong> (13 modulů oficiálního kurzu). Volba se pamatuje i při přechodu mezi kapitolami.</li>
+      <li>Za 13 moduly oficiálního kurzu následují tři <strong>bonusové kapitoly pod čarou</strong> (Microsoft Fabric, Power BI nad Databricks, migrace z Oracle) — nad rámec osnovy, na dotaz nebo k samostudiu. Na konci každé kapitoly 1–13 je <strong>runbook</strong>: ukázka krok za krokem, kterou lektor předvádí ve vlastním prostředí.</li>
     </ul>
-  </div>
-
-  <div class="collapsible osnova-box" data-view="custom">
-    <div class="collapsible-header">📋 Osnova tohoto kurzu<span class="chevron">▼</span></div>
-    <div class="collapsible-body">
-    <div class="osnova-blok">
-      <strong>Představení Azure Databricks</strong>
-      <ul>
-      <li>1. Představení Azure Databricks</li>
-      </ul>
-    </div>
-    <div class="osnova-blok">
-      <strong>Výběr a konfigurace Compute</strong>
-      <ul>
-      <li>2. Výběr a konfigurace compute</li>
-      </ul>
-    </div>
-    <div class="osnova-blok">
-      <strong>Organizace objektů v Unity Catalogu</strong>
-      <ul>
-      <li>3. Objekty v Unity Catalogu</li>
-      </ul>
-    </div>
-    <div class="osnova-blok">
-      <strong>Zabezpečení a governance</strong>
-      <ul>
-      <li>4. Zabezpečení Unity Catalogu</li>
-      <li>5. Governance Unity Catalogu</li>
-      </ul>
-    </div>
-    <div class="osnova-blok">
-      <strong>Datové modelování</strong>
-      <ul>
-      <li>6. Datové modelování</li>
-      </ul>
-    </div>
-    <div class="osnova-blok">
-      <strong>Plnění dat do Unity Catalogu, ETL a Pipelines</strong>
-      <ul>
-      <li>7. Ingest dat</li>
-      <li>8. Čištění a transformace dat</li>
-      <li>9. Data quality constraints <em>· samostudium</em></li>
-      <li>10. Datové pipelines</li>
-      </ul>
-    </div>
-    <div class="osnova-blok">
-      <strong>Automatizace</strong>
-      <ul>
-      <li>11. Lakeflow Jobs</li>
-      <li>12. Vývojový lifecycle <em>· samostudium</em></li>
-      </ul>
-    </div>
-    <div class="osnova-blok">
-      <strong>Monitoring</strong>
-      <ul>
-      <li>13. Monitoring a optimalizace</li>
-      </ul>
-    </div>
-    <div class="osnova-blok osnova-podcarou">
-      <strong>Pod čarou — vlastní témata mimo oficiální MOC</strong>
-      <ul>
-      <li>14. Průřez Microsoft Fabric</li>
-      <li>15. Power BI + Fabric + Databricks</li>
-      <li>16. Migrace z Oracle</li>
-      </ul>
-    </div>
-    </div>
-  </div>
-
-  <div class="course-section" data-view="custom">
-    <div class="course-section-header">
-      <span class="course-badge badge-moc">MOC</span>
-      <h2>Představení Azure Databricks</h2>
-    </div>
-    <div class="chapter-grid">
-      <a class="chapter-card" href="dp750_01_explore_databricks.html">
-        <span class="ch-num">Kapitola 01</span>
-        <span class="ch-title">Představení Azure Databricks</span>
-        <span class="ch-topics">Workspace a UI · Workloady · Klíčové koncepty · Unity Catalog + Purview · Lab 1</span>
-      </a>
-    </div>
-  </div>
-  <div class="course-section" data-view="custom">
-    <div class="course-section-header">
-      <span class="course-badge badge-moc">MOC</span>
-      <h2>Výběr a konfigurace Compute</h2>
-    </div>
-    <div class="chapter-grid">
-      <a class="chapter-card" href="dp750_02_compute.html">
-        <span class="ch-num">Kapitola 02</span>
-        <span class="ch-title">Výběr a konfigurace compute</span>
-        <span class="ch-topics">Typy compute · Výkon · Photon a autoscaling · Knihovny · Access mode · Lab 2</span>
-      </a>
-    </div>
-  </div>
-  <div class="course-section" data-view="custom">
-    <div class="course-section-header">
-      <span class="course-badge badge-moc">MOC</span>
-      <h2>Organizace objektů v Unity Catalogu</h2>
-    </div>
-    <div class="chapter-grid">
-      <a class="chapter-card" href="dp750_03_objekty_unity_catalog.html">
-        <span class="ch-num">Kapitola 03</span>
-        <span class="ch-title">Objekty v Unity Catalogu</span>
-        <span class="ch-topics">Naming · Katalog a schéma · Tabulky a views · Volumes · DDL · Foreign catalog · Genie · Lab 3</span>
-      </a>
-    </div>
-  </div>
-  <div class="course-section" data-view="custom">
-    <div class="course-section-header">
-      <span class="course-badge badge-moc">MOC</span>
-      <h2>Zabezpečení a governance</h2>
-    </div>
-    <div class="chapter-grid">
-      <a class="chapter-card" href="dp750_04_zabezpeceni.html">
-        <span class="ch-num">Kapitola 04</span>
-        <span class="ch-title">Zabezpečení objektů Unity Catalogu</span>
-        <span class="ch-topics">Query lifecycle · Access control · Row filtering · Column masking · Key Vault · Service principals · Lab 4</span>
-      </a>
-      <a class="chapter-card" href="dp750_05_governance.html">
-        <span class="ch-num">Kapitola 05</span>
-        <span class="ch-title">Governance objektů Unity Catalogu</span>
-        <span class="ch-topics">Table definitions · ABAC · Retence a VACUUM · Lineage · Audit · Delta Sharing · Lab 5</span>
-      </a>
-    </div>
-  </div>
-  <div class="course-section" data-view="custom">
-    <div class="course-section-header">
-      <span class="course-badge badge-moc">MOC</span>
-      <h2>Datové modelování</h2>
-    </div>
-    <div class="chapter-grid">
-      <a class="chapter-card" href="dp750_06_datove_modelovani.html">
-        <span class="ch-num">Kapitola 06</span>
-        <span class="ch-title">Datové modelování v Unity Catalogu</span>
-        <span class="ch-topics">Ingesční nástroje · Formáty · Partitioning · SCD Type 2 · Temporal tabulky · Granularita · Liquid clustering · Lab 6</span>
-      </a>
-    </div>
-  </div>
-  <div class="course-section" data-view="custom">
-    <div class="course-section-header">
-      <span class="course-badge badge-moc">MOC</span>
-      <h2>Plnění dat do Unity Catalogu, ETL a Pipelines</h2>
-    </div>
-    <div class="chapter-grid">
-      <a class="chapter-card" href="dp750_07_ingest.html">
-        <span class="ch-num">Kapitola 07</span>
-        <span class="ch-title">Ingest dat do Unity Catalogu</span>
-        <span class="ch-topics">Lakeflow Connect · COPY INTO a CTAS · CDC · Structured Streaming · Auto Loader · Deklarativní pipelines · Lab 7</span>
-      </a>
-      <a class="chapter-card" href="dp750_08_transformace.html">
-        <span class="ch-num">Kapitola 08</span>
-        <span class="ch-title">Čištění, transformace a load dat</span>
-        <span class="ch-topics">Profiling · Datové typy · Duplicity a NULL · Filtry a agregace · Joins · Pivot · MERGE · Lab 8</span>
-      </a>
-      <a class="chapter-card out-card" href="dp750_09_data_quality.html">
-        <span class="ch-num">Kapitola 09</span>
-        <span class="ch-title">Data quality constraints</span>
-        <span class="ch-topics">Validace · Type checks · Schema drift · Expectations · Lab 9</span>
-        <span class="badge-out">Mimo osnovu · samostudium</span>
-      </a>
-      <a class="chapter-card" href="dp750_10_pipelines.html">
-        <span class="ch-num">Kapitola 10</span>
-        <span class="ch-title">Návrh a implementace datových pipelines</span>
-        <span class="ch-topics">Pořadí operací · Notebook vs. pipeline · Logika jobů · Error handling · Lab 10</span>
-      </a>
-    </div>
-  </div>
-  <div class="course-section" data-view="custom">
-    <div class="course-section-header">
-      <span class="course-badge badge-moc">MOC</span>
-      <h2>Automatizace</h2>
-    </div>
-    <div class="chapter-grid">
-      <a class="chapter-card" href="dp750_11_lakeflow_jobs.html">
-        <span class="ch-num">Kapitola 11</span>
-        <span class="ch-title">Lakeflow Jobs</span>
-        <span class="ch-topics">Setup jobu · Triggery · Plánování · Alerty · Restarty · Lab 11</span>
-      </a>
-      <a class="chapter-card out-card" href="dp750_12_dev_lifecycle.html">
-        <span class="ch-num">Kapitola 12</span>
-        <span class="ch-title">Vývojový lifecycle v Azure Databricks</span>
-        <span class="ch-topics">Git · Branching a PR · Testování · Automation Bundles · Databricks CLI · Lab 12</span>
-        <span class="badge-out">Mimo osnovu · samostudium</span>
-      </a>
-    </div>
-  </div>
-  <div class="course-section" data-view="custom">
-    <div class="course-section-header">
-      <span class="course-badge badge-moc">MOC</span>
-      <h2>Monitoring</h2>
-    </div>
-    <div class="chapter-grid">
-      <a class="chapter-card" href="dp750_13_monitoring.html">
-        <span class="ch-num">Kapitola 13</span>
-        <span class="ch-title">Monitoring, troubleshooting a optimalizace</span>
-        <span class="ch-topics">Spotřeba clusterů · Oprava jobů · Spark UI · Skew a shuffle · Log Analytics · Lab 13</span>
-      </a>
-    </div>
-  </div>
-
-  <hr class="section-divider" data-view="custom">
-  <div class="course-section" data-view="custom">
-    <div class="course-section-header">
-      <span class="course-badge badge-extra">Pod čarou</span>
-      <h2>Mimo MOC — vlastní témata</h2>
-    </div>
-    <p class="group-note">Nadstavba nad oficiální kurz: Microsoft Fabric, napojení na Power BI a migrace z Oracle.</p>
-    <div class="chapter-grid">
-      <a class="chapter-card extra-card" href="dp750_14_fabric_prehled.html">
-        <span class="ch-num">Kapitola 14</span>
-        <span class="ch-title">Průřez Microsoft Fabric</span>
-        <span class="ch-topics">Co je Fabric · Capacity a CU · OneLake · Workloady · Fabric vs. Databricks</span>
-      </a>
-      <a class="chapter-card extra-card" href="dp750_15_pbi_fabric_databricks.html">
-        <span class="ch-num">Kapitola 15</span>
-        <span class="ch-title">Power BI, Fabric a Azure Databricks</span>
-        <span class="ch-topics">DirectQuery vs. Import · Optimalizace · Mirroring · Delta Sharing · OneLake shortcuts · Direct Lake</span>
-      </a>
-      <a class="chapter-card extra-card" href="dp750_16_migrace_oracle.html">
-        <span class="ch-num">Kapitola 16</span>
-        <span class="ch-title">Migrace z Oracle</span>
-        <span class="ch-topics">Strategie migrace · Lakebridge · PL/SQL → Spark SQL · Typické zrady · Zdroje</span>
-      </a>
-    </div>
   </div>
 
   <div class="course-section" data-view="orig">
@@ -495,6 +275,32 @@ html.mode-orig .view-btn[data-view-set="orig"] { background: #1a3a6b; color: #ff
     </div>
   </div>
 
+  <hr class="section-divider">
+  <div class="course-section">
+    <div class="course-section-header">
+      <span class="course-badge badge-extra">Pod čarou</span>
+      <h2>Bonus: vlastní témata pod čarou</h2>
+    </div>
+    <p class="group-note">Nadstavba nad oficiální kurz: Microsoft Fabric, napojení na Power BI a migrace z Oracle.</p>
+    <div class="chapter-grid">
+      <a class="chapter-card extra-card" href="dp750_14_fabric_prehled.html">
+        <span class="ch-num">Kapitola 14</span>
+        <span class="ch-title">Průřez Microsoft Fabric</span>
+        <span class="ch-topics">Co je Fabric · Capacity a CU · OneLake · Workloady · Fabric vs. Databricks</span>
+      </a>
+      <a class="chapter-card extra-card" href="dp750_15_pbi_fabric_databricks.html">
+        <span class="ch-num">Kapitola 15</span>
+        <span class="ch-title">Power BI, Fabric a Azure Databricks</span>
+        <span class="ch-topics">DirectQuery vs. Import · Optimalizace · Mirroring · Delta Sharing · OneLake shortcuts · Direct Lake</span>
+      </a>
+      <a class="chapter-card extra-card" href="dp750_16_migrace_oracle.html">
+        <span class="ch-num">Kapitola 16</span>
+        <span class="ch-title">Migrace z Oracle</span>
+        <span class="ch-topics">Strategie migrace · Lakebridge · PL/SQL → Spark SQL · Typické zrady · Zdroje</span>
+      </a>
+    </div>
+  </div>
+
 <div class="course-section">
     <div class="course-section-header">
       <span class="course-badge badge-ex">Příprava</span>
@@ -506,21 +312,24 @@ html.mode-orig .view-btn[data-view-set="orig"] { background: #1a3a6b; color: #ff
         <li><strong>Oficiální laby:</strong> <a href="https://microsoftlearning.github.io/DP-750T00-Implement-Data-Engineering-Solutions-using-Azure-Databricks/" target="_blank" rel="noopener">microsoftlearning.github.io — DP-750T00</a> (anglicky, krokové návody).</li>
         <li><strong>Learn kolekce kurzu:</strong> každá kapitola odkazuje na příslušný modul na Microsoft Learn — vhodné pro opakování po kurzu.</li>
         <li><strong>Zkouška DP-750</strong> (<a href="https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-750" target="_blank" rel="noopener">study guide</a>) má čtyři domény: Set up and configure an Azure Databricks environment (15–20 %) · Secure and govern Unity Catalog objects (15–20 %) · Prepare and process data (30–35 %) · Deploy and maintain data pipelines and workloads (30–35 %).</li>
-        <li><strong>Kam dál:</strong> na kurz navazuje <a href="https://learn.microsoft.com/training/courses/dp-600t00" target="_blank" rel="noopener">DP-600 — Microsoft Fabric Analytics Engineer</a>; ochutnávku Fabricu najdete v kapitolách pod čarou.</li>
+        <li><strong>Kam dál:</strong> na kurz navazuje <a href="https://learn.microsoft.com/training/courses/dp-600t00" target="_blank" rel="noopener">DP-600 — Microsoft Fabric Analytics Engineer</a>.<span data-view="custom"> Ochutnávku Fabricu najdete v kapitolách pod čarou.</span></li>
       </ul>
     </div>
   </div>
 
 </div>
 
-<script>function initTabs(){document.querySelectorAll('.tab-list').forEach(list=>{list.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{const panel=btn.dataset.tab;const container=btn.closest('.tabs');container.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));container.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');container.querySelector('#'+panel).classList.add('active')})})});document.querySelectorAll('.tabs').forEach(t=>{const first=t.querySelector('.tab-btn');if(first)first.classList.add('active');const firstP=t.querySelector('.tab-panel');if(firstP)firstP.classList.add('active')})}
+<script>var T={copy:"Kopírovat",copied:"✓ Zkopírováno",copyFallback:"Ctrl+C",hintShow:"💡 Zobrazit nápovědu",hintHide:"🙈 Skrýt nápovědu",menuOpen:"☰ Kapitoly",menuClose:"✕ Zavřít"};
+/* Sdilene chovani pro CS i EN vetev. Objekt T (UI texty) emituje build.py pred telem
+   tohoto skriptu — viz LANGS v build.py. Zadny text natvrdo, jinak se rozejdou jazyky. */
+function initTabs(){document.querySelectorAll('.tab-list').forEach(list=>{list.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{const panel=btn.dataset.tab;const container=btn.closest('.tabs');container.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));container.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');container.querySelector('#'+panel).classList.add('active')})})});document.querySelectorAll('.tabs').forEach(t=>{if(t.querySelector('.tab-btn.active'))return;const first=t.querySelector('.tab-btn');if(first)first.classList.add('active');const firstP=t.querySelector('.tab-panel');if(firstP)firstP.classList.add('active')})}
 function initCollapsibles(){document.querySelectorAll('.collapsible-header').forEach(h=>{h.addEventListener('click',()=>h.closest('.collapsible').classList.toggle('open'))})}
-function initHints(){document.querySelectorAll('.hint-toggle').forEach(t=>{t.addEventListener('click',()=>{const c=t.nextElementSibling;c.classList.toggle('open');t.textContent=c.classList.contains('open')?'🙈 Skrýt nápovědu':'💡 Zobrazit nápovědu'})})}
-function initCopy(){document.querySelectorAll('.copy-btn').forEach(btn=>{btn.addEventListener('click',()=>{const code=btn.closest('.code-block').querySelector('pre').innerText;function ok(){btn.textContent='✓ Zkopírováno';btn.classList.add('copied');setTimeout(()=>{btn.textContent='Kopírovat';btn.classList.remove('copied')},2000)}function legacy(){try{const ta=document.createElement('textarea');ta.value=code;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok()}catch(e){btn.textContent='Ctrl+C';setTimeout(()=>{btn.textContent='Kopírovat'},2000)}}if(navigator.clipboard){navigator.clipboard.writeText(code).then(ok).catch(legacy)}else{legacy()}})})}
+function initHints(){document.querySelectorAll('.hint-toggle').forEach(t=>{t.addEventListener('click',()=>{const c=t.nextElementSibling;c.classList.toggle('open');t.textContent=c.classList.contains('open')?T.hintHide:T.hintShow})})}
+function initCopy(){document.querySelectorAll('.copy-btn').forEach(btn=>{btn.addEventListener('click',()=>{const code=btn.closest('.code-block').querySelector('pre').innerText;function ok(){btn.textContent=T.copied;btn.classList.add('copied');setTimeout(()=>{btn.textContent=T.copy;btn.classList.remove('copied')},2000)}function legacy(){try{const ta=document.createElement('textarea');ta.value=code;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok()}catch(e){btn.textContent=T.copyFallback;setTimeout(()=>{btn.textContent=T.copy},2000)}}if(navigator.clipboard){navigator.clipboard.writeText(code).then(ok).catch(legacy)}else{legacy()}})})}
 function initTOC(){const sections=document.querySelectorAll('.section');const items=document.querySelectorAll('.toc-item[data-section]');if(!items.length)return;const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){const id=e.target.id;items.forEach(i=>i.classList.toggle('active',i.dataset.section===id))}})},{rootMargin:'-15% 0px -70% 0px'});sections.forEach(s=>obs.observe(s));items.forEach(i=>{i.addEventListener('click',()=>{document.getElementById(i.dataset.section)?.scrollIntoView({behavior:'smooth'})})})}
 function initProgress(){const bar=document.getElementById('pfill');if(!bar)return;window.addEventListener('scroll',()=>{const t=window.scrollY;const h=document.documentElement.scrollHeight-window.innerHeight;bar.style.width=(h>0?t/h*100:0)+'%'})}
-function initChapterMenu(){const btn=document.getElementById('chapBtn');const menu=document.getElementById('chapMenu');const overlay=document.getElementById('chapOverlay');if(!btn)return;const cur=window.location.pathname.split('/').pop()||'index.html';menu.querySelectorAll('.chapter-link').forEach(a=>{if(a.getAttribute('href')===cur)a.classList.add('current')});function close(){menu.classList.remove('open');overlay.classList.remove('open');btn.textContent='☰ Kapitoly'}function open(){menu.classList.add('open');overlay.classList.add('open');btn.textContent='✕ Zavřít'}btn.addEventListener('click',e=>{e.stopPropagation();menu.classList.contains('open')?close():open()});overlay.addEventListener('click',close);document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});menu.querySelectorAll('.chapter-link').forEach(a=>a.addEventListener('click',close))}
-function initViewSwitch(){document.querySelectorAll('[data-view-set]').forEach(b=>b.addEventListener('click',()=>{const m=b.dataset.viewSet;document.documentElement.classList.toggle('mode-orig',m==='orig');try{localStorage.setItem('dp750-view',m)}catch(e){}}))}
+function initChapterMenu(){const btn=document.getElementById('chapBtn');const menu=document.getElementById('chapMenu');const overlay=document.getElementById('chapOverlay');if(!btn)return;const cur=window.location.pathname.split('/').pop()||'index.html';menu.querySelectorAll('.chapter-link').forEach(a=>{if(a.getAttribute('href')===cur)a.classList.add('current')});function close(){menu.classList.remove('open');overlay.classList.remove('open');btn.textContent=T.menuOpen}function open(){menu.classList.add('open');overlay.classList.add('open');btn.textContent=T.menuClose}btn.addEventListener('click',e=>{e.stopPropagation();menu.classList.contains('open')?close():open()});overlay.addEventListener('click',close);document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});menu.querySelectorAll('.chapter-link').forEach(a=>a.addEventListener('click',close))}
+function initViewSwitch(){document.querySelectorAll('[data-view-set]').forEach(b=>b.addEventListener('click',()=>{const m=b.dataset.viewSet;document.documentElement.classList.toggle('mode-custom',m==='custom');try{localStorage.setItem('dp750-view',m)}catch(e){}}))}
 document.addEventListener('DOMContentLoaded',()=>{initChapterMenu();initViewSwitch();initTabs();initCollapsibles();initHints();initCopy();initTOC();initProgress()})</script>
 </body>
 </html>

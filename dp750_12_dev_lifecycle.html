@@ -100,14 +100,24 @@ tr:hover td{background:#f9fafb}
 .figure svg{display:block;width:100%;height:auto;max-width:820px;margin:0 auto}
 .figure figcaption{margin-top:10px;font-size:12px;color:var(--text-muted);text-align:center;line-height:1.5}
 code.inline{font-family:var(--font-mono);font-size:.9em;background:var(--accent-light);color:var(--gopas-blue);padding:1px 5px;border-radius:3px}
-[data-view="orig"]{display:none}
-html.mode-orig [data-view="orig"]{display:revert}
-html.mode-orig [data-view="custom"]{display:none}
+/* Vychozi pohled = originalni osnova MOC. Vlastni tridenni osnovu zapina trida
+   mode-custom na <html> (MODE_BOOT v build.py + initViewSwitch). Bez JS => originalni osnova. */
+/* Skryva se vzdy jen pres display:none. Nikdy display:revert - vracel by hodnotu
+   z UA stylu, ne autorskou, a diky vyssi specificite by prebil napr. .callout{display:flex}. */
+html:not(.mode-custom) [data-view="custom"]{display:none}
+html.mode-custom [data-view="orig"]{display:none}
+/* prepinac jazyka v top-nav (kapitoly); vlajky jsou inline SVG - zadny externi request */
+.lang-switch{display:flex;align-items:center;gap:2px;padding:2px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:999px;flex-shrink:0}
+.nav-links .lang-switch>*{display:flex;align-items:center;gap:5px;padding:3px 9px;border:none;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.5px;color:rgba(255,255,255,.6);text-decoration:none}
+.nav-links .lang-switch a:hover{background:rgba(255,255,255,.14);color:#fff}
+.nav-links .lang-switch>.current{background:#fff;color:var(--gopas-blue)}
+.lang-switch svg{display:block;width:18px;height:12px;border-radius:2px;flex-shrink:0}
+@media(max-width:700px){.lang-switch .lang-lbl{display:none}.nav-links .lang-switch>*{padding:4px 7px}}
 .learn-more{display:flex;gap:8px;align-items:baseline;margin:14px 0 0;padding:9px 13px;background:#f8fafc;border:1px solid var(--border);border-left:3px solid var(--gopas-blue);border-radius:6px;font-size:13px;color:var(--text-muted)}
 .learn-more .lm-label{flex-shrink:0;font-weight:600;color:var(--gopas-blue)}
 .learn-more a{color:var(--gopas-blue);text-decoration:none;border-bottom:1px solid rgba(26,58,107,.3)}
 .learn-more a:hover{border-bottom-color:var(--gopas-blue)}</style>
-<script>try{if(localStorage.getItem("dp750-view")==="orig")document.documentElement.className="mode-orig"}catch(e){}</script>
+
 </head>
 <body>
 <div id="chapOverlay" class="chapter-menu-overlay"></div>
@@ -125,16 +135,16 @@ html.mode-orig [data-view="custom"]{display:none}
   <div class="chapter-group">
     <div class="chapter-group-title">MOC — pokračování</div>
     <a class="chapter-link" href="dp750_08_transformace.html">8. Čištění a transformace dat</a>
-    <a class="chapter-link" href="dp750_09_data_quality.html" title="Mimo osnovu zkráceného kurzu">9. Data quality constraints<span data-view="custom" style="opacity:.55;font-size:11px"> · mimo osnovu</span></a>
+    <a class="chapter-link" href="dp750_09_data_quality.html">9. Data quality constraints</a>
     <a class="chapter-link" href="dp750_10_pipelines.html">10. Datové pipelines</a>
     <a class="chapter-link" href="dp750_11_lakeflow_jobs.html">11. Lakeflow Jobs</a>
-    <a class="chapter-link" href="dp750_12_dev_lifecycle.html" title="Mimo osnovu zkráceného kurzu">12. Vývojový lifecycle<span data-view="custom" style="opacity:.55;font-size:11px"> · mimo osnovu</span></a>
+    <a class="chapter-link" href="dp750_12_dev_lifecycle.html">12. Vývojový lifecycle</a>
     <a class="chapter-link" href="dp750_13_monitoring.html">13. Monitoring a optimalizace</a>
     <div data-view="orig" style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1)">
       <a class="chapter-link" href="index.html" style="color:rgba(255,255,255,.5)">🏠 Rozcestník kurzu</a>
     </div>
   </div>
-  <div class="chapter-group" data-view="custom">
+  <div class="chapter-group">
     <div class="chapter-group-title">Pod čarou — den 3</div>
     <a class="chapter-link" href="dp750_14_fabric_prehled.html">14. Průřez Microsoft Fabric</a>
     <a class="chapter-link" href="dp750_15_pbi_fabric_databricks.html">15. Power BI + Fabric + Databricks</a>
@@ -151,7 +161,7 @@ html.mode-orig [data-view="custom"]{display:none}
     <span class="chapter-title-nav">Vývojový lifecycle v Azure Databricks</span>
   </div>
   <div class="nav-links">
-    <button id="chapBtn" class="chapter-menu-btn">☰ Kapitoly</button><a href="index.html" class="home" title="Rozcestník">🏠</a>
+    <div class="lang-switch" role="group" aria-label="Jazyk / Language"><span class="current" aria-current="true"><svg viewBox="0 0 30 20" aria-hidden="true" focusable="false"><rect width="30" height="10" fill="#fff"/><rect y="10" width="30" height="10" fill="#d7141a"/><path d="M0 0 15 10 0 20Z" fill="#11457e"/></svg><span class="lang-lbl">CS</span></span><a href="en/dp750_12_dev_lifecycle.html" title="English version" hreflang="en"><svg viewBox="0 0 60 30" aria-hidden="true" focusable="false"><rect width="60" height="30" fill="#012169"/><path d="M0 0 60 30M60 0 0 30" stroke="#fff" stroke-width="6"/><path d="M0 0 60 30M60 0 0 30" stroke="#c8102e" stroke-width="2"/><path d="M30 0V30M0 15H60" stroke="#fff" stroke-width="10"/><path d="M30 0V30M0 15H60" stroke="#c8102e" stroke-width="6"/></svg><span class="lang-lbl">EN</span></a></div><button id="chapBtn" class="chapter-menu-btn">☰ Kapitoly</button><a href="index.html" class="home" title="Rozcestník">🏠</a>
     <a href="dp750_13_monitoring.html" class="next">Monitoring a optimalizace →</a>
   </div>
 </nav>
@@ -167,6 +177,7 @@ html.mode-orig [data-view="custom"]{display:none}
     <a href="#sec-bundles" class="toc-item" data-section="sec-bundles">Declarative Automation Bundles: konfigurace a balení</a>
     <a href="#sec-deploy-cli" class="toc-item" data-section="sec-deploy-cli">Deploy bundlu přes Databricks CLI</a>
     <a href="#sec-lab" class="toc-item" data-section="sec-lab">Lab 12: Implement Development Lifecycle Processes (45 minut)</a>
+    <a href="#sec-runbook" class="toc-item" data-section="sec-runbook">Runbook: ukázka krok za krokem</a>
   </aside>
 
   <main class="main">
@@ -174,9 +185,8 @@ html.mode-orig [data-view="custom"]{display:none}
       <div class="hero-tag">DP-750 · Kapitola 12</div>
       <h1>Vývojový lifecycle v Azure Databricks</h1>
       <div class="hero-subtitle">Git folders, branching a pull requesty, testování, Asset Bundles a nasazení přes CLI</div>
-      <div class="hero-meta"><span>🗂 Automatizace</span><span data-view="custom">⚠️ Mimo osnovu zkráceného kurzu</span></div>
+      <div class="hero-meta"><span>🗂 Automatizace</span></div>
     </div>
-<div class="callout info" data-view="custom"><div class="callout-icon">ℹ️</div><div><strong>Mimo osnovu zkráceného kurzu:</strong> tento modul je součástí oficiálního čtyřdenního kurzu DP-750. Ve zkrácené třídenní verzi ho na kurzu neprobíráme — kapitola slouží k samostudiu a odkazovaný lab k ní zůstává plně k dispozici.</div></div>
 
 <div class="objectives">
   <h3>Cíle kapitoly</h3>
@@ -537,22 +547,206 @@ databricks bundle deploy -t prod --auto-approve</pre>
   <div class="callout success"><div class="callout-icon">✓</div><div><strong>Sebekontrola:</strong> <strong>1)</strong> Proč Databricks doporučuje držet transformační funkce v .py modulech mimo notebooky a jak to souvisí s pytest? <strong>2)</strong> Co všechno automaticky změní <code class="inline">mode: development</code> na nasazených resources a proč? <strong>3)</strong> Jaký je rozdíl mezi <code class="inline">bundle plan</code> a <code class="inline">bundle deploy</code> a kdy plan zachrání produkci?</div></div>
 </div>
 
+<div class="section" id="sec-runbook">
+  <div class="section-header">
+    <div class="section-num">12.R</div>
+    <h2>Runbook: ukázka krok za krokem</h2>
+  </div>
+  <p>Ukázka vezme malé pravidlo pro váhu zásilky z modulu 10, verzuje ho v Git folderu, otestuje přes pytest a zabalí s reportovacím jobem do Declarative Automation Bundle, který nasadí do dev. Běží v lektorském workspace a na lektorském notebooku s vlastním kódem, ne s projektem labu.</p>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> lokálně Databricks CLI a Python s pytest; profil CLI <code class="inline">demo</code> na lektorský workspace (<code class="inline">databricks auth login --host &lt;URL workspace&gt; --profile demo</code>); prázdný Git repozitář u providera (GitHub nebo Azure DevOps) s přístupem z workspace; tabulka <code class="inline">dp750_demo.m10.locker_daily_gold</code> z ukázky modulu 10. Soubory projektu z kroků 3 a 4 dej do repozitáře předem. Jednou celé projeď včetně <code class="inline">destroy</code>. Asi 20 minut přípravy, ukázka 10 minut.</div></div>
+
+  <h3>Krok 1 – Git folders: verzování přímo ve workspace</h3>
+  <ol>
+    <li>Workspace → Create → Git folder: URL repozitáře, provider, název složky <code class="inline">dp750-m12-parcels</code>.</li>
+    <li>Ukaž, že soubory z repozitáře (<code class="inline">databricks.yml</code>, <code class="inline">src/</code>, <code class="inline">tests/</code>) jsou ve workspace a dají se otevřít jako notebook i soubor.</li>
+    <li>Klikni na název branche: Git dialog s tlačítkem Pull. Řekni pravidlo: před prací vždy pull.</li>
+  </ol>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> každý člověk má vlastní Git folder. Sdílená složka znamená, že přepnutí branche jedním mění kód všem ostatním.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> pull, který změní zdroj notebooku, smaže jeho výstupy buněk. Notebook ve zdrojovém formátu <code class="inline">.py</code> výstupy do commitu nedává vůbec.</div></div>
+
+  <h3>Krok 2 – Branching, pull requesty a konflikty</h3>
+  <ol>
+    <li>V Git dialogu Create branch <code class="inline">feature/weight-limit</code> z <code class="inline">main</code>.</li>
+    <li>V <code class="inline">src/parcel_rules.py</code> změň <code class="inline">MAX_WEIGHT_KG</code> z 30 na 25, v dialogu ukaž diff a dej Commit &amp; Push.</li>
+    <li>Pull request otevři u providera; review a merge žijí tam, ne v Databricks.</li>
+    <li>Konflikt (pokud zbývá čas): u providera změň stejný řádek v <code class="inline">main</code> na 35, ve workspace dej Pull s merge. UI ukáže konfliktní soubor; vyber Keep all current changes, nebo uprav markery ručně a Mark As Resolved, pak Continue Merge.</li>
+  </ol>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> do chráněné <code class="inline">main</code> se nepíše přímo. Feature branch → PR → merge → automatický deploy; ruční klik v produkci nemá v procesu místo.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> přepnutí branche může z workspace odstranit soubory, které cílová branch nemá; necommitnuté změny se přenesou na novou branch, pokud nekonfliktují.</div></div>
+
+  <h3>Krok 3 – Testovací strategie: pyramida, pytest, integrace</h3>
+  <ol>
+    <li>Ukaž modul <code class="inline">src/parcel_rules.py</code>: čistá funkce bez Sparku, převod textu váhy na číslo. Je to stejné pravidlo, které v modulu 10 posílalo <code class="inline">'2,5'</code> do karantény, jen tolerantnější.</li>
+    <li>Ukaž test s <code class="inline">@pytest.mark.parametrize</code> a spusť ho lokálně: 9 testů projde.</li>
+    <li>Rozbij kód (smaž <code class="inline">.replace(",", ".")</code>) a pusť testy znovu: červený test <code class="inline">test_valid_weights[2,5-2.5]</code>. Vrať změnu.</li>
+    <li>Stejné testy jdou pustit i v notebooku na serverless (druhý blok kódu níže); integrační test by četl tabulku v testovacím schématu, nikdy v produkci.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm"># src/parcel_rules.py</span>
+MAX_WEIGHT_KG = <span class="num">30.0</span>
+
+<span class="kw">def</span> <span class="fn">parse_weight_kg</span>(raw):
+    <span class="str">"""Return weight in kg as float, or None when the value is invalid."""</span>
+    <span class="kw">if</span> raw <span class="kw">is None</span>:
+        <span class="kw">return None</span>
+    text = <span class="fn">str</span>(raw).<span class="fn">strip</span>().<span class="fn">replace</span>(<span class="str">","</span>, <span class="str">"."</span>)
+    <span class="kw">try</span>:
+        value = <span class="fn">float</span>(text)
+    <span class="kw">except</span> ValueError:
+        <span class="kw">return None</span>
+    <span class="kw">if</span> value &lt;= <span class="num">0</span> <span class="kw">or</span> value &gt; MAX_WEIGHT_KG:
+        <span class="kw">return None</span>
+    <span class="kw">return</span> value
+
+<span class="cm"># tests/conftest.py - src/ musi byt importovatelny</span>
+<span class="kw">import</span> os, sys
+sys.path.<span class="fn">insert</span>(<span class="num">0</span>, os.path.<span class="fn">join</span>(os.path.<span class="fn">dirname</span>(__file__), <span class="str">".."</span>, <span class="str">"src"</span>))
+
+<span class="cm"># tests/test_parcel_rules.py</span>
+<span class="kw">import</span> pytest
+<span class="kw">from</span> parcel_rules <span class="kw">import</span> parse_weight_kg
+
+<span class="fn">@pytest.mark.parametrize</span>(<span class="str">"raw, expected"</span>, [(<span class="str">"1.2"</span>, <span class="num">1.2</span>), (<span class="str">"2,5"</span>, <span class="num">2.5</span>), (<span class="str">" 0.4 "</span>, <span class="num">0.4</span>)])
+<span class="kw">def</span> <span class="fn">test_valid_weights</span>(raw, expected):
+    <span class="kw">assert</span> <span class="fn">parse_weight_kg</span>(raw) == pytest.<span class="fn">approx</span>(expected)
+
+<span class="fn">@pytest.mark.parametrize</span>(<span class="str">"raw"</span>, [<span class="kw">None</span>, <span class="str">""</span>, <span class="str">"abc"</span>, <span class="str">"0"</span>, <span class="str">"-1"</span>, <span class="str">"31"</span>])
+<span class="kw">def</span> <span class="fn">test_invalid_weights_return_none</span>(raw):
+    <span class="kw">assert</span> <span class="fn">parse_weight_kg</span>(raw) <span class="kw">is None</span></pre>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">POWERSHELL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm"># lokalne v koreni projektu</span>
+python -m pytest tests -v -p no:cacheprovider</pre>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm"># notebook v Git folderu, bunka 1</span>
+%pip install pytest
+
+<span class="cm"># bunka 2: testy ze slozky tests/ vedle notebooku</span>
+<span class="kw">import</span> pytest, sys
+sys.dont_write_bytecode = <span class="kw">True</span>
+retcode = pytest.<span class="fn">main</span>([<span class="str">"tests"</span>, <span class="str">"-v"</span>, <span class="str">"-p"</span>, <span class="str">"no:cacheprovider"</span>])
+<span class="kw">assert</span> retcode == <span class="num">0</span>, <span class="str">"Tests failed, see output above"</span></pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> logika v <code class="inline">.py</code> modulu se testuje za milisekundy na notebooku i v CI, bez clusteru. Proto je dole v pyramidě a těch testů má být nejvíc.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> bez <code class="inline">conftest.py</code> (nebo jiné úpravy cesty) skončí sběr testů na <code class="inline">ModuleNotFoundError: No module named 'parcel_rules'</code>. Po změně limitu z kroku 2 na 25 všechny testy dál projdou, protože žádný netestuje hranici limitu; dobrý podnět k diskusi, co testovat.</div></div>
+
+  <h3>Krok 4 – Declarative Automation Bundles: konfigurace a balení</h3>
+  <ol>
+    <li>Ukaž <code class="inline">databricks.yml</code>: proměnná <code class="inline">catalog</code>, job se dvěma job parametry, plán v 6:00 Europe/Prague, target <code class="inline">dev</code> v development módu a <code class="inline">prod</code> v production módu s vlastní hodnotou proměnné.</li>
+    <li>Ukaž notebook <code class="inline">src/build_report.py</code>: první řádek <code class="inline"># Databricks notebook source</code>, čte oba parametry widgety.</li>
+    <li>Spusť <code class="inline">validate</code> s výstupem JSON a ukaž, co z konfigurace udělal development mód: název s prefixem <code class="inline">[dev &lt;uživatel&gt;]</code> a plán ve stavu <code class="inline">PAUSED</code>, i když v YAML žádný stav není.</li>
+    <li>Přidej <code class="inline">--var="catalog=dp750_test"</code> a ukaž, že se změnila výchozí hodnota job parametru <code class="inline">catalog</code>.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">YAML</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="kw">bundle</span>:
+  <span class="kw">name</span>: dp750_m12_parcels
+
+<span class="kw">variables</span>:
+  <span class="kw">catalog</span>:
+    <span class="kw">description</span>: Catalog with the demo data
+    <span class="kw">default</span>: dp750_demo
+
+<span class="kw">resources</span>:
+  <span class="kw">jobs</span>:
+    <span class="kw">locker_report</span>:
+      <span class="kw">name</span>: dp750-m12-locker-report
+      <span class="kw">parameters</span>:
+        - <span class="kw">name</span>: catalog
+          <span class="kw">default</span>: ${var.catalog}
+        - <span class="kw">name</span>: report_date
+          <span class="kw">default</span>: <span class="str">"{{job.trigger.time.iso_date}}"</span>
+      <span class="kw">schedule</span>:
+        <span class="kw">quartz_cron_expression</span>: <span class="str">"0 0 6 * * ?"</span>
+        <span class="kw">timezone_id</span>: Europe/Prague
+      <span class="kw">tasks</span>:
+        - <span class="kw">task_key</span>: build_report
+          <span class="kw">notebook_task</span>:
+            <span class="kw">notebook_path</span>: ./src/build_report.py
+
+<span class="kw">targets</span>:
+  <span class="kw">dev</span>:
+    <span class="kw">mode</span>: development
+    <span class="kw">default</span>: <span class="kw">true</span>        <span class="cm"># host bere z profilu CLI</span>
+  <span class="kw">prod</span>:
+    <span class="kw">mode</span>: production
+    <span class="kw">workspace</span>:
+      <span class="kw">host</span>: https://adb-0000000000000000.0.azuredatabricks.net
+    <span class="kw">variables</span>:
+      <span class="kw">catalog</span>: dp750_prod</pre>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm"># Databricks notebook source</span>
+catalog = dbutils.widgets.<span class="fn">get</span>(<span class="str">"catalog"</span>)
+report_date = dbutils.widgets.<span class="fn">get</span>(<span class="str">"report_date"</span>)
+<span class="fn">print</span>(<span class="str">f"catalog = {catalog}, report_date = {report_date}"</span>)
+rows = spark.<span class="fn">table</span>(<span class="str">f"{catalog}.m10.locker_daily_gold"</span>).<span class="fn">count</span>()
+<span class="fn">print</span>(<span class="str">f"locker rows = {rows}"</span>)</pre>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">POWERSHELL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm"># notebook bez BOM, jinak deploy hlasi "is not a notebook"</span>
+[System.IO.File]::WriteAllLines(<span class="str">"$PWD\src\build_report.py"</span>, (Get-Content <span class="str">"$PWD\src\build_report.py"</span>))
+
+databricks bundle validate -t dev -p demo
+<span class="cm"># vysledna konfigurace po aplikaci development modu</span>
+databricks bundle validate -t dev -p demo -o json
+databricks bundle validate -t dev -p demo --var=<span class="str">"catalog=dp750_test"</span> -o json</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> proměnná se vyhodnotí při deployi a zapíše se do definice jobu; job parametr se dá přepsat až při běhu. Development mód dělá z dev nasazení osobní pískoviště: prefix v názvu a pozastavené plány.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> když v YAML výslovně napíšeš <code class="inline">pause_status: UNPAUSED</code>, development mód plán nepozastaví a dev kopie poběží každé ráno. Odsazení jen mezerami; tab v YAML skončí chybou už ve <code class="inline">validate</code>.</div></div>
+
+  <h3>Krok 5 – Deploy bundlu přes Databricks CLI</h3>
+  <ol>
+    <li><code class="inline">plan</code>: bez jediné změny vypíše <code class="inline">create jobs.locker_report</code> (podle verze CLI i se souhrnem počtu změn).</li>
+    <li><code class="inline">deploy -t dev</code>, pak <code class="inline">summary</code>. Ve workspace otevři Jobs &amp; Pipelines a ukaž job <code class="inline">[dev &lt;uživatel&gt;] dp750-m12-locker-report</code> s pozastaveným plánem.</li>
+    <li><code class="inline">run</code> s přepsaným parametrem: task vypíše <code class="inline">catalog = dp750_demo, report_date = 2026-11-05</code> a počet řádků gold tabulky.</li>
+    <li>Změň v YAML cron na <code class="inline">"0 30 6 * * ?"</code> a pusť znovu <code class="inline">plan</code>: teď hlásí update, ne create.</li>
+    <li><code class="inline">destroy</code> nasazený job smaže.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">POWERSHELL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre>databricks bundle plan -t dev -p demo
+databricks bundle deploy -t dev -p demo
+databricks bundle summary -t dev -p demo
+databricks bundle run -t dev -p demo locker_report -- --report_date=2026-11-05
+databricks bundle plan -t dev -p demo
+databricks bundle destroy -t dev -p demo --auto-approve</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> <code class="inline">plan</code> je pojistka před produkcí: ukáže i <em>delete</em>, kdyby z YAML zmizel zdroj, který v cílovém prostředí existuje. Do <code class="inline">prod</code> nasazuje CI/CD pod service principalem, ne člověk z notebooku.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> <code class="inline">validate -t prod -p demo</code> skončí chybou, že host v profilu nesouhlasí s hostem v bundlu; profil a target musí mířit na stejný workspace. Po přerušeném deployi pomůže <code class="inline">--force-lock</code>, při chybě přihlášení <code class="inline">databricks auth login</code>.</div></div>
+
+  <h3>Úklid</h3>
+  <ol>
+    <li><code class="inline">databricks bundle destroy -t dev -p demo --auto-approve</code> (poslední krok ukázky) a ověř v Jobs &amp; Pipelines, že dev job zmizel.</li>
+    <li>Branch <code class="inline">feature/weight-limit</code> po merge smaž u providera; Git folder a lokální složku projektu smaž po kurzu.</li>
+  </ol>
+</div>
+
     <div class="footer-nav">
       <a href="dp750_11_lakeflow_jobs.html">← Lakeflow Jobs</a>
-      <span style="color:var(--text-muted);font-size:13px">Kapitola 12 z 16</span>
+      <span data-view="orig" style="color:var(--text-muted);font-size:13px">Kapitola 12 z 13</span><span data-view="custom" style="color:var(--text-muted);font-size:13px">Kapitola 12 z 16</span>
       <a href="dp750_13_monitoring.html" style="margin-left:auto">Monitoring a optimalizace →</a>
     </div>
   </main>
 </div>
 
-<script>function initTabs(){document.querySelectorAll('.tab-list').forEach(list=>{list.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{const panel=btn.dataset.tab;const container=btn.closest('.tabs');container.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));container.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');container.querySelector('#'+panel).classList.add('active')})})});document.querySelectorAll('.tabs').forEach(t=>{const first=t.querySelector('.tab-btn');if(first)first.classList.add('active');const firstP=t.querySelector('.tab-panel');if(firstP)firstP.classList.add('active')})}
+<script>var T={copy:"Kopírovat",copied:"✓ Zkopírováno",copyFallback:"Ctrl+C",hintShow:"💡 Zobrazit nápovědu",hintHide:"🙈 Skrýt nápovědu",menuOpen:"☰ Kapitoly",menuClose:"✕ Zavřít"};
+/* Sdilene chovani pro CS i EN vetev. Objekt T (UI texty) emituje build.py pred telem
+   tohoto skriptu — viz LANGS v build.py. Zadny text natvrdo, jinak se rozejdou jazyky. */
+function initTabs(){document.querySelectorAll('.tab-list').forEach(list=>{list.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{const panel=btn.dataset.tab;const container=btn.closest('.tabs');container.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));container.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');container.querySelector('#'+panel).classList.add('active')})})});document.querySelectorAll('.tabs').forEach(t=>{if(t.querySelector('.tab-btn.active'))return;const first=t.querySelector('.tab-btn');if(first)first.classList.add('active');const firstP=t.querySelector('.tab-panel');if(firstP)firstP.classList.add('active')})}
 function initCollapsibles(){document.querySelectorAll('.collapsible-header').forEach(h=>{h.addEventListener('click',()=>h.closest('.collapsible').classList.toggle('open'))})}
-function initHints(){document.querySelectorAll('.hint-toggle').forEach(t=>{t.addEventListener('click',()=>{const c=t.nextElementSibling;c.classList.toggle('open');t.textContent=c.classList.contains('open')?'🙈 Skrýt nápovědu':'💡 Zobrazit nápovědu'})})}
-function initCopy(){document.querySelectorAll('.copy-btn').forEach(btn=>{btn.addEventListener('click',()=>{const code=btn.closest('.code-block').querySelector('pre').innerText;function ok(){btn.textContent='✓ Zkopírováno';btn.classList.add('copied');setTimeout(()=>{btn.textContent='Kopírovat';btn.classList.remove('copied')},2000)}function legacy(){try{const ta=document.createElement('textarea');ta.value=code;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok()}catch(e){btn.textContent='Ctrl+C';setTimeout(()=>{btn.textContent='Kopírovat'},2000)}}if(navigator.clipboard){navigator.clipboard.writeText(code).then(ok).catch(legacy)}else{legacy()}})})}
+function initHints(){document.querySelectorAll('.hint-toggle').forEach(t=>{t.addEventListener('click',()=>{const c=t.nextElementSibling;c.classList.toggle('open');t.textContent=c.classList.contains('open')?T.hintHide:T.hintShow})})}
+function initCopy(){document.querySelectorAll('.copy-btn').forEach(btn=>{btn.addEventListener('click',()=>{const code=btn.closest('.code-block').querySelector('pre').innerText;function ok(){btn.textContent=T.copied;btn.classList.add('copied');setTimeout(()=>{btn.textContent=T.copy;btn.classList.remove('copied')},2000)}function legacy(){try{const ta=document.createElement('textarea');ta.value=code;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok()}catch(e){btn.textContent=T.copyFallback;setTimeout(()=>{btn.textContent=T.copy},2000)}}if(navigator.clipboard){navigator.clipboard.writeText(code).then(ok).catch(legacy)}else{legacy()}})})}
 function initTOC(){const sections=document.querySelectorAll('.section');const items=document.querySelectorAll('.toc-item[data-section]');if(!items.length)return;const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){const id=e.target.id;items.forEach(i=>i.classList.toggle('active',i.dataset.section===id))}})},{rootMargin:'-15% 0px -70% 0px'});sections.forEach(s=>obs.observe(s));items.forEach(i=>{i.addEventListener('click',()=>{document.getElementById(i.dataset.section)?.scrollIntoView({behavior:'smooth'})})})}
 function initProgress(){const bar=document.getElementById('pfill');if(!bar)return;window.addEventListener('scroll',()=>{const t=window.scrollY;const h=document.documentElement.scrollHeight-window.innerHeight;bar.style.width=(h>0?t/h*100:0)+'%'})}
-function initChapterMenu(){const btn=document.getElementById('chapBtn');const menu=document.getElementById('chapMenu');const overlay=document.getElementById('chapOverlay');if(!btn)return;const cur=window.location.pathname.split('/').pop()||'index.html';menu.querySelectorAll('.chapter-link').forEach(a=>{if(a.getAttribute('href')===cur)a.classList.add('current')});function close(){menu.classList.remove('open');overlay.classList.remove('open');btn.textContent='☰ Kapitoly'}function open(){menu.classList.add('open');overlay.classList.add('open');btn.textContent='✕ Zavřít'}btn.addEventListener('click',e=>{e.stopPropagation();menu.classList.contains('open')?close():open()});overlay.addEventListener('click',close);document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});menu.querySelectorAll('.chapter-link').forEach(a=>a.addEventListener('click',close))}
-function initViewSwitch(){document.querySelectorAll('[data-view-set]').forEach(b=>b.addEventListener('click',()=>{const m=b.dataset.viewSet;document.documentElement.classList.toggle('mode-orig',m==='orig');try{localStorage.setItem('dp750-view',m)}catch(e){}}))}
+function initChapterMenu(){const btn=document.getElementById('chapBtn');const menu=document.getElementById('chapMenu');const overlay=document.getElementById('chapOverlay');if(!btn)return;const cur=window.location.pathname.split('/').pop()||'index.html';menu.querySelectorAll('.chapter-link').forEach(a=>{if(a.getAttribute('href')===cur)a.classList.add('current')});function close(){menu.classList.remove('open');overlay.classList.remove('open');btn.textContent=T.menuOpen}function open(){menu.classList.add('open');overlay.classList.add('open');btn.textContent=T.menuClose}btn.addEventListener('click',e=>{e.stopPropagation();menu.classList.contains('open')?close():open()});overlay.addEventListener('click',close);document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});menu.querySelectorAll('.chapter-link').forEach(a=>a.addEventListener('click',close))}
+function initViewSwitch(){document.querySelectorAll('[data-view-set]').forEach(b=>b.addEventListener('click',()=>{const m=b.dataset.viewSet;document.documentElement.classList.toggle('mode-custom',m==='custom');try{localStorage.setItem('dp750-view',m)}catch(e){}}))}
 document.addEventListener('DOMContentLoaded',()=>{initChapterMenu();initViewSwitch();initTabs();initCollapsibles();initHints();initCopy();initTOC();initProgress()})</script>
 </body>
 </html>

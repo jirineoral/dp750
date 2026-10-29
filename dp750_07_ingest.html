@@ -100,14 +100,24 @@ tr:hover td{background:#f9fafb}
 .figure svg{display:block;width:100%;height:auto;max-width:820px;margin:0 auto}
 .figure figcaption{margin-top:10px;font-size:12px;color:var(--text-muted);text-align:center;line-height:1.5}
 code.inline{font-family:var(--font-mono);font-size:.9em;background:var(--accent-light);color:var(--gopas-blue);padding:1px 5px;border-radius:3px}
-[data-view="orig"]{display:none}
-html.mode-orig [data-view="orig"]{display:revert}
-html.mode-orig [data-view="custom"]{display:none}
+/* Vychozi pohled = originalni osnova MOC. Vlastni tridenni osnovu zapina trida
+   mode-custom na <html> (MODE_BOOT v build.py + initViewSwitch). Bez JS => originalni osnova. */
+/* Skryva se vzdy jen pres display:none. Nikdy display:revert - vracel by hodnotu
+   z UA stylu, ne autorskou, a diky vyssi specificite by prebil napr. .callout{display:flex}. */
+html:not(.mode-custom) [data-view="custom"]{display:none}
+html.mode-custom [data-view="orig"]{display:none}
+/* prepinac jazyka v top-nav (kapitoly); vlajky jsou inline SVG - zadny externi request */
+.lang-switch{display:flex;align-items:center;gap:2px;padding:2px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:999px;flex-shrink:0}
+.nav-links .lang-switch>*{display:flex;align-items:center;gap:5px;padding:3px 9px;border:none;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.5px;color:rgba(255,255,255,.6);text-decoration:none}
+.nav-links .lang-switch a:hover{background:rgba(255,255,255,.14);color:#fff}
+.nav-links .lang-switch>.current{background:#fff;color:var(--gopas-blue)}
+.lang-switch svg{display:block;width:18px;height:12px;border-radius:2px;flex-shrink:0}
+@media(max-width:700px){.lang-switch .lang-lbl{display:none}.nav-links .lang-switch>*{padding:4px 7px}}
 .learn-more{display:flex;gap:8px;align-items:baseline;margin:14px 0 0;padding:9px 13px;background:#f8fafc;border:1px solid var(--border);border-left:3px solid var(--gopas-blue);border-radius:6px;font-size:13px;color:var(--text-muted)}
 .learn-more .lm-label{flex-shrink:0;font-weight:600;color:var(--gopas-blue)}
 .learn-more a{color:var(--gopas-blue);text-decoration:none;border-bottom:1px solid rgba(26,58,107,.3)}
 .learn-more a:hover{border-bottom-color:var(--gopas-blue)}</style>
-<script>try{if(localStorage.getItem("dp750-view")==="orig")document.documentElement.className="mode-orig"}catch(e){}</script>
+
 </head>
 <body>
 <div id="chapOverlay" class="chapter-menu-overlay"></div>
@@ -125,16 +135,16 @@ html.mode-orig [data-view="custom"]{display:none}
   <div class="chapter-group">
     <div class="chapter-group-title">MOC — pokračování</div>
     <a class="chapter-link" href="dp750_08_transformace.html">8. Čištění a transformace dat</a>
-    <a class="chapter-link" href="dp750_09_data_quality.html" title="Mimo osnovu zkráceného kurzu">9. Data quality constraints<span data-view="custom" style="opacity:.55;font-size:11px"> · mimo osnovu</span></a>
+    <a class="chapter-link" href="dp750_09_data_quality.html">9. Data quality constraints</a>
     <a class="chapter-link" href="dp750_10_pipelines.html">10. Datové pipelines</a>
     <a class="chapter-link" href="dp750_11_lakeflow_jobs.html">11. Lakeflow Jobs</a>
-    <a class="chapter-link" href="dp750_12_dev_lifecycle.html" title="Mimo osnovu zkráceného kurzu">12. Vývojový lifecycle<span data-view="custom" style="opacity:.55;font-size:11px"> · mimo osnovu</span></a>
+    <a class="chapter-link" href="dp750_12_dev_lifecycle.html">12. Vývojový lifecycle</a>
     <a class="chapter-link" href="dp750_13_monitoring.html">13. Monitoring a optimalizace</a>
     <div data-view="orig" style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1)">
       <a class="chapter-link" href="index.html" style="color:rgba(255,255,255,.5)">🏠 Rozcestník kurzu</a>
     </div>
   </div>
-  <div class="chapter-group" data-view="custom">
+  <div class="chapter-group">
     <div class="chapter-group-title">Pod čarou — den 3</div>
     <a class="chapter-link" href="dp750_14_fabric_prehled.html">14. Průřez Microsoft Fabric</a>
     <a class="chapter-link" href="dp750_15_pbi_fabric_databricks.html">15. Power BI + Fabric + Databricks</a>
@@ -151,7 +161,7 @@ html.mode-orig [data-view="custom"]{display:none}
     <span class="chapter-title-nav">Ingest dat do Unity Catalogu</span>
   </div>
   <div class="nav-links">
-    <button id="chapBtn" class="chapter-menu-btn">☰ Kapitoly</button><a href="index.html" class="home" title="Rozcestník">🏠</a>
+    <div class="lang-switch" role="group" aria-label="Jazyk / Language"><span class="current" aria-current="true"><svg viewBox="0 0 30 20" aria-hidden="true" focusable="false"><rect width="30" height="10" fill="#fff"/><rect y="10" width="30" height="10" fill="#d7141a"/><path d="M0 0 15 10 0 20Z" fill="#11457e"/></svg><span class="lang-lbl">CS</span></span><a href="en/dp750_07_ingest.html" title="English version" hreflang="en"><svg viewBox="0 0 60 30" aria-hidden="true" focusable="false"><rect width="60" height="30" fill="#012169"/><path d="M0 0 60 30M60 0 0 30" stroke="#fff" stroke-width="6"/><path d="M0 0 60 30M60 0 0 30" stroke="#c8102e" stroke-width="2"/><path d="M30 0V30M0 15H60" stroke="#fff" stroke-width="10"/><path d="M30 0V30M0 15H60" stroke="#c8102e" stroke-width="6"/></svg><span class="lang-lbl">EN</span></a></div><button id="chapBtn" class="chapter-menu-btn">☰ Kapitoly</button><a href="index.html" class="home" title="Rozcestník">🏠</a>
     <a href="dp750_08_transformace.html" class="next">Čištění a transformace dat →</a>
   </div>
 </nav>
@@ -169,6 +179,7 @@ html.mode-orig [data-view="custom"]{display:none}
     <a href="#sec-auto-loader" class="toc-item" data-section="sec-auto-loader">Auto Loader: cloudFiles a exactly-once</a>
     <a href="#sec-deklarativni-pipelines" class="toc-item" data-section="sec-deklarativni-pipelines">Deklarativní pipelines jako rámec nad ingestem</a>
     <a href="#sec-lab" class="toc-item" data-section="sec-lab">Lab 7: Ingest Data into Unity Catalog (45 minut)</a>
+    <a href="#sec-runbook" class="toc-item" data-section="sec-runbook">Runbook: ukázka krok za krokem</a>
   </aside>
 
   <main class="main">
@@ -421,10 +432,10 @@ FORMAT_OPTIONS (<span class="str">'multiline'</span> = <span class="str">'true'<
 
   <div class="tabs">
     <div class="tab-list">
-      <button class="tab-btn" data-tab="tab-07-cdc-sql"><span class="tab-icon">🗄️</span>SQL</button>
+      <button class="tab-btn active" data-tab="tab-07-cdc-sql"><span class="tab-icon">🗄️</span>SQL</button>
       <button class="tab-btn" data-tab="tab-07-cdc-py"><span class="tab-icon">🐍</span>Python</button>
     </div>
-    <div class="tab-panel" id="tab-07-cdc-sql">
+    <div class="tab-panel active" id="tab-07-cdc-sql">
       <div class="code-block">
         <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
         <pre><span class="kw">CREATE OR REFRESH STREAMING TABLE</span> <span class="tbl">employees</span>;
@@ -605,10 +616,10 @@ df_stream = (spark.readStream
 
   <div class="tabs">
     <div class="tab-list">
-      <button class="tab-btn" data-tab="tab-07-al-py"><span class="tab-icon">🐍</span>Python (cloudFiles)</button>
+      <button class="tab-btn active" data-tab="tab-07-al-py"><span class="tab-icon">🐍</span>Python (cloudFiles)</button>
       <button class="tab-btn" data-tab="tab-07-al-sql"><span class="tab-icon">🗄️</span>SQL (read_files)</button>
     </div>
-    <div class="tab-panel" id="tab-07-al-py">
+    <div class="tab-panel active" id="tab-07-al-py">
       <div class="code-block">
         <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
         <pre>(spark.readStream
@@ -717,22 +728,258 @@ df_stream = (spark.readStream
   <div class="callout success"><div class="callout-icon">✓</div><div><strong>Sebekontrola:</strong> <strong>1)</strong> Proč COPY INTO nezpracuje stejný soubor dvakrát a co se stane, když ho spustíte opakovaně nad stejným adresářem? <strong>2)</strong> Jaký je rozdíl mezi CTAS a CREATE OR REPLACE TABLE z pohledu oprávnění a existující tabulky? <strong>3)</strong> Které dvě lokace Auto Loader potřebuje ke své práci a co se v každé z nich ukládá?</div></div>
 </div>
 
+<div class="section" id="sec-runbook">
+  <div class="section-header">
+    <div class="section-num">7.R</div>
+    <h2>Runbook: ukázka krok za krokem</h2>
+  </div>
+  <p>Ukázka načítá objednávky malého e-shopu z CSV souborů ve volume všemi cestami z kapitoly: <code class="inline">spark.read</code>, <code class="inline">COPY INTO</code>, CTAS, Structured Streaming a Auto Loader; CDC a deklarativní pipeline ukazuje na kódu. Běží v lektorském workspace nad syntetickými daty ve schématu <code class="inline">dp750_demo.m07</code>, ne nad daty labu.</p>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> Python notebook <code class="inline">m07_ingest</code> ve složce <code class="inline">/Workspace/Users/&lt;váš e-mail&gt;/dp750-dema</code>, připojený na <strong>Serverless</strong>. SQL buňky začínají řádkem <code class="inline">%sql</code>. Katalog <code class="inline">dp750_demo</code> musí existovat; schéma a volume <code class="inline">dp750_demo.m07.landing</code> založí první buňka. Checkpointy a schema location patří do volume: DBFS root je ve workspace vypnutý a cesta <code class="inline">/tmp/…</code> skončí chybou <code class="inline">DBFS_DISABLED</code>. Asi 12 minut, první spuštění serverless notebooku chvíli trvá.</div></div>
+
+  <h3>Krok 1 – Lakeflow Connect: managed konektory (7.1)</h3>
+  <ol>
+    <li>V postranním panelu klikni na <strong>+ New</strong> → <strong>Add or upload data</strong> a ukaž stránku <strong>Add data</strong> s dlaždicemi konektorů (podle Learn tam jsou managed konektory a sekce <strong>Community connectors</strong>).</li>
+    <li>Druhý vstup ukaž přes <strong>Jobs &amp; Pipelines</strong> → <strong>Create new</strong> → <strong>Ingestion pipeline</strong>.</li>
+    <li>Otevři průvodce libovolného konektoru jen na první obrazovku (connection) a vysvětli tři části, které popisuje Learn: connection v Unity Catalogu, ingestion definition (které tabulky a kam) a schedule. Pipeline nezakládej.</li>
+  </ol>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> managed konektor je nejvíc spravovaná volba ze stromu v sekci 6.2: kód extrakce nepíšeš, jen konfiguruješ. Všechno, co následuje v krocích 2 až 7, je cesta pro případ, kdy pro zdroj managed konektor neexistuje.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> nabídka konektorů a jejich stav (Beta, Public Preview, GA) se mění a některé je potřeba zapnout v <strong>Previews</strong>. Neslibuj konkrétní konektor, dokud ho v galerii nevidíš. Krok je jen v UI, přesné kliky si projdi při přípravě.</div></div>
+
+  <h3>Krok 2 – Ingest v notebooku: spark.read (7.2)</h3>
+  <ol>
+    <li>Pusť první buňku: založí schéma a volume, uklidí stav po zkoušce a zapíše první CSV soubor se dvěma objednávkami.</li>
+    <li>Ukaž výstup <code class="inline">printSchema()</code>: <code class="inline">inferSchema</code> odvodil <code class="inline">order_id</code> jako <code class="inline">integer</code>, <code class="inline">order_ts</code> jako <code class="inline">timestamp</code> a <code class="inline">amount</code> jako <code class="inline">double</code>.</li>
+    <li>Tabulka <code class="inline">orders_nb</code> má 2 řádky.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
+<pre>spark.<span class="fn">sql</span>(<span class="str">"CREATE SCHEMA IF NOT EXISTS dp750_demo.m07"</span>)
+spark.<span class="fn">sql</span>(<span class="str">"CREATE VOLUME IF NOT EXISTS dp750_demo.m07.landing"</span>)
+base = <span class="str">"/Volumes/dp750_demo/m07/landing"</span>
+
+<span class="cm"># reset pred opakovanim dema: tabulky, soubory, checkpointy</span>
+<span class="kw">for</span> t <span class="kw">in</span> [<span class="str">"orders_nb"</span>, <span class="str">"orders_ctas"</span>, <span class="str">"orders_copy"</span>, <span class="str">"orders_stream"</span>, <span class="str">"orders_autoloader"</span>]:
+    spark.<span class="fn">sql</span>(<span class="str">f"DROP TABLE IF EXISTS dp750_demo.m07.{t}"</span>)
+<span class="kw">for</span> p <span class="kw">in</span> [<span class="str">"orders"</span>, <span class="str">"_checkpoints"</span>, <span class="str">"_schemas"</span>]:
+    dbutils.fs.<span class="fn">rm</span>(<span class="str">f"{base}/{p}"</span>, <span class="kw">True</span>)
+
+dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/orders/orders_001.csv"</span>,
+    <span class="str">"order_id,customer,amount,order_ts\n"</span>
+    <span class="str">"1,ACME,1250.50,2026-11-03 08:15:00\n"</span>
+    <span class="str">"2,Bikeshop,89.90,2026-11-03 09:00:00\n"</span>, <span class="kw">True</span>)
+
+df = (spark.read
+      .<span class="fn">format</span>(<span class="str">"csv"</span>)
+      .<span class="fn">option</span>(<span class="str">"header"</span>, <span class="str">"true"</span>)
+      .<span class="fn">option</span>(<span class="str">"inferSchema"</span>, <span class="str">"true"</span>)
+      .<span class="fn">load</span>(<span class="str">f"{base}/orders/orders_001.csv"</span>))
+df.<span class="fn">printSchema</span>()
+df.write.<span class="fn">mode</span>(<span class="str">"overwrite"</span>).<span class="fn">saveAsTable</span>(<span class="str">"dp750_demo.m07.orders_nb"</span>)
+<span class="fn">display</span>(spark.<span class="fn">table</span>(<span class="str">"dp750_demo.m07.orders_nb"</span>))</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> <code class="inline">spark.read</code> je univerzální cesta, když managed konektor neexistuje; <code class="inline">mode("overwrite")</code> dělá z buňky opakovatelný full load. Zápis skončí v Delta tabulce, formát nikdo neuvádí.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> částka v <code class="inline">double</code> je pro peníze špatně (viz sekce 8.2). Stejné odvození (<code class="inline">inferSchema</code> → double) shodí v kroku 3 <code class="inline">COPY INTO</code>, pokud ho tam použiješ.</div></div>
+
+  <h3>Krok 3 – SQL metody: COPY INTO, CTAS a CREATE OR REPLACE (7.3)</h3>
+  <ol>
+    <li>SQL buňka A: cílová tabulka s přesnými typy a <code class="inline">COPY INTO</code>, který sloupce přetypuje v <code class="inline">SELECT</code>. Pusť ji <strong>dvakrát</strong>: první běh vloží 2 řádky, druhý 0.</li>
+    <li>Python buňka B přidá druhý soubor. Pak znovu buňka A: vloží se jen 1 nový řádek.</li>
+    <li>SQL buňka C: CTAS přes <code class="inline">read_files</code> nad oběma soubory (typ částky přes <code class="inline">schemaHints</code>), pokus o <code class="inline">CREATE TABLE IF NOT EXISTS … AS</code> nad existující tabulkou (nic se nestane) a <code class="inline">CREATE OR REPLACE</code>. Historie ukáže, že druhé spuštění <code class="inline">COPY INTO</code> nevytvořilo žádnou verzi.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="cm">-- cell A: run twice, then again after cell B</span>
+<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> <span class="tbl">dp750_demo.m07.orders_copy</span> (
+  order_id <span class="kw">INT</span>, customer <span class="kw">STRING</span>, amount <span class="kw">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>), order_ts <span class="kw">TIMESTAMP</span>);
+
+<span class="kw">COPY</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m07.orders_copy</span>
+<span class="kw">FROM</span> (
+  <span class="kw">SELECT</span> CAST(order_id <span class="kw">AS</span> <span class="kw">INT</span>) <span class="kw">AS</span> order_id, customer,
+         CAST(amount <span class="kw">AS</span> <span class="kw">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>)) <span class="kw">AS</span> amount,
+         CAST(order_ts <span class="kw">AS</span> <span class="kw">TIMESTAMP</span>) <span class="kw">AS</span> order_ts
+  <span class="kw">FROM</span> <span class="str">'/Volumes/dp750_demo/m07/landing/orders'</span>
+)
+<span class="kw">FILEFORMAT</span> = <span class="kw">CSV</span>
+<span class="kw">FORMAT_OPTIONS</span> (<span class="str">'header'</span> = <span class="str">'true'</span>);</pre>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="cm"># cell B: a new file lands in the folder</span>
+dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/orders/orders_002.csv"</span>,
+    <span class="str">"order_id,customer,amount,order_ts\n"</span>
+    <span class="str">"3,Velo,455.00,2026-11-04 10:30:00\n"</span>, <span class="kw">True</span>)</pre>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="cm">-- cell C: history of COPY INTO, CTAS, CREATE OR REPLACE</span>
+<span class="kw">SELECT</span> version, operation, operationMetrics
+<span class="kw">FROM</span> (<span class="kw">DESCRIBE</span> <span class="kw">HISTORY</span> <span class="tbl">dp750_demo.m07.orders_copy</span>) <span class="kw">ORDER</span> <span class="kw">BY</span> version;
+
+<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m07.orders_ctas</span> <span class="kw">AS</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="fn">read_files</span>(<span class="str">'/Volumes/dp750_demo/m07/landing/orders/'</span>,
+  format =&gt; <span class="str">'csv'</span>, header =&gt; true, schemaHints =&gt; <span class="str">'amount DECIMAL(10,2)'</span>);
+<span class="kw">DESCRIBE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m07.orders_ctas</span>;
+
+<span class="cm">-- table exists: the whole statement is skipped</span>
+<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> <span class="tbl">dp750_demo.m07.orders_ctas</span> <span class="kw">AS</span> <span class="kw">SELECT</span> <span class="num">1</span> <span class="kw">AS</span> x;
+
+<span class="cm">-- full refresh that keeps history and grants</span>
+<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m07.orders_ctas</span> <span class="kw">AS</span>
+<span class="kw">SELECT</span> customer, <span class="fn">sum</span>(amount) <span class="kw">AS</span> total <span class="kw">FROM</span> <span class="tbl">dp750_demo.m07.orders_copy</span> <span class="kw">GROUP</span> <span class="kw">BY</span> customer;
+
+<span class="kw">SELECT</span> version, operation <span class="kw">FROM</span> (<span class="kw">DESCRIBE</span> <span class="kw">HISTORY</span> <span class="tbl">dp750_demo.m07.orders_ctas</span>) <span class="kw">ORDER</span> <span class="kw">BY</span> version;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> <code class="inline">COPY INTO</code> si načtené soubory pamatuje, proto opakované spuštění nic nezdvojí; v historii jsou jen dvě verze <code class="inline">COPY INTO</code> (2 a 1 řádek). CTAS u <code class="inline">read_files</code> přidá sloupec <code class="inline">_rescued_data</code>. <code class="inline">CREATE OR REPLACE</code> vytvoří novou verzi téže tabulky, ne novou tabulku.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> varianta s <code class="inline">FORMAT_OPTIONS ('header' = 'true', 'inferSchema' = 'true')</code> nad tabulkou s <code class="inline">DECIMAL(10,2)</code> spadne na <code class="inline">DELTA_FAILED_TO_MERGE_FIELDS</code> (<code class="inline">amount</code> se odvodí jako double); bez <code class="inline">inferSchema</code> a bez přetypování spadne stejně, protože CSV sloupce jsou řetězce. Chyba přijde i tehdy, když by se žádný nový soubor nenačítal. Proto <code class="inline">SELECT</code> s <code class="inline">CAST</code>.</div></div>
+
+  <h3>Krok 4 – CDC feed a AUTO CDC (7.4)</h3>
+  <ol>
+    <li>SQL buňka: založ feed změn zákazníků s typem operace a pořadovým číslem. Záznam se <code class="inline">seq = 3</code> dorazil až po <code class="inline">seq = 4</code>.</li>
+    <li>Ukaž, co je „správný“ stav: poslední záznam podle <code class="inline">seq</code> na klíč. Zákazník 1 skončí v Olomouci, ne ve Zlíně; zákazník 2 má poslední operaci <code class="inline">DELETE</code>.</li>
+    <li>Ukaž na plátně kód flow s <code class="inline">AUTO CDC</code> pro zdrojový soubor deklarativní pipeline. Tenhle kód v SQL editoru ani v notebooku nespouštěj, patří do pipeline.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m07.customer_changes</span> <span class="kw">AS</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">VALUES</span>
+  (<span class="num">1</span>, <span class="str">'ACME'</span>, <span class="str">'Brno'</span>,    <span class="str">'INSERT'</span>, <span class="num">1</span>),
+  (<span class="num">2</span>, <span class="str">'Velo'</span>, <span class="str">'Praha'</span>,   <span class="str">'INSERT'</span>, <span class="num">2</span>),
+  (<span class="num">1</span>, <span class="str">'ACME'</span>, <span class="str">'Olomouc'</span>, <span class="str">'UPDATE'</span>, <span class="num">4</span>),
+  (<span class="num">1</span>, <span class="str">'ACME'</span>, <span class="str">'Zlin'</span>,    <span class="str">'UPDATE'</span>, <span class="num">3</span>),
+  (<span class="num">2</span>, <span class="kw">NULL</span>,   <span class="kw">NULL</span>,      <span class="str">'DELETE'</span>, <span class="num">5</span>)
+<span class="kw">AS</span> t(customer_id, name, city, operation, seq);
+
+<span class="cm">-- correct state = last event per key by sequence, not by arrival</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m07.customer_changes</span>
+<span class="kw">QUALIFY</span> <span class="fn">row_number</span>() <span class="kw">OVER</span> (<span class="kw">PARTITION</span> <span class="kw">BY</span> customer_id <span class="kw">ORDER</span> <span class="kw">BY</span> seq <span class="kw">DESC</span>) = <span class="num">1</span>;</pre>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="cm">-- pipeline source file only (not for SQL editor)</span>
+<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REFRESH</span> <span class="kw">STREAMING</span> <span class="kw">TABLE</span> customers_history;
+
+<span class="kw">CREATE</span> <span class="kw">FLOW</span> customers_history_cdc
+<span class="kw">AS</span> <span class="kw">AUTO</span> CDC <span class="kw">INTO</span> customers_history
+<span class="kw">FROM</span> <span class="fn">stream</span>(<span class="tbl">dp750_demo.m07.customer_changes</span>)
+<span class="kw">KEYS</span> (customer_id)
+<span class="kw">APPLY</span> <span class="kw">AS</span> <span class="kw">DELETE</span> <span class="kw">WHEN</span> operation = <span class="str">'DELETE'</span>
+<span class="kw">SEQUENCE</span> <span class="kw">BY</span> seq
+<span class="kw">COLUMNS</span> * <span class="kw">EXCEPT</span> (operation, seq)
+<span class="kw">STORED</span> <span class="kw">AS</span> <span class="kw">SCD</span> <span class="kw">TYPE</span> <span class="num">2</span>;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> ruční <code class="inline">MERGE</code> by musel řešit pořadí, deduplikaci a mazání sám. <code class="inline">AUTO CDC</code> řadí podle <code class="inline">SEQUENCE BY</code>, pozdě dorazivší starší update ignoruje a u SCD Type 2 přidá sloupce <code class="inline">__START_AT</code> a <code class="inline">__END_AT</code>.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> zdroj pro <code class="inline">stream()</code> musí být append-only; když v tabulce <code class="inline">customer_changes</code> někdo udělá <code class="inline">UPDATE</code> nebo ji přepíše, streamové čtení skončí chybou. Syntaxi najdeš v referenci <em>AUTO CDC INTO</em> na Learn.</div></div>
+
+  <h3>Krok 5 – Spark Structured Streaming (7.5)</h3>
+  <ol>
+    <li>Python buňka: stream z Delta tabulky <code class="inline">orders_copy</code> do <code class="inline">orders_stream</code> s triggerem <code class="inline">availableNow</code> a checkpointem ve volume.</li>
+    <li>Ukaž <code class="inline">recentProgress</code> (kolik řádků mikrodávka zpracovala) a počet řádků v cíli: 3.</li>
+    <li>Pusť buňku znovu: stream skončí bez nových řádků, protože checkpoint ví, kde přestal.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
+<pre>q = (spark.readStream
+     .<span class="fn">table</span>(<span class="str">"dp750_demo.m07.orders_copy"</span>)
+     .writeStream
+     .<span class="fn">option</span>(<span class="str">"checkpointLocation"</span>, <span class="str">f"{base}/_checkpoints/orders_stream"</span>)
+     .<span class="fn">trigger</span>(availableNow=<span class="kw">True</span>)
+     .<span class="fn">toTable</span>(<span class="str">"dp750_demo.m07.orders_stream"</span>))
+q.<span class="fn">awaitTermination</span>()
+<span class="fn">print</span>([p[<span class="str">"numInputRows"</span>] <span class="kw">for</span> p <span class="kw">in</span> q.recentProgress])
+<span class="fn">print</span>(spark.<span class="fn">table</span>(<span class="str">"dp750_demo.m07.orders_stream"</span>).<span class="fn">count</span>())</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> stejné API jako batch, jen <code class="inline">readStream</code> a <code class="inline">writeStream</code>. <code class="inline">availableNow</code> zpracuje vše dostupné a skončí, takže se hodí do plánovaného jobu. Místo Kafky čteme Delta tabulku; princip checkpointu je stejný.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> na serverless jsou podporované jen triggery <code class="inline">availableNow</code> a zastaralý <code class="inline">once</code>; <code class="inline">processingTime</code> nebo stream bez triggeru skončí chybou <code class="inline">INFINITE_STREAMING_TRIGGER_NOT_SUPPORTED</code>. Každá streaming query potřebuje vlastní checkpoint; smazání checkpointu znamená začít od nuly.</div></div>
+
+  <h3>Krok 6 – Auto Loader: cloudFiles a exactly-once (7.6)</h3>
+  <ol>
+    <li>Python buňka: Auto Loader nad složkou <code class="inline">orders</code> se schema location a checkpointem ve volume, s <code class="inline">inferColumnTypes</code> a se sloupcem <code class="inline">source_file</code> ze skrytého <code class="inline">_metadata</code>.</li>
+    <li>Funkce se spustí dvakrát (předpokládá oba soubory z kroků 2 a 3): po prvním běhu má <code class="inline">orders_autoloader</code> 3 řádky, po druhém pořád 3.</li>
+    <li>SQL buňka: <code class="inline">cloud_files_state</code> vypíše dva zpracované soubory (cesta se ukáže jako URL ve storage, ne jako <code class="inline">/Volumes/…</code>; při sdílení obrazovky ji ukaž jen krátce); dotaz na tabulku ukáže <code class="inline">source_file</code> a prázdný <code class="inline">_rescued_data</code>.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="kw">from</span> pyspark.sql.functions <span class="kw">import</span> col
+
+<span class="kw">def</span> <span class="fn">run_autoloader</span>():
+    q = (spark.readStream
+         .<span class="fn">format</span>(<span class="str">"cloudFiles"</span>)
+         .<span class="fn">option</span>(<span class="str">"cloudFiles.format"</span>, <span class="str">"csv"</span>)
+         .<span class="fn">option</span>(<span class="str">"header"</span>, <span class="str">"true"</span>)
+         .<span class="fn">option</span>(<span class="str">"cloudFiles.inferColumnTypes"</span>, <span class="str">"true"</span>)
+         .<span class="fn">option</span>(<span class="str">"cloudFiles.schemaLocation"</span>, <span class="str">f"{base}/_schemas/orders_al"</span>)
+         .<span class="fn">load</span>(<span class="str">f"{base}/orders"</span>)
+         .<span class="fn">select</span>(<span class="str">"*"</span>, <span class="fn">col</span>(<span class="str">"_metadata.file_name"</span>).<span class="fn">alias</span>(<span class="str">"source_file"</span>))
+         .writeStream
+         .<span class="fn">option</span>(<span class="str">"checkpointLocation"</span>, <span class="str">f"{base}/_checkpoints/orders_al"</span>)
+         .<span class="fn">trigger</span>(availableNow=<span class="kw">True</span>)
+         .<span class="fn">toTable</span>(<span class="str">"dp750_demo.m07.orders_autoloader"</span>))
+    q.<span class="fn">awaitTermination</span>()
+
+<span class="fn">run_autoloader</span>()
+<span class="fn">print</span>(spark.<span class="fn">table</span>(<span class="str">"dp750_demo.m07.orders_autoloader"</span>).<span class="fn">count</span>())
+<span class="fn">run_autoloader</span>()
+<span class="fn">print</span>(spark.<span class="fn">table</span>(<span class="str">"dp750_demo.m07.orders_autoloader"</span>).<span class="fn">count</span>())</pre>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="kw">SELECT</span> path <span class="kw">FROM</span> <span class="fn">cloud_files_state</span>(<span class="str">'/Volumes/dp750_demo/m07/landing/_checkpoints/orders_al'</span>);
+
+<span class="kw">SELECT</span> order_id, amount, source_file, _rescued_data
+<span class="kw">FROM</span> <span class="tbl">dp750_demo.m07.orders_autoloader</span> <span class="kw">ORDER</span> <span class="kw">BY</span> order_id;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> Auto Loader si stav souborů drží v checkpointu, proto každý soubor projde právě jednou. Proti <code class="inline">COPY INTO</code> škáluje na miliony souborů a umí schema evolution; <code class="inline">_metadata.file_name</code> dá v bronze vrstvě dohledatelnost původu.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> bez <code class="inline">inferColumnTypes</code> by u CSV byly všechny sloupce řetězce; s ním je <code class="inline">amount</code> zase <code class="inline">double</code>, pro peníze přidej <code class="inline">cloudFiles.schemaHints</code>. Když první běh nic nenačte, zbyl checkpoint ze zkoušky: smaž <code class="inline">_checkpoints/orders_al</code> i <code class="inline">_schemas/orders_al</code> (dělá to buňka v kroku 2). Neříkej, že ukázka používá directory listing: který režim detekce Auto Loader nad volume zvolí, Learn pro tenhle případ neuvádí.</div></div>
+
+  <h3>Krok 7 – Deklarativní pipeline jako rámec nad ingestem (7.7)</h3>
+  <ol>
+    <li>Ukaž na plátně zdrojový soubor pipeline, který dělá totéž co krok 6, ale checkpoint a schema location řeší pipeline sama.</li>
+    <li>Vysvětli, že jméno flow (ve výchozím stavu název tabulky z <code class="inline">name=…</code>) identifikuje checkpoint: přejmenování znamená nový ingest od začátku.</li>
+    <li>Pipeline zakládej jen tehdy, když zbývá čas: <strong>Jobs &amp; Pipelines</strong> → vytvořit ETL pipeline, výchozí katalog <code class="inline">dp750_demo</code>, schéma <code class="inline">m07</code>, serverless. Pak ji po ukázce smaž.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
+<pre><span class="kw">from</span> pyspark <span class="kw">import</span> pipelines <span class="kw">as</span> dp
+
+<span class="cm"># streaming table; checkpoint and schema location are managed by the pipeline</span>
+<span class="fn">@dp.table</span>(name=<span class="str">"orders_bronze_pl"</span>)
+<span class="kw">def</span> <span class="fn">orders_bronze_pl</span>():
+    <span class="kw">return</span> (spark.readStream
+            .<span class="fn">format</span>(<span class="str">"cloudFiles"</span>)
+            .<span class="fn">option</span>(<span class="str">"cloudFiles.format"</span>, <span class="str">"csv"</span>)
+            .<span class="fn">option</span>(<span class="str">"header"</span>, <span class="str">"true"</span>)
+            .<span class="fn">option</span>(<span class="str">"cloudFiles.schemaHints"</span>, <span class="str">"amount DECIMAL(10,2)"</span>)
+            .<span class="fn">load</span>(<span class="str">"/Volumes/dp750_demo/m07/landing/orders"</span>))</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> v pipeline deklaruješ, co má vzniknout, a framework řeší pořadí, retry, checkpointy i inkrementální zpracování. Stejný Auto Loader, méně vlastního kódu.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> modul <code class="inline">from pyspark import pipelines</code> funguje jen uvnitř pipeline; v běžném notebooku import nebo dekorátor může skončit chybou.</div></div>
+
+  <h3>Úklid</h3>
+  <ol>
+    <li>Tabulky, volume a soubory ve <code class="inline">dp750_demo.m07</code> nech, první buňka kroku 2 je před dalším průchodem sama vyčistí.</li>
+    <li>Pokud jsi v kroku 7 založil pipeline, smaž ji v <strong>Jobs &amp; Pipelines</strong>; po kurzu <code class="inline">DROP SCHEMA dp750_demo.m07 CASCADE;</code>.</li>
+  </ol>
+</div>
+
     <div class="footer-nav">
       <a href="dp750_06_datove_modelovani.html">← Datové modelování</a>
-      <span style="color:var(--text-muted);font-size:13px">Kapitola 7 z 16</span>
+      <span data-view="orig" style="color:var(--text-muted);font-size:13px">Kapitola 7 z 13</span><span data-view="custom" style="color:var(--text-muted);font-size:13px">Kapitola 7 z 16</span>
       <a href="dp750_08_transformace.html" style="margin-left:auto">Čištění a transformace dat →</a>
     </div>
   </main>
 </div>
 
-<script>function initTabs(){document.querySelectorAll('.tab-list').forEach(list=>{list.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{const panel=btn.dataset.tab;const container=btn.closest('.tabs');container.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));container.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');container.querySelector('#'+panel).classList.add('active')})})});document.querySelectorAll('.tabs').forEach(t=>{const first=t.querySelector('.tab-btn');if(first)first.classList.add('active');const firstP=t.querySelector('.tab-panel');if(firstP)firstP.classList.add('active')})}
+<script>var T={copy:"Kopírovat",copied:"✓ Zkopírováno",copyFallback:"Ctrl+C",hintShow:"💡 Zobrazit nápovědu",hintHide:"🙈 Skrýt nápovědu",menuOpen:"☰ Kapitoly",menuClose:"✕ Zavřít"};
+/* Sdilene chovani pro CS i EN vetev. Objekt T (UI texty) emituje build.py pred telem
+   tohoto skriptu — viz LANGS v build.py. Zadny text natvrdo, jinak se rozejdou jazyky. */
+function initTabs(){document.querySelectorAll('.tab-list').forEach(list=>{list.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{const panel=btn.dataset.tab;const container=btn.closest('.tabs');container.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));container.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');container.querySelector('#'+panel).classList.add('active')})})});document.querySelectorAll('.tabs').forEach(t=>{if(t.querySelector('.tab-btn.active'))return;const first=t.querySelector('.tab-btn');if(first)first.classList.add('active');const firstP=t.querySelector('.tab-panel');if(firstP)firstP.classList.add('active')})}
 function initCollapsibles(){document.querySelectorAll('.collapsible-header').forEach(h=>{h.addEventListener('click',()=>h.closest('.collapsible').classList.toggle('open'))})}
-function initHints(){document.querySelectorAll('.hint-toggle').forEach(t=>{t.addEventListener('click',()=>{const c=t.nextElementSibling;c.classList.toggle('open');t.textContent=c.classList.contains('open')?'🙈 Skrýt nápovědu':'💡 Zobrazit nápovědu'})})}
-function initCopy(){document.querySelectorAll('.copy-btn').forEach(btn=>{btn.addEventListener('click',()=>{const code=btn.closest('.code-block').querySelector('pre').innerText;function ok(){btn.textContent='✓ Zkopírováno';btn.classList.add('copied');setTimeout(()=>{btn.textContent='Kopírovat';btn.classList.remove('copied')},2000)}function legacy(){try{const ta=document.createElement('textarea');ta.value=code;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok()}catch(e){btn.textContent='Ctrl+C';setTimeout(()=>{btn.textContent='Kopírovat'},2000)}}if(navigator.clipboard){navigator.clipboard.writeText(code).then(ok).catch(legacy)}else{legacy()}})})}
+function initHints(){document.querySelectorAll('.hint-toggle').forEach(t=>{t.addEventListener('click',()=>{const c=t.nextElementSibling;c.classList.toggle('open');t.textContent=c.classList.contains('open')?T.hintHide:T.hintShow})})}
+function initCopy(){document.querySelectorAll('.copy-btn').forEach(btn=>{btn.addEventListener('click',()=>{const code=btn.closest('.code-block').querySelector('pre').innerText;function ok(){btn.textContent=T.copied;btn.classList.add('copied');setTimeout(()=>{btn.textContent=T.copy;btn.classList.remove('copied')},2000)}function legacy(){try{const ta=document.createElement('textarea');ta.value=code;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok()}catch(e){btn.textContent=T.copyFallback;setTimeout(()=>{btn.textContent=T.copy},2000)}}if(navigator.clipboard){navigator.clipboard.writeText(code).then(ok).catch(legacy)}else{legacy()}})})}
 function initTOC(){const sections=document.querySelectorAll('.section');const items=document.querySelectorAll('.toc-item[data-section]');if(!items.length)return;const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){const id=e.target.id;items.forEach(i=>i.classList.toggle('active',i.dataset.section===id))}})},{rootMargin:'-15% 0px -70% 0px'});sections.forEach(s=>obs.observe(s));items.forEach(i=>{i.addEventListener('click',()=>{document.getElementById(i.dataset.section)?.scrollIntoView({behavior:'smooth'})})})}
 function initProgress(){const bar=document.getElementById('pfill');if(!bar)return;window.addEventListener('scroll',()=>{const t=window.scrollY;const h=document.documentElement.scrollHeight-window.innerHeight;bar.style.width=(h>0?t/h*100:0)+'%'})}
-function initChapterMenu(){const btn=document.getElementById('chapBtn');const menu=document.getElementById('chapMenu');const overlay=document.getElementById('chapOverlay');if(!btn)return;const cur=window.location.pathname.split('/').pop()||'index.html';menu.querySelectorAll('.chapter-link').forEach(a=>{if(a.getAttribute('href')===cur)a.classList.add('current')});function close(){menu.classList.remove('open');overlay.classList.remove('open');btn.textContent='☰ Kapitoly'}function open(){menu.classList.add('open');overlay.classList.add('open');btn.textContent='✕ Zavřít'}btn.addEventListener('click',e=>{e.stopPropagation();menu.classList.contains('open')?close():open()});overlay.addEventListener('click',close);document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});menu.querySelectorAll('.chapter-link').forEach(a=>a.addEventListener('click',close))}
-function initViewSwitch(){document.querySelectorAll('[data-view-set]').forEach(b=>b.addEventListener('click',()=>{const m=b.dataset.viewSet;document.documentElement.classList.toggle('mode-orig',m==='orig');try{localStorage.setItem('dp750-view',m)}catch(e){}}))}
+function initChapterMenu(){const btn=document.getElementById('chapBtn');const menu=document.getElementById('chapMenu');const overlay=document.getElementById('chapOverlay');if(!btn)return;const cur=window.location.pathname.split('/').pop()||'index.html';menu.querySelectorAll('.chapter-link').forEach(a=>{if(a.getAttribute('href')===cur)a.classList.add('current')});function close(){menu.classList.remove('open');overlay.classList.remove('open');btn.textContent=T.menuOpen}function open(){menu.classList.add('open');overlay.classList.add('open');btn.textContent=T.menuClose}btn.addEventListener('click',e=>{e.stopPropagation();menu.classList.contains('open')?close():open()});overlay.addEventListener('click',close);document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});menu.querySelectorAll('.chapter-link').forEach(a=>a.addEventListener('click',close))}
+function initViewSwitch(){document.querySelectorAll('[data-view-set]').forEach(b=>b.addEventListener('click',()=>{const m=b.dataset.viewSet;document.documentElement.classList.toggle('mode-custom',m==='custom');try{localStorage.setItem('dp750-view',m)}catch(e){}}))}
 document.addEventListener('DOMContentLoaded',()=>{initChapterMenu();initViewSwitch();initTabs();initCollapsibles();initHints();initCopy();initTOC();initProgress()})</script>
 </body>
 </html>

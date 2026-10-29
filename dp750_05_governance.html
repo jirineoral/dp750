@@ -100,14 +100,24 @@ tr:hover td{background:#f9fafb}
 .figure svg{display:block;width:100%;height:auto;max-width:820px;margin:0 auto}
 .figure figcaption{margin-top:10px;font-size:12px;color:var(--text-muted);text-align:center;line-height:1.5}
 code.inline{font-family:var(--font-mono);font-size:.9em;background:var(--accent-light);color:var(--gopas-blue);padding:1px 5px;border-radius:3px}
-[data-view="orig"]{display:none}
-html.mode-orig [data-view="orig"]{display:revert}
-html.mode-orig [data-view="custom"]{display:none}
+/* Vychozi pohled = originalni osnova MOC. Vlastni tridenni osnovu zapina trida
+   mode-custom na <html> (MODE_BOOT v build.py + initViewSwitch). Bez JS => originalni osnova. */
+/* Skryva se vzdy jen pres display:none. Nikdy display:revert - vracel by hodnotu
+   z UA stylu, ne autorskou, a diky vyssi specificite by prebil napr. .callout{display:flex}. */
+html:not(.mode-custom) [data-view="custom"]{display:none}
+html.mode-custom [data-view="orig"]{display:none}
+/* prepinac jazyka v top-nav (kapitoly); vlajky jsou inline SVG - zadny externi request */
+.lang-switch{display:flex;align-items:center;gap:2px;padding:2px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:999px;flex-shrink:0}
+.nav-links .lang-switch>*{display:flex;align-items:center;gap:5px;padding:3px 9px;border:none;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.5px;color:rgba(255,255,255,.6);text-decoration:none}
+.nav-links .lang-switch a:hover{background:rgba(255,255,255,.14);color:#fff}
+.nav-links .lang-switch>.current{background:#fff;color:var(--gopas-blue)}
+.lang-switch svg{display:block;width:18px;height:12px;border-radius:2px;flex-shrink:0}
+@media(max-width:700px){.lang-switch .lang-lbl{display:none}.nav-links .lang-switch>*{padding:4px 7px}}
 .learn-more{display:flex;gap:8px;align-items:baseline;margin:14px 0 0;padding:9px 13px;background:#f8fafc;border:1px solid var(--border);border-left:3px solid var(--gopas-blue);border-radius:6px;font-size:13px;color:var(--text-muted)}
 .learn-more .lm-label{flex-shrink:0;font-weight:600;color:var(--gopas-blue)}
 .learn-more a{color:var(--gopas-blue);text-decoration:none;border-bottom:1px solid rgba(26,58,107,.3)}
 .learn-more a:hover{border-bottom-color:var(--gopas-blue)}</style>
-<script>try{if(localStorage.getItem("dp750-view")==="orig")document.documentElement.className="mode-orig"}catch(e){}</script>
+
 </head>
 <body>
 <div id="chapOverlay" class="chapter-menu-overlay"></div>
@@ -125,16 +135,16 @@ html.mode-orig [data-view="custom"]{display:none}
   <div class="chapter-group">
     <div class="chapter-group-title">MOC — pokračování</div>
     <a class="chapter-link" href="dp750_08_transformace.html">8. Čištění a transformace dat</a>
-    <a class="chapter-link" href="dp750_09_data_quality.html" title="Mimo osnovu zkráceného kurzu">9. Data quality constraints<span data-view="custom" style="opacity:.55;font-size:11px"> · mimo osnovu</span></a>
+    <a class="chapter-link" href="dp750_09_data_quality.html">9. Data quality constraints</a>
     <a class="chapter-link" href="dp750_10_pipelines.html">10. Datové pipelines</a>
     <a class="chapter-link" href="dp750_11_lakeflow_jobs.html">11. Lakeflow Jobs</a>
-    <a class="chapter-link" href="dp750_12_dev_lifecycle.html" title="Mimo osnovu zkráceného kurzu">12. Vývojový lifecycle<span data-view="custom" style="opacity:.55;font-size:11px"> · mimo osnovu</span></a>
+    <a class="chapter-link" href="dp750_12_dev_lifecycle.html">12. Vývojový lifecycle</a>
     <a class="chapter-link" href="dp750_13_monitoring.html">13. Monitoring a optimalizace</a>
     <div data-view="orig" style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1)">
       <a class="chapter-link" href="index.html" style="color:rgba(255,255,255,.5)">🏠 Rozcestník kurzu</a>
     </div>
   </div>
-  <div class="chapter-group" data-view="custom">
+  <div class="chapter-group">
     <div class="chapter-group-title">Pod čarou — den 3</div>
     <a class="chapter-link" href="dp750_14_fabric_prehled.html">14. Průřez Microsoft Fabric</a>
     <a class="chapter-link" href="dp750_15_pbi_fabric_databricks.html">15. Power BI + Fabric + Databricks</a>
@@ -151,7 +161,7 @@ html.mode-orig [data-view="custom"]{display:none}
     <span class="chapter-title-nav">Governance objektů Unity Catalogu</span>
   </div>
   <div class="nav-links">
-    <button id="chapBtn" class="chapter-menu-btn">☰ Kapitoly</button><a href="index.html" class="home" title="Rozcestník">🏠</a>
+    <div class="lang-switch" role="group" aria-label="Jazyk / Language"><span class="current" aria-current="true"><svg viewBox="0 0 30 20" aria-hidden="true" focusable="false"><rect width="30" height="10" fill="#fff"/><rect y="10" width="30" height="10" fill="#d7141a"/><path d="M0 0 15 10 0 20Z" fill="#11457e"/></svg><span class="lang-lbl">CS</span></span><a href="en/dp750_05_governance.html" title="English version" hreflang="en"><svg viewBox="0 0 60 30" aria-hidden="true" focusable="false"><rect width="60" height="30" fill="#012169"/><path d="M0 0 60 30M60 0 0 30" stroke="#fff" stroke-width="6"/><path d="M0 0 60 30M60 0 0 30" stroke="#c8102e" stroke-width="2"/><path d="M30 0V30M0 15H60" stroke="#fff" stroke-width="10"/><path d="M30 0V30M0 15H60" stroke="#c8102e" stroke-width="6"/></svg><span class="lang-lbl">EN</span></a></div><button id="chapBtn" class="chapter-menu-btn">☰ Kapitoly</button><a href="index.html" class="home" title="Rozcestník">🏠</a>
     <a href="dp750_06_datove_modelovani.html" class="next">Datové modelování →</a>
   </div>
 </nav>
@@ -168,6 +178,7 @@ html.mode-orig [data-view="custom"]{display:none}
     <a href="#sec-audit-logging" class="toc-item" data-section="sec-audit-logging">Audit logging přes system tables</a>
     <a href="#sec-delta-sharing" class="toc-item" data-section="sec-delta-sharing">Návrh Delta Sharing strategie</a>
     <a href="#sec-lab" class="toc-item" data-section="sec-lab">Lab 5: Govern Unity Catalog Objects (45 minut)</a>
+    <a href="#sec-runbook" class="toc-item" data-section="sec-runbook">Runbook: ukázka krok za krokem</a>
   </aside>
 
   <main class="main">
@@ -586,22 +597,238 @@ spark.readStream.<span class="fn">option</span>(<span class="str">'skipChangeCom
   <div class="callout success"><div class="callout-icon">✓</div><div><strong>Sebekontrola:</strong> <strong>1)</strong> Které dvě vlastnosti tabulky musíte nastavit, aby time travel spolehlivě fungoval 30 dní zpět, a co s okny historie udělá VACUUM? <strong>2)</strong> Čím se governed tag liší od standardního a proč je předpokladem pro ABAC policies? <strong>3)</strong> Ve které system table zjistíte, kdo v posledním týdnu četl tabulku <code class="inline">vehicle_telemetry</code>, a ve které její downstream závislosti?</div></div>
 </div>
 
+<div class="section" id="sec-runbook">
+  <div class="section-header">
+    <div class="section-num">5.R</div>
+    <h2>Runbook: ukázka krok za krokem</h2>
+  </div>
+  <p>Ukázka provede governance nad daty fiktivního fitness klubu: komentáře a tagy, jednu ABAC policy, která zamaskuje e-maily i v tabulce založené později, retenci a VACUUM, lineage, audit a nakonec share pro partnera. Běží v lektorském workspace v katalogu <code class="inline">dp750_demo</code>, schéma <code class="inline">m05</code>, na syntetických datech.</p>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> serverless SQL warehouse. Governed tag <code class="inline">pii</code> s povolenými hodnotami <code class="inline">email</code> a <code class="inline">phone</code> (jen pokud ještě neexistuje: <code class="inline">CREATE GOVERNED TAG pii DESCRIPTION 'Personal data in demo tables' VALUES ('email', 'phone');</code>) a oprávnění tag přiřazovat (<code class="inline">ASSIGN</code>). Grant na schémata <code class="inline">system.access</code> a <code class="inline">system.storage</code>, privilegium <code class="inline">CREATE SHARE</code> na metastoru. Kroky 1–2 a lineage tabulku z kroku 4 pusťte jednou už den předem: system tables se plní se zpožděním. Celá ukázka zabere asi 15 minut.</div></div>
+
+  <h3>Krok 1 – Table definitions: komentáře, tagy a discovery</h3>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="kw">CREATE SCHEMA IF NOT EXISTS</span> <span class="tbl">dp750_demo.m05</span> <span class="kw">COMMENT</span> <span class="str">'Demo modulu 5: governance fitness klubu'</span>;
+
+<span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750_demo.m05.members</span> (
+  member_id <span class="kw">INT</span>    <span class="kw">COMMENT</span> <span class="str">'Interni ID clena'</span>,
+  full_name <span class="kw">STRING</span> <span class="kw">COMMENT</span> <span class="str">'Jmeno a prijmeni'</span>,
+  email     <span class="kw">STRING</span> <span class="kw">COMMENT</span> <span class="str">'Kontaktni e-mail'</span>,
+  phone     <span class="kw">STRING</span> <span class="kw">COMMENT</span> <span class="str">'Mobilni telefon'</span>,
+  city      <span class="kw">STRING</span>,
+  joined_on <span class="kw">DATE</span>   <span class="kw">COMMENT</span> <span class="str">'Datum registrace'</span>
+);
+
+<span class="kw">INSERT INTO</span> <span class="tbl">dp750_demo.m05.members</span> <span class="kw">VALUES</span>
+  (<span class="num">1</span>, <span class="str">'Klára Novotná'</span>, <span class="str">'klara.novotna@example.com'</span>, <span class="str">'+420 731 100 200'</span>, <span class="str">'Brno'</span>,  <span class="kw">DATE</span><span class="str">'2025-01-15'</span>),
+  (<span class="num">2</span>, <span class="str">'Tomáš Veselý'</span>,  <span class="str">'tomas.vesely@example.cz'</span>,   <span class="str">'+420 732 300 400'</span>, <span class="str">'Praha'</span>, <span class="kw">DATE</span><span class="str">'2025-06-02'</span>),
+  (<span class="num">3</span>, <span class="str">'Eva Černá'</span>,     <span class="str">'eva.cerna@example.org'</span>,     <span class="str">'+420 733 500 600'</span>, <span class="str">'Brno'</span>,  <span class="kw">DATE</span><span class="str">'2026-03-20'</span>);
+
+<span class="cm">-- dodatecna dokumentace: komentar (markdown) a standardni tagy</span>
+<span class="kw">COMMENT ON TABLE</span> <span class="tbl">dp750_demo.m05.members</span> <span class="kw">IS</span> <span class="str">'Clenove fitness klubu. **Zdroj:** recepcni system, synteticka data pro kurz.'</span>;
+<span class="kw">ALTER TABLE</span> <span class="tbl">dp750_demo.m05.members</span> <span class="kw">ALTER COLUMN</span> city <span class="kw">COMMENT</span> <span class="str">'Mesto domovske pobocky klubu'</span>;
+<span class="kw">ALTER TABLE</span> <span class="tbl">dp750_demo.m05.members</span> <span class="kw">SET TAGS</span> (<span class="str">'domain'</span> = <span class="str">'fitness'</span>, <span class="str">'data_owner'</span> = <span class="str">'recepce'</span>);
+
+<span class="kw">SELECT</span> table_name, tag_name, tag_value
+<span class="kw">FROM</span> <span class="tbl">system.information_schema.table_tags</span>
+<span class="kw">WHERE</span> catalog_name = <span class="str">'dp750_demo'</span> <span class="kw">AND</span> schema_name = <span class="str">'m05'</span>;</pre>
+  </div>
+  <ol>
+    <li>Catalog Explorer → <code class="inline">members</code>: komentář se vykreslí jako markdown, tagy jsou u tabulky; ukažte tlačítko pro AI návrh komentáře.</li>
+  </ol>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> komentář je volný text pro lidi i pro Genie, tag je strukturovaný klíč a hodnota, podle kterého se dá hledat a stavět politiky. Obojí je dotazovatelné přes <code class="inline">information_schema</code>.</div></div>
+
+  <h3>Krok 2 – ABAC: governed tagy a centrální policies</h3>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="kw">SHOW GOVERNED TAGS</span>;
+
+<span class="kw">ALTER TABLE</span> <span class="tbl">dp750_demo.m05.members</span> <span class="kw">ALTER COLUMN</span> email <span class="kw">SET TAGS</span> (<span class="str">'pii'</span> = <span class="str">'email'</span>);
+<span class="kw">ALTER TABLE</span> <span class="tbl">dp750_demo.m05.members</span> <span class="kw">ALTER COLUMN</span> phone <span class="kw">SET TAGS</span> (<span class="str">'pii'</span> = <span class="str">'phone'</span>);
+<span class="cm">-- zamerna chyba: hodnota mimo povoleny seznam</span>
+<span class="kw">ALTER TABLE</span> <span class="tbl">dp750_demo.m05.members</span> <span class="kw">ALTER COLUMN</span> city <span class="kw">SET TAGS</span> (<span class="str">'pii'</span> = <span class="str">'adresa'</span>);
+
+<span class="cm">-- maskovaci funkce: jen "jak", ne "pro koho"</span>
+<span class="kw">CREATE OR REPLACE FUNCTION</span> <span class="tbl">dp750_demo.m05.mask_keep_domain</span>(v <span class="kw">STRING</span>)
+<span class="kw">RETURNS STRING DETERMINISTIC</span>
+<span class="kw">RETURN</span> <span class="fn">concat</span>(<span class="str">'***@'</span>, <span class="fn">split_part</span>(v, <span class="str">'@'</span>, <span class="num">2</span>));
+
+<span class="kw">CREATE OR REPLACE FUNCTION</span> <span class="tbl">dp750_demo.m05.mask_last3</span>(v <span class="kw">STRING</span>)
+<span class="kw">RETURNS STRING DETERMINISTIC</span>
+<span class="kw">RETURN</span> <span class="fn">concat</span>(<span class="str">'*** *** '</span>, <span class="fn">right</span>(v, <span class="num">3</span>));
+
+<span class="cm">-- "pro koho" je v policy</span>
+<span class="kw">CREATE OR REPLACE POLICY</span> m05_mask_email
+<span class="kw">ON SCHEMA</span> <span class="tbl">dp750_demo.m05</span>
+<span class="kw">COMMENT</span> <span class="str">'Maskuje kazdy sloupec s tagem pii=email'</span>
+<span class="kw">COLUMN MASK</span> <span class="tbl">dp750_demo.m05.mask_keep_domain</span>
+<span class="kw">TO</span> `account users`
+<span class="kw">FOR TABLES</span>
+<span class="kw">MATCH COLUMNS</span> <span class="fn">has_tag_value</span>(<span class="str">'pii'</span>, <span class="str">'email'</span>) <span class="kw">AS</span> c
+<span class="kw">ON COLUMN</span> c;
+
+<span class="kw">CREATE OR REPLACE POLICY</span> m05_mask_phone
+<span class="kw">ON SCHEMA</span> <span class="tbl">dp750_demo.m05</span>
+<span class="kw">COLUMN MASK</span> <span class="tbl">dp750_demo.m05.mask_last3</span>
+<span class="kw">TO</span> `account users`
+<span class="kw">FOR TABLES</span>
+<span class="kw">MATCH COLUMNS</span> <span class="fn">has_tag_value</span>(<span class="str">'pii'</span>, <span class="str">'phone'</span>) <span class="kw">AS</span> c
+<span class="kw">ON COLUMN</span> c;
+
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m05.members</span> <span class="kw">ORDER BY</span> member_id;
+<span class="kw">SHOW EFFECTIVE POLICIES ON TABLE</span> <span class="tbl">dp750_demo.m05.members</span>;</pre>
+  </div>
+  <ol>
+    <li>Teď nová tabulka bez jakéhokoli zásahu do policy:</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750_demo.m05.newsletter_signups</span> (signup_id <span class="kw">INT</span>, email <span class="kw">STRING</span>, signed_at <span class="kw">TIMESTAMP</span>);
+<span class="kw">INSERT INTO</span> <span class="tbl">dp750_demo.m05.newsletter_signups</span> <span class="kw">VALUES</span> (<span class="num">501</span>, <span class="str">'jan.kral@example.net'</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-10-20 18:00:00'</span>);
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m05.newsletter_signups</span>;   <span class="cm">-- e-mail citelny</span>
+
+<span class="kw">ALTER TABLE</span> <span class="tbl">dp750_demo.m05.newsletter_signups</span> <span class="kw">ALTER COLUMN</span> email <span class="kw">SET TAGS</span> (<span class="str">'pii'</span> = <span class="str">'email'</span>);
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m05.newsletter_signups</span>;   <span class="cm">-- e-mail maskovany</span></pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> e-maily vyjdou jako <code class="inline">***@example.com</code> a telefony jako <code class="inline">*** *** 200</code>, i pro vás jako vlastníka, protože policy míří na <code class="inline">account users</code> a nikoho nevyjímá. <code class="inline">SHOW EFFECTIVE POLICIES</code> ukáže obě policy zděděné ze schématu. Nová tabulka se zamaskuje v okamžiku, kdy dostane tag; policy se nemění.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> tag s nepovolenou hodnotou skončí <code class="inline">UC_TAG_POLICY_VALUE_NOT_ALLOWED … Allowed values: [...]</code>; governed tag tak drží klasifikaci v mezích. <code class="inline">SHOW GOVERNED TAGS</code> vypíše i desítky systémových tagů <code class="inline">class.*</code> z automatické klasifikace dat, váš <code class="inline">pii</code> je mezi nimi. Kdo chce výjimku pro compliance tým, přidá do policy <code class="inline">EXCEPT `skupina`</code> (account skupina).</div></div>
+
+  <h3>Krok 3 – Retenční politiky: Delta retention, VACUUM a predictive optimization</h3>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750_demo.m05.checkins</span> (member_id <span class="kw">INT</span>, club <span class="kw">STRING</span>, checked_in_at <span class="kw">TIMESTAMP</span>)
+<span class="kw">TBLPROPERTIES</span> (<span class="str">'delta.logRetentionDuration'</span> = <span class="str">'interval 30 days'</span>,
+               <span class="str">'delta.deletedFileRetentionDuration'</span> = <span class="str">'interval 14 days'</span>);
+
+<span class="kw">INSERT INTO</span> <span class="tbl">dp750_demo.m05.checkins</span> <span class="kw">VALUES</span>
+  (<span class="num">1</span>, <span class="str">'Brno'</span>,  <span class="kw">TIMESTAMP</span><span class="str">'2026-10-01 06:30:00'</span>), (<span class="num">2</span>, <span class="str">'Praha'</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-10-01 18:10:00'</span>),
+  (<span class="num">3</span>, <span class="str">'Brno'</span>,  <span class="kw">TIMESTAMP</span><span class="str">'2026-10-02 07:05:00'</span>), (<span class="num">1</span>, <span class="str">'Brno'</span>,  <span class="kw">TIMESTAMP</span><span class="str">'2026-10-03 06:40:00'</span>);
+
+<span class="cm">-- "pravo byt zapomenut" pro clena 2</span>
+<span class="kw">DELETE FROM</span> <span class="tbl">dp750_demo.m05.checkins</span> <span class="kw">WHERE</span> member_id = <span class="num">2</span>;
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m05.checkins</span> <span class="kw">VERSION AS OF</span> <span class="num">1</span> <span class="kw">WHERE</span> member_id = <span class="num">2</span>;   <span class="cm">-- porad videt</span>
+
+<span class="kw">REORG TABLE</span> <span class="tbl">dp750_demo.m05.checkins</span> <span class="kw">APPLY</span> (PURGE);
+<span class="kw">VACUUM</span> <span class="tbl">dp750_demo.m05.checkins</span> <span class="kw">DRY RUN</span>;
+<span class="kw">VACUUM</span> <span class="tbl">dp750_demo.m05.checkins</span> <span class="kw">RETAIN</span> <span class="num">0</span> <span class="kw">HOURS</span>;   <span class="cm">-- zamerna chyba</span>
+
+<span class="kw">ALTER SCHEMA</span> <span class="tbl">dp750_demo.m05</span> <span class="kw">ENABLE PREDICTIVE OPTIMIZATION</span>;
+<span class="kw">DESCRIBE SCHEMA EXTENDED</span> <span class="tbl">dp750_demo.m05</span>;
+<span class="kw">DESCRIBE CATALOG EXTENDED</span> <span class="tbl">dp750_demo</span>;
+
+<span class="kw">SELECT</span> operation_type, operation_status, <span class="fn">count</span>(*) <span class="kw">AS</span> n
+<span class="kw">FROM</span> <span class="tbl">system.storage.predictive_optimization_operations_history</span>
+<span class="kw">WHERE</span> catalog_name = <span class="str">'dp750_demo'</span>
+<span class="kw">GROUP BY ALL</span>;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> po <code class="inline">DELETE</code> je řádek přes time travel pořád vidět. <code class="inline">REORG … APPLY (PURGE)</code> přepíše soubory s deletion vectors, ale staré soubory fyzicky zmizí až po <code class="inline">VACUUM</code> po uplynutí 14 dní; proto <code class="inline">DRY RUN</code> teď nic nevypíše. <code class="inline">DESCRIBE CATALOG EXTENDED</code> ukáže predictive optimization zděděnou z metastoru.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> <code class="inline">RETAIN 0 HOURS</code> skončí <code class="inline">DELTA_VACUUM_RETENTION_PERIOD_TOO_SHORT</code> a chyba sama řekne minimum: 336 hodin, tedy právě nastavených 14 dní. Pojistku (<code class="inline">delta.retentionDurationCheck.enabled</code>) na kurzu nevypínejte. Historie predictive optimization u nových tabulek bývá prázdná, údržba běží až podle využití.</div></div>
+
+  <h3>Krok 4 – Data lineage: odkud data tečou a kam</h3>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750_demo.m05.checkins_by_city</span> <span class="kw">AS</span>
+<span class="kw">SELECT</span> m.city, <span class="fn">count</span>(*) <span class="kw">AS</span> checkins
+<span class="kw">FROM</span> <span class="tbl">dp750_demo.m05.checkins</span> c
+<span class="kw">JOIN</span> <span class="tbl">dp750_demo.m05.members</span> m <span class="kw">ON</span> c.member_id = m.member_id
+<span class="kw">GROUP BY</span> m.city;
+
+<span class="kw">SELECT</span> source_table_full_name, target_table_full_name, entity_type, event_time
+<span class="kw">FROM</span> <span class="tbl">system.access.table_lineage</span>
+<span class="kw">WHERE</span> target_table_full_name <span class="kw">LIKE</span> <span class="str">'dp750_demo.%'</span>
+  <span class="kw">AND</span> event_date &gt;= <span class="fn">current_date</span>() - <span class="kw">INTERVAL</span> <span class="num">7</span> <span class="kw">DAYS</span>
+<span class="kw">ORDER BY</span> event_time <span class="kw">DESC</span>
+<span class="kw">LIMIT</span> <span class="num">10</span>;</pre>
+  </div>
+  <ol>
+    <li>Catalog Explorer → <code class="inline">checkins_by_city</code> → <strong>Lineage</strong> → <strong>See Lineage Graph</strong>: dvě vstupní tabulky, jedna výstupní. Kliknutím na hranu ukažte, který dotaz vazbu vytvořil.</li>
+  </ol>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> lineage vzniká sama z dotazů přes třídílná jména, nic se neinstrumentuje. Graf slouží k impact analysis: co rozbiju, když změním <code class="inline">members</code>.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> řádky z právě spuštěného CTAS v <code class="inline">table_lineage</code> hned nebudou (zpoždění bývá i přes hodinu). Proto CTAS pusťte už den předem a teď ukazujte včerejší řádky.</div></div>
+
+  <h3>Krok 5 – Audit logging přes system tables</h3>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm">-- kdo cetl nebo zakladal tabulky v katalogu dem</span>
+<span class="kw">SELECT</span> event_time, user_identity.email <span class="kw">AS</span> who, action_name,
+       request_params.full_name_arg <span class="kw">AS</span> object, response.status_code <span class="kw">AS</span> status
+<span class="kw">FROM</span> <span class="tbl">system.access.audit</span>
+<span class="kw">WHERE</span> service_name = <span class="str">'unityCatalog'</span>
+  <span class="kw">AND</span> action_name <span class="kw">IN</span> (<span class="str">'getTable'</span>, <span class="str">'createTable'</span>, <span class="str">'deleteTable'</span>)
+  <span class="kw">AND</span> request_params.full_name_arg <span class="kw">LIKE</span> <span class="str">'dp750_demo.%'</span>
+  <span class="kw">AND</span> event_date &gt;= <span class="fn">current_date</span>() - <span class="kw">INTERVAL</span> <span class="num">2</span> <span class="kw">DAYS</span>
+<span class="kw">ORDER BY</span> event_time <span class="kw">DESC</span>
+<span class="kw">LIMIT</span> <span class="num">20</span>;
+
+<span class="cm">-- zmeny opravneni</span>
+<span class="kw">SELECT</span> event_time, request_params.securable_full_name <span class="kw">AS</span> securable, request_params.changes <span class="kw">AS</span> changes
+<span class="kw">FROM</span> <span class="tbl">system.access.audit</span>
+<span class="kw">WHERE</span> service_name = <span class="str">'unityCatalog'</span> <span class="kw">AND</span> action_name = <span class="str">'updatePermissions'</span>
+  <span class="kw">AND</span> event_date &gt;= <span class="fn">current_date</span>() - <span class="kw">INTERVAL</span> <span class="num">7</span> <span class="kw">DAYS</span>
+<span class="kw">ORDER BY</span> event_time <span class="kw">DESC</span>;</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> compliance otázka „kdo k tomu sahal“ je obyčejný SQL dotaz. <code class="inline">request_params.changes</code> u <code class="inline">updatePermissions</code> obsahuje JSON s principalem a přidanými či odebranými privilegii, tedy i granty z modulu 4.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> dnešní události tu ještě nemusí být. Bez grantu na <code class="inline">system.access</code> dostane účastník chybu oprávnění; udělit ho musí account nebo metastore admin.</div></div>
+
+  <h3>Krok 6 – Návrh Delta Sharing strategie</h3>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="kw">CREATE SHARE IF NOT EXISTS</span> dp750_m05_partner_share <span class="kw">COMMENT</span> <span class="str">'Demo modulu 5: agregace pro partnera'</span>;
+
+<span class="cm">-- sdilime agregat, ne zdrojova data</span>
+<span class="kw">ALTER SHARE</span> dp750_m05_partner_share <span class="kw">ADD TABLE</span> <span class="tbl">dp750_demo.m05.checkins_by_city</span> <span class="kw">COMMENT</span> <span class="str">'Navstevnost podle mesta'</span>;
+
+<span class="cm">-- zamerna chyba: tabulka pod ABAC policy, ktera se tyka i vlastnika share</span>
+<span class="kw">ALTER SHARE</span> dp750_m05_partner_share <span class="kw">ADD TABLE</span> <span class="tbl">dp750_demo.m05.members</span>;
+
+<span class="kw">SHOW ALL IN SHARE</span> dp750_m05_partner_share;
+<span class="kw">SHOW RECIPIENTS</span>;
+
+<span class="cm">-- sablona prijemce Databricks-to-Databricks (identifikator mu da SELECT current_metastore())</span>
+<span class="cm">-- CREATE RECIPIENT IF NOT EXISTS partner_gym USING ID '&lt;sharing-identifier&gt;';</span>
+<span class="cm">-- GRANT SELECT ON SHARE dp750_m05_partner_share TO RECIPIENT partner_gym;</span></pre>
+  </div>
+  <ol>
+    <li>Catalog → ikona ozubeného kola nahoře v panelu → <strong>OpenSharing</strong> (dříve Delta Sharing) → <strong>Shared by me</strong>: tentýž share v UI.</li>
+  </ol>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> share je securable objekt, recipient příjemce, grant je spojuje. <code class="inline">SHOW ALL IN SHARE</code> ukáže u tabulky <code class="inline">history_sharing = ENABLED</code>: příjemce může dělat time travel, i když jste o to výslovně nežádali.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> přidání <code class="inline">members</code> skončí <code class="inline">PERMISSION_DENIED: Cannot share table with ABAC policy governing the share owner</code>. Vlastník share musí být z ABAC policy vyjmutý (<code class="inline">EXCEPT</code>), jinak by partner dostal data přes cizí oprávnění. Open recipient s bearer tokenem na kurzu nezakládejte: token je tajemství.</div></div>
+
+  <h3>Úklid</h3>
+  <ol>
+    <li>Ihned po ukázce: <code class="inline">DROP SHARE dp750_m05_partner_share;</code> (share je na úrovni metastoru, mimo katalog dem).</li>
+    <li>Schéma <code class="inline">dp750_demo.m05</code> nechte do konce kurzu. Po kurzu nejdřív policy, pak schéma:</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="kw">DROP POLICY</span> m05_mask_email <span class="kw">ON SCHEMA</span> <span class="tbl">dp750_demo.m05</span>;
+<span class="kw">DROP POLICY</span> m05_mask_phone <span class="kw">ON SCHEMA</span> <span class="tbl">dp750_demo.m05</span>;
+<span class="kw">DROP SCHEMA</span> <span class="tbl">dp750_demo.m05</span> <span class="kw">CASCADE</span>;</pre>
+  </div>
+  <ol start="3">
+    <li>Governed tag <code class="inline">pii</code> je na úrovni accountu. Smažte ho (Catalog → <strong>Govern</strong> → <strong>Governed Tags</strong> → <strong>Delete</strong>, nebo <code class="inline">DROP GOVERNED TAG pii;</code>) až po smazání všech policy, které ho používají, a až ho nebude potřebovat žádné jiné demo. Tagy na sloupcích po smazání zůstanou, jen přestanou být governed.</li>
+  </ol>
+</div>
+
     <div class="footer-nav">
       <a href="dp750_04_zabezpeceni.html">← Zabezpečení Unity Catalogu</a>
-      <span style="color:var(--text-muted);font-size:13px">Kapitola 5 z 16</span>
+      <span data-view="orig" style="color:var(--text-muted);font-size:13px">Kapitola 5 z 13</span><span data-view="custom" style="color:var(--text-muted);font-size:13px">Kapitola 5 z 16</span>
       <a href="dp750_06_datove_modelovani.html" style="margin-left:auto">Datové modelování →</a>
     </div>
   </main>
 </div>
 
-<script>function initTabs(){document.querySelectorAll('.tab-list').forEach(list=>{list.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{const panel=btn.dataset.tab;const container=btn.closest('.tabs');container.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));container.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');container.querySelector('#'+panel).classList.add('active')})})});document.querySelectorAll('.tabs').forEach(t=>{const first=t.querySelector('.tab-btn');if(first)first.classList.add('active');const firstP=t.querySelector('.tab-panel');if(firstP)firstP.classList.add('active')})}
+<script>var T={copy:"Kopírovat",copied:"✓ Zkopírováno",copyFallback:"Ctrl+C",hintShow:"💡 Zobrazit nápovědu",hintHide:"🙈 Skrýt nápovědu",menuOpen:"☰ Kapitoly",menuClose:"✕ Zavřít"};
+/* Sdilene chovani pro CS i EN vetev. Objekt T (UI texty) emituje build.py pred telem
+   tohoto skriptu — viz LANGS v build.py. Zadny text natvrdo, jinak se rozejdou jazyky. */
+function initTabs(){document.querySelectorAll('.tab-list').forEach(list=>{list.querySelectorAll('.tab-btn').forEach(btn=>{btn.addEventListener('click',()=>{const panel=btn.dataset.tab;const container=btn.closest('.tabs');container.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));container.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');container.querySelector('#'+panel).classList.add('active')})})});document.querySelectorAll('.tabs').forEach(t=>{if(t.querySelector('.tab-btn.active'))return;const first=t.querySelector('.tab-btn');if(first)first.classList.add('active');const firstP=t.querySelector('.tab-panel');if(firstP)firstP.classList.add('active')})}
 function initCollapsibles(){document.querySelectorAll('.collapsible-header').forEach(h=>{h.addEventListener('click',()=>h.closest('.collapsible').classList.toggle('open'))})}
-function initHints(){document.querySelectorAll('.hint-toggle').forEach(t=>{t.addEventListener('click',()=>{const c=t.nextElementSibling;c.classList.toggle('open');t.textContent=c.classList.contains('open')?'🙈 Skrýt nápovědu':'💡 Zobrazit nápovědu'})})}
-function initCopy(){document.querySelectorAll('.copy-btn').forEach(btn=>{btn.addEventListener('click',()=>{const code=btn.closest('.code-block').querySelector('pre').innerText;function ok(){btn.textContent='✓ Zkopírováno';btn.classList.add('copied');setTimeout(()=>{btn.textContent='Kopírovat';btn.classList.remove('copied')},2000)}function legacy(){try{const ta=document.createElement('textarea');ta.value=code;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok()}catch(e){btn.textContent='Ctrl+C';setTimeout(()=>{btn.textContent='Kopírovat'},2000)}}if(navigator.clipboard){navigator.clipboard.writeText(code).then(ok).catch(legacy)}else{legacy()}})})}
+function initHints(){document.querySelectorAll('.hint-toggle').forEach(t=>{t.addEventListener('click',()=>{const c=t.nextElementSibling;c.classList.toggle('open');t.textContent=c.classList.contains('open')?T.hintHide:T.hintShow})})}
+function initCopy(){document.querySelectorAll('.copy-btn').forEach(btn=>{btn.addEventListener('click',()=>{const code=btn.closest('.code-block').querySelector('pre').innerText;function ok(){btn.textContent=T.copied;btn.classList.add('copied');setTimeout(()=>{btn.textContent=T.copy;btn.classList.remove('copied')},2000)}function legacy(){try{const ta=document.createElement('textarea');ta.value=code;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);ok()}catch(e){btn.textContent=T.copyFallback;setTimeout(()=>{btn.textContent=T.copy},2000)}}if(navigator.clipboard){navigator.clipboard.writeText(code).then(ok).catch(legacy)}else{legacy()}})})}
 function initTOC(){const sections=document.querySelectorAll('.section');const items=document.querySelectorAll('.toc-item[data-section]');if(!items.length)return;const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){const id=e.target.id;items.forEach(i=>i.classList.toggle('active',i.dataset.section===id))}})},{rootMargin:'-15% 0px -70% 0px'});sections.forEach(s=>obs.observe(s));items.forEach(i=>{i.addEventListener('click',()=>{document.getElementById(i.dataset.section)?.scrollIntoView({behavior:'smooth'})})})}
 function initProgress(){const bar=document.getElementById('pfill');if(!bar)return;window.addEventListener('scroll',()=>{const t=window.scrollY;const h=document.documentElement.scrollHeight-window.innerHeight;bar.style.width=(h>0?t/h*100:0)+'%'})}
-function initChapterMenu(){const btn=document.getElementById('chapBtn');const menu=document.getElementById('chapMenu');const overlay=document.getElementById('chapOverlay');if(!btn)return;const cur=window.location.pathname.split('/').pop()||'index.html';menu.querySelectorAll('.chapter-link').forEach(a=>{if(a.getAttribute('href')===cur)a.classList.add('current')});function close(){menu.classList.remove('open');overlay.classList.remove('open');btn.textContent='☰ Kapitoly'}function open(){menu.classList.add('open');overlay.classList.add('open');btn.textContent='✕ Zavřít'}btn.addEventListener('click',e=>{e.stopPropagation();menu.classList.contains('open')?close():open()});overlay.addEventListener('click',close);document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});menu.querySelectorAll('.chapter-link').forEach(a=>a.addEventListener('click',close))}
-function initViewSwitch(){document.querySelectorAll('[data-view-set]').forEach(b=>b.addEventListener('click',()=>{const m=b.dataset.viewSet;document.documentElement.classList.toggle('mode-orig',m==='orig');try{localStorage.setItem('dp750-view',m)}catch(e){}}))}
+function initChapterMenu(){const btn=document.getElementById('chapBtn');const menu=document.getElementById('chapMenu');const overlay=document.getElementById('chapOverlay');if(!btn)return;const cur=window.location.pathname.split('/').pop()||'index.html';menu.querySelectorAll('.chapter-link').forEach(a=>{if(a.getAttribute('href')===cur)a.classList.add('current')});function close(){menu.classList.remove('open');overlay.classList.remove('open');btn.textContent=T.menuOpen}function open(){menu.classList.add('open');overlay.classList.add('open');btn.textContent=T.menuClose}btn.addEventListener('click',e=>{e.stopPropagation();menu.classList.contains('open')?close():open()});overlay.addEventListener('click',close);document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});menu.querySelectorAll('.chapter-link').forEach(a=>a.addEventListener('click',close))}
+function initViewSwitch(){document.querySelectorAll('[data-view-set]').forEach(b=>b.addEventListener('click',()=>{const m=b.dataset.viewSet;document.documentElement.classList.toggle('mode-custom',m==='custom');try{localStorage.setItem('dp750-view',m)}catch(e){}}))}
 document.addEventListener('DOMContentLoaded',()=>{initChapterMenu();initViewSwitch();initTabs();initCollapsibles();initHints();initCopy();initTOC();initProgress()})</script>
 </body>
 </html>
