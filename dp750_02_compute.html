@@ -532,6 +532,31 @@ databricks auth login --host <span class="str">https://adb-&lt;id&gt;.&lt;n&gt;.
 databricks auth profiles           <span class="cm"># overuje pripojeni; rychle bez site: --skip-validate</span>
 databricks current-user me --profile <span class="str">&lt;profil&gt;</span></pre>
   </div>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Co je profil:</strong> pojmenovaná sekce v souboru <code class="inline">%USERPROFILE%\.databrickscfg</code>, která říká, ke kterému workspace a jak se přihlásit (host, způsob ověření). Je to obdoba uloženého připojení ke zdroji dat v Power BI: jednou ho nastavíte, pak se na něj jen odkazujete jménem. Název si volíte sami (např. <code class="inline">lektor</code>, <code class="inline">skoleni</code>, <code class="inline">prod</code>) a <code class="inline">--profile</code> (zkráceně <code class="inline">-p</code>) vybírá workspace a identitu pro jeden příkaz a má vždy přednost. Bez něj CLI vezme výchozí profil nastavený přes <code class="inline">databricks auth switch</code>, jinak sekci <code class="inline">[DEFAULT]</code>; profil jde vybrat i proměnnou prostředí <code class="inline">DATABRICKS_CONFIG_PROFILE</code>. Při <code class="inline">auth login</code> nový název přidá nový profil a ostatní nechá být, existující název profil bez varování přepíše. Když <code class="inline">--profile</code> vynecháte, CLI se na název zeptá a nabídne <code class="inline">adb-&lt;id&gt;</code> z URL. Na čistém počítači se <code class="inline">.databrickscfg</code> založí při prvním přihlášení.</div></div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">POWERSHELL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm"># soubor s profily (jen nastaveni, token je v Credential Manageru)</span>
+notepad $env:USERPROFILE\.databrickscfg
+
+<span class="cm"># ukazkovy obsah se dvema profily (hosty vymyslene):</span>
+<span class="cm"># [lektor]</span>
+<span class="cm"># host      = https://adb-1111111111111111.11.azuredatabricks.net</span>
+<span class="cm"># auth_type = databricks-cli</span>
+<span class="cm"># [skoleni]</span>
+<span class="cm"># host      = https://adb-2222222222222222.2.azuredatabricks.net</span>
+<span class="cm"># auth_type = databricks-cli</span>
+<span class="cm"># [__settings__]</span>
+<span class="cm"># default_profile = lektor</span>
+
+<span class="cm"># vase profily; vychozi je oznaceny (Default)</span>
+databricks auth profiles
+
+<span class="cm"># stejny prikaz proti zvolenemu workspace (lektor a skoleni jsou jen priklady)</span>
+databricks clusters list -p <span class="str">&lt;profil&gt;</span>
+
+<span class="cm"># vychozi profil pro prikazy bez --profile (zapise [__settings__])</span>
+databricks auth switch --profile <span class="str">&lt;profil&gt;</span></pre>
+  </div>
   <ol start="4">
     <li>Nápověda se prochází přímo v CLI, od skupiny příkazů po jednotlivý příkaz:</li>
   </ol>
