@@ -496,7 +496,54 @@ df = spark.<span class="fn">createDataFrame</span>(pacienti, [<span class="str">
     <h2>Runbook: ukázka krok za krokem</h2>
   </div>
   <p>Ukázka porovná serverless, classic compute a SQL warehouse na jednom formuláři a z příkazové řádky, nainstaluje notebook-scoped knihovnu a ukáže oprávnění ke compute. Běží v lektorském workspace; classic cluster se nezakládá, formulář se jen projde.</p>
-  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> běžící serverless SQL warehouse, lokální Databricks CLI přihlášené k workspace (profil podle sebe, v ukázkách <code class="inline">&lt;profil&gt;</code>), prázdný Python notebook. Celá ukázka zabere asi 10 minut.</div></div>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> běžící serverless SQL warehouse, lokální Databricks CLI přihlášené k workspace (profil podle sebe, v ukázkách <code class="inline">&lt;profil&gt;</code>), prázdný Python notebook. Celá ukázka zabere asi 10 minut. CLI zatím nemáte? Začněte krokem 0.</div></div>
+
+  <h3>Krok 0 – Databricks CLI na Windows: instalace, přihlášení, první příkaz</h3>
+  <p>CLI je jeden soubor <code class="inline">databricks.exe</code> (napsaný v Go, nepotřebuje Python). Volá stejné REST API jako UI, takže co v ukázce uvidíte v UI, uvidíte i z příkazové řádky.</p>
+  <ol>
+    <li>Otevřete <strong>PowerShell</strong> (stačí obyčejný, bez „Spustit jako správce“) a nainstalujte CLI přes WinGet. Na čistém stroji se WinGet při prvním použití zeptá na souhlas s podmínkami zdroje; odpovězte <code class="inline">Y</code>, ať to nezdrží ukázku.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">POWERSHELL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm"># instalace (balicek od Databricks v katalogu WinGet)</span>
+winget search databricks
+winget install Databricks.DatabricksCLI
+
+<span class="cm"># pozdeji aktualizace na posledni verzi (z verze pred 1.0.0 pak znovu auth login)</span>
+winget upgrade Databricks.DatabricksCLI</pre>
+  </div>
+  <ol start="2">
+    <li><strong>Zavřete a znovu otevřete PowerShell</strong> (nová cesta v PATH se načte až v novém okně) a ověřte instalaci:</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">POWERSHELL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre>databricks -v                      <span class="cm"># nebo: databricks version</span>
+(Get-Command databricks).Source    <span class="cm"># odkud se exe skutecne spousti</span></pre>
+  </div>
+  <ol start="3">
+    <li>Přihlaste se k workspace přes OAuth (U2M). URL workspace zkopírujte z adresního řádku prohlížeče (tvar <code class="inline">https://adb-&lt;id&gt;.&lt;n&gt;.azuredatabricks.net</code>), profil si pojmenujte:</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">POWERSHELL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm"># otevre prohlizec, po prihlaseni ulozi profil do %USERPROFILE%\.databrickscfg</span>
+databricks auth login --host <span class="str">https://adb-&lt;id&gt;.&lt;n&gt;.azuredatabricks.net</span> --profile <span class="str">&lt;profil&gt;</span>
+
+<span class="cm"># kontrola: seznam profilu a kdo jsem</span>
+databricks auth profiles           <span class="cm"># overuje pripojeni; rychle bez site: --skip-validate</span>
+databricks current-user me --profile <span class="str">&lt;profil&gt;</span></pre>
+  </div>
+  <ol start="4">
+    <li>Nápověda se prochází přímo v CLI, od skupiny příkazů po jednotlivý příkaz:</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">POWERSHELL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre>databricks --help                  <span class="cm"># skupiny prikazu (clusters, warehouses, jobs, bundle...)</span>
+databricks warehouses --help       <span class="cm"># prikazy jedne skupiny</span>
+databricks warehouses list --help  <span class="cm"># parametry jednoho prikazu, napr. -o json</span></pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> WinGet instaluje jen pro aktuálního uživatele (do <code class="inline">%LOCALAPPDATA%\Microsoft\WinGet\Packages\…</code>), takže nepotřebuje správce a stejně se aktualizuje. OAuth token platí hodinu a CLI ho samo obnovuje; od verze 1.0.0 leží ve Windows <strong>Credential Manageru</strong>, v <code class="inline">.databrickscfg</code> je jen host a název profilu. Proto se bez obav dá ukázat obsah souboru, na rozdíl od starého personal access tokenu (PAT), který v souboru ležel čitelně.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> <code class="inline">databricks -v</code> vrátí <code class="inline">0.18</code> nebo nižší, případně příkazy jako <code class="inline">auth login</code> neexistují: v PATH vyhrává starý Pythonový balíček <code class="inline">databricks-cli</code> z pip (často vypíše varování „Your current PATH prefers running CLI …“). <code class="inline">(Get-Command databricks -All).Source</code> ukáže všechny kopie; starý odinstalujte (<code class="inline">pip uninstall databricks-cli</code>). Druhá častá past: příkaz „neexistuje“ hned po instalaci, protože se nezavřel PowerShell. Když WinGet na firemním notebooku nejde, stáhněte z <a href="https://github.com/databricks/cli/releases" target="_blank" rel="noopener">GitHub Releases</a> soubor <code class="inline">databricks_cli_X.Y.Z_windows_amd64.zip</code>, rozbalte ho do vlastní složky a tu přidejte do uživatelské PATH. Když nejde ani ruční instalace, CLI je i ve <strong>webovém terminálu</strong> workspace: ten ale musí zapnout admin, běží na spuštěném compute a přihlášení řeší workspace sám, takže tam příkazy jedou bez <code class="inline">--profile</code>.</div></div>
+  <div class="learn-more"><span class="lm-label">📚 Do hloubky na Learn:</span> <span><a href="https://learn.microsoft.com/en-us/azure/databricks/dev-tools/cli/install#winget-installation-for-windows" target="_blank" rel="noopener">Install or update the Databricks CLI</a> · <a href="https://learn.microsoft.com/en-us/azure/databricks/dev-tools/cli/authentication#oauth-user-to-machine-u2m-authentication" target="_blank" rel="noopener">Authentication for the Databricks CLI</a> (EN)</span></div>
 
   <h3>Krok 1 – Volba vhodného typu compute</h3>
   <ol>
