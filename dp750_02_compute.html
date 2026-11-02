@@ -178,6 +178,7 @@ html.mode-custom [data-view="orig"]{display:none}
     <a href="#sec-pristup" class="toc-item" data-section="sec-pristup">Řízení přístupu ke compute</a>
     <a href="#sec-lab" class="toc-item" data-section="sec-lab">Lab 2: Select and Configure Compute in Azure Databricks (30 minut)</a>
     <a href="#sec-runbook" class="toc-item" data-section="sec-runbook">Runbook: ukázka krok za krokem</a>
+    <a href="#sec-appendix-ceny" class="toc-item" data-section="sec-appendix-ceny">Appendix: kolik stojí compute (DBU a dolary)</a>
   </aside>
 
   <main class="main">
@@ -663,6 +664,70 @@ databricks permissions get warehouses <span class="str">&lt;warehouse-id&gt;</sp
     <li>Formulář Create compute zavřete bez uložení a ověřte v <strong>Compute</strong>, že nevznikl žádný cluster.</li>
     <li>Oba notebooky smažte, nebo je nechte ve vlastní složce; notebook-scoped knihovna zmizí s koncem session sama.</li>
   </ol>
+</div>
+
+<div class="section" id="sec-appendix-ceny">
+  <div class="section-header">
+    <div class="section-num">2.A</div>
+    <h2>Appendix: kolik stojí compute (DBU a dolary)</h2>
+  </div>
+  <p><strong>DBU</strong> (Databricks Unit) je jednotka výpočetního výkonu účtovaná po sekundách, jen když compute běží. U <strong>classic compute</strong> (all-purpose, job cluster, classic a Pro SQL warehouse) ale platíte dvě položky: DBU za Databricks a zvlášť Azure za virtuální stroje, disky a síť. U <strong>serverless</strong> je cena VM už v ceně DBU.</p>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">VZOREC</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm"># classic compute: cena za hodinu</span>
+pocet_VM × (DBU_za_hodinu_instance × cena_za_DBU + cena_VM_za_hodinu)
+
+<span class="cm"># serverless: cena za hodinu</span>
+spotrebovane_DBU × cena_za_DBU</pre>
+  </div>
+  <ul>
+    <li><strong>DBU za hodinu instance</strong> je pevné číslo podle typu VM, např. <code class="inline">Standard_DS3_v2</code> (4 vCPU, 14 GB) = 0,75 DBU/h. Photon toto číslo zvyšuje.</li>
+    <li><strong>Cena za DBU</strong> závisí na typu workloadu a tieru (Standard/Premium), ne na velikosti VM.</li>
+    <li>U <strong>serverless</strong> neurčujete VM, počet spotřebovaných DBU určuje platforma; u jobů a pipelines ho ovlivní i režim (performance-optimized spotřebuje víc než standard).</li>
+  </ul>
+  <table>
+    <tr><th>Workload (Premium)</th><th>$/DBU</th><th>VM navíc?</th></tr>
+    <tr><td>Jobs compute</td><td>0,30</td><td>ano</td></tr>
+    <tr><td>All-purpose compute</td><td>0,55</td><td>ano</td></tr>
+    <tr><td>SQL warehouse Classic</td><td>0,22</td><td>ano</td></tr>
+    <tr><td>SQL warehouse Pro</td><td>0,72</td><td>ano</td></tr>
+    <tr><td>Serverless SQL</td><td>0,91</td><td>ne</td></tr>
+    <tr><td>Serverless jobs a pipelines</td><td>0,50</td><td>ne</td></tr>
+    <tr><td>Serverless notebook</td><td>1,00</td><td>ne</td></tr>
+  </table>
+  <p>Ceny jsou ceníkové (pay-as-you-go, USD, region West Europe) z <a href="https://prices.azure.com/api/retail/prices" target="_blank" rel="noopener">Azure Retail Prices API</a> ke 2. 11. 2026. Mění se podle regionu a v čase, slevy (prepurchase, smluvní ceny) se odečítají zvlášť.</p>
+
+  <h3>Příklad: stejný cluster, dva typy workloadu</h3>
+  <p>Cluster <code class="inline">Standard_DS3_v2</code>, driver a 2 workery (3 VM), běží 1 hodinu; VM DS3 v2 (Linux, West Europe) stojí 0,27 $/h.</p>
+  <table>
+    <tr><th>Položka</th><th>All-purpose</th><th>Jobs compute</th></tr>
+    <tr><td>DBU</td><td>3 × 0,75 × 0,55 = 1,24 $</td><td>3 × 0,75 × 0,30 = 0,68 $</td></tr>
+    <tr><td>VM (Azure)</td><td>3 × 0,27 = 0,81 $</td><td>3 × 0,27 = 0,81 $</td></tr>
+    <tr><td><strong>Celkem za hodinu</strong></td><td><strong>≈ 2,05 $</strong></td><td><strong>≈ 1,49 $</strong></td></tr>
+  </table>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč job cluster:</strong> stejný hardware je jako job compute celkem asi o 27 % levnější (samotné DBU o 45 %), protože DBU stojí 0,30 místo 0,55 $. Produkční úlohy proto nespouštějte na all-purpose clusteru.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Pozor:</strong> „jen když běží“ zahrnuje i nečinnost. Cluster bez práce, který ještě nedošel k <strong>auto-termination</strong>, a SQL warehouse před <strong>auto-stop</strong> se účtují celou cenou. I bez běžícího compute platíte drobnosti: storage účet workspace (tabulky, DBFS root) a síť, např. NAT gateway u VNet injection. Samotný workspace nic nestojí a disky VM se po ukončení clusteru mažou.</div></div>
+
+  <h3>Skutečná spotřeba ze system tables</h3>
+  <p>DBU a jejich ceníkovou cenu ukáže dotaz nad <code class="inline">system.billing.usage</code> a <code class="inline">system.billing.list_prices</code>. Náklady na VM a storage v těchto tabulkách nejsou, ty najdete v Azure Cost Management.</p>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm">-- DBU a cenikova cena za poslednich 30 dni podle SKU</span>
+<span class="kw">SELECT</span> u.<span class="col">sku_name</span>,
+       <span class="fn">SUM</span>(u.<span class="col">usage_quantity</span>) <span class="kw">AS</span> <span class="col">dbu</span>,
+       <span class="fn">SUM</span>(u.<span class="col">usage_quantity</span> <span class="op">*</span> lp.<span class="col">pricing</span>.<span class="col">default</span>) <span class="kw">AS</span> <span class="col">list_cost_usd</span>
+<span class="kw">FROM</span> <span class="tbl">system.billing.usage</span> u
+<span class="kw">JOIN</span> <span class="tbl">system.billing.list_prices</span> lp
+  <span class="kw">ON</span> u.<span class="col">sku_name</span> <span class="op">=</span> lp.<span class="col">sku_name</span>
+ <span class="kw">AND</span> u.<span class="col">cloud</span> <span class="op">=</span> lp.<span class="col">cloud</span>
+ <span class="kw">AND</span> u.<span class="col">usage_unit</span> <span class="op">=</span> lp.<span class="col">usage_unit</span>
+ <span class="kw">AND</span> u.<span class="col">usage_end_time</span> <span class="op">&gt;=</span> lp.<span class="col">price_start_time</span>
+ <span class="kw">AND</span> (lp.<span class="col">price_end_time</span> <span class="kw">IS NULL</span> <span class="kw">OR</span> u.<span class="col">usage_end_time</span> <span class="op">&lt;</span> lp.<span class="col">price_end_time</span>)
+<span class="kw">WHERE</span> u.<span class="col">usage_date</span> <span class="op">&gt;=</span> <span class="fn">current_date</span>() <span class="op">-</span> <span class="kw">INTERVAL</span> 30 <span class="kw">DAYS</span>
+<span class="kw">GROUP BY</span> u.<span class="col">sku_name</span>
+<span class="kw">ORDER BY</span> <span class="col">list_cost_usd</span> <span class="kw">DESC</span>;</pre>
+  </div>
+  <div class="learn-more"><span class="lm-label">📚 Do hloubky na Learn:</span> <span><a href="https://azure.microsoft.com/en-us/pricing/details/databricks/" target="_blank" rel="noopener">Azure Databricks pricing</a> · <a href="https://learn.microsoft.com/en-us/azure/databricks/lakehouse-architecture/cost-optimization/best-practices" target="_blank" rel="noopener">Best practices for cost optimization</a> · <a href="https://learn.microsoft.com/en-us/azure/databricks/resources/pricing" target="_blank" rel="noopener">Serverless DBU consumption by SKU</a> · <a href="https://learn.microsoft.com/en-us/azure/databricks/admin/system-tables/billing" target="_blank" rel="noopener">Billable usage system table</a> (EN)</span></div>
 </div>
 
     <div class="footer-nav">
