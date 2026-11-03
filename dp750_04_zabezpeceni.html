@@ -639,7 +639,26 @@ df <span class="op">=</span> spark.read.<span class="fn">parquet</span>(<span cl
 <span class="kw">LIMIT</span> <span class="num">10</span>;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> <code class="inline">getTable</code> je kontrola metadat a oprávnění, <code class="inline">generateTemporaryTableCredential</code> vydání krátkodobého tokenu pro compute. Compute nikdy nedostane trvalý klíč k úložišti.</div></div>
-  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> události z právě spuštěného dotazu v <code class="inline">system.access.audit</code> ještě nebudou, zpoždění je v řádu desítek minut až hodin. Bez grantu na schéma <code class="inline">system.access</code> dotaz skončí na oprávnění; uděluje ho account nebo metastore admin.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> události z právě spuštěného dotazu v <code class="inline">system.access.audit</code> ještě nebudou, zpoždění je v řádu desítek minut až hodin.</div></div>
+  <div class="collapsible">
+    <div class="collapsible-header">Nevidíte schéma <code class="inline">system.access</code>? Grant na system tables<span class="chevron">▼</span></div>
+    <div class="collapsible-body">
+      <p>System tables jsou ve výchozím stavu přístupné <strong>jen account adminům</strong>. Workspace admin bez role account admin schéma <code class="inline">system.access</code> v Catalog Exploreru nevidí a dotaz skončí chybou, že tabulka neexistuje nebo chybí oprávnění. Kdo má přístup, ukáže:</p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+        <pre><span class="kw">SHOW GRANTS ON SCHEMA</span> <span class="tbl">system.access</span>;
+<span class="cm">-- vychozi stav pri automaticky zapnutem UC: jen 'DB - RESERVED - account admins' (USE SCHEMA, SELECT)</span></pre>
+      </div>
+      <p>Přístup pro další uživatele nebo skupinu musí udělit admin, který je <strong>zároveň account admin i metastore admin</strong>. Metastore založený automaticky metastore admina mít nemusí; pak ho nejdřív určí account admin v account console v nastavení metastoru.</p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+        <pre><span class="kw">GRANT USE CATALOG ON CATALOG</span> <span class="tbl">system</span> <span class="kw">TO</span> `&lt;skupina&gt;`;
+<span class="kw">GRANT USE SCHEMA, SELECT ON SCHEMA</span> <span class="tbl">system.access</span> <span class="kw">TO</span> `&lt;skupina&gt;`;</pre>
+      </div>
+      <p>Nedávejte grant celé skupině <code class="inline">account users</code>: audit log obsahuje události ze všech workspace v regionu i události celého accountu a s ním jsou vidět e-maily uživatelů a názvy všech objektů. V kurzu stačí, když dotaz pustí lektor jako account admin a účastníkům ukáže výsledek.</p>
+    </div>
+  </div>
+  <div class="learn-more"><span class="lm-label">📚 Do hloubky na Learn:</span> <span><a href="https://learn.microsoft.com/en-us/azure/databricks/admin/system-tables/#grant-access-to-system-tables" target="_blank" rel="noopener">Grant access to system tables</a> (EN)</span></div>
 
   <h3>Krok 2 – Strategie access control: privilege model a dědičnost</h3>
   <div class="code-block">
