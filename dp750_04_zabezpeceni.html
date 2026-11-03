@@ -602,7 +602,7 @@ df <span class="op">=</span> spark.read.<span class="fn">parquet</span>(<span cl
     <h2>Runbook: ukázka krok za krokem</h2>
   </div>
   <p>Ukázka zabezpečí malou personální tabulku: granty pro skupinu, dynamic view, row filter podle pobočky, masky na mzdu a telefon, secret z Key Vaultu a pohled na identity, přes které Unity Catalog sahá na úložiště. Běží v lektorském workspace v katalogu <code class="inline">dp750</code>, schéma <code class="inline">m04</code>, na syntetických datech.</p>
-  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> serverless SQL warehouse a Python notebook na serverless. Na úrovni <strong>accountu</strong> dvě skupiny <code class="inline">dp750_demo_analysts</code> a <code class="inline">dp750_demo_admins</code> a v nich sebe <strong>nepřidávejte</strong>: ukázka stojí na tom, že členem nejste. Skupiny založené jen ve workspace (workspace-local) nestačí, Unity Catalog na ně grant nedá. Key Vault s modelem <em>Vault access policy</em>, v něm secret <code class="inline">dp750-demo-secret</code>, a nad ním secret scope <code class="inline">dp750-kv</code> typu Azure Key Vault. Celá ukázka zabere asi 15 minut, dá se rozdělit na část A (kroky 1–4) a B (kroky 5–7).</div></div>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> serverless SQL warehouse a Python notebook na serverless. Na úrovni <strong>accountu</strong> dvě skupiny <code class="inline">dp750_demo_analysts</code> a <code class="inline">dp750_demo_admins</code> a v nich sebe <strong>nepřidávejte</strong>: ukázka stojí na tom, že členem nejste. Skupiny založené jen ve workspace (workspace-local) nestačí, Unity Catalog na ně grant nedá. Key Vault s modelem <em>Vault access policy</em>, v něm secret <code class="inline">dp750-demo-secret</code>, a nad ním secret scope <code class="inline">dp750-kv</code> typu Azure Key Vault (postup je v rozbalovacím bloku na začátku kroku 5). Celá ukázka zabere asi 15 minut, dá se rozdělit na část A (kroky 1–4) a B (kroky 5–7).</div></div>
 
   <h3>Krok 1 – Query lifecycle: jak Unity Catalog vyhodnocuje dotaz</h3>
   <ol>
@@ -702,6 +702,31 @@ df <span class="op">=</span> spark.read.<span class="fn">parquet</span>(<span cl
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> poslední dotaz skončí <code class="inline">ROW_LEVEL_SECURITY_COLUMN_MASK_FEATURE_NOT_SUPPORTED.TIME_TRAVEL</code>. A pokud vidíte všechny čtyři řádky, jste členem <code class="inline">dp750_demo_admins</code>; ověřte <code class="inline">SELECT is_account_group_member('dp750_demo_admins');</code>.</div></div>
 
   <h3>Krok 5 – Secrets přes Azure Key Vault: secret scopes</h3>
+  <div class="collapsible">
+    <div class="collapsible-header">Příprava jednou předem: Key Vault, secret a secret scope <code class="inline">dp750-kv</code><span class="chevron">▼</span></div>
+    <div class="collapsible-body">
+      <p>Scope patří k jednomu workspace, vault může sloužit víc workspace. Když scope <code class="inline">dp750-kv</code> už existuje (<code class="inline">databricks secrets list-scopes</code>), přeskočte to. Potřebujete roli <strong>Contributor</strong> nebo <strong>Owner</strong> na vaultu (stačí na resource group, ve které ho zakládáte) a Azure CLI přihlášené k předplatnému (<code class="inline">az login</code>).</p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">POWERSHELL</span><button class="copy-btn">Kopírovat</button></div>
+        <pre><span class="cm"># 1) vault s modelem Vault access policy (az ho jinak zaklada s RBAC, se kterym scope nefunguje)</span>
+$rg = <span class="str">'rg-dp750'</span>
+$kv = <span class="str">'kv-dp750-'</span> + (Get-Random -Maximum 99999)   <span class="cm"># nazev vaultu musi byt globalne unikatni</span>
+az group create -n $rg -l westeurope
+az keyvault create -n $kv -g $rg -l westeurope --enable-rbac-authorization false
+
+<span class="cm"># 2) demo secret (zakladatel vaultu dostane access policy automaticky)</span>
+az keyvault secret set --vault-name $kv -n <span class="str">dp750-demo-secret</span> --value <span class="str">'Pa$$w0rd'</span>
+
+<span class="cm"># 3) hodnoty pro formular v dalsim kroku</span>
+az keyvault show -n $kv --query <span class="str">"{DNS:properties.vaultUri, ResourceID:id}"</span> -o json</pre>
+      </div>
+      <ol start="4">
+        <li>V prohlížeči otevřete <code class="inline">https://&lt;workspace-url&gt;#secrets/createScope</code> (velké S, stránka v menu není). <strong>Scope Name</strong> <code class="inline">dp750-kv</code>, <strong>Manage Principal</strong> <em>All workspace users</em>, do <strong>DNS Name</strong> a <strong>Resource ID</strong> vložte hodnoty z bodu 3 → <strong>Create</strong>. Workspace si při tom na vaultu přidá access policy <em>Get</em> a <em>List</em> pro aplikaci AzureDatabricks.</li>
+        <li>Kontrola: <code class="inline">databricks secrets list-secrets dp750-kv -p &lt;profil&gt;</code> vypíše <code class="inline">dp750-demo-secret</code> (lektor: <code class="inline">-p jirin</code>).</li>
+      </ol>
+      <p>Když má vault zapnutý firewall, povolte v <strong>Networking</strong> výjimku <em>Allow trusted Microsoft services to bypass this firewall</em>, jinak workspace secret nepřečte. Po kurzu: <code class="inline">az group delete -n rg-dp750</code> a smazání scope <code class="inline">databricks secrets delete-scope dp750-kv</code>.</p>
+    </div>
+  </div>
   <ol>
     <li>Nejdřív v SQL editoru: seznam klíčů a pokus o přečtení hodnoty.</li>
   </ol>
