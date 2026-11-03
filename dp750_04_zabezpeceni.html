@@ -643,7 +643,7 @@ df <span class="op">=</span> spark.read.<span class="fn">parquet</span>(<span cl
   <div class="collapsible">
     <div class="collapsible-header">Nevidíte schéma <code class="inline">system.access</code>? Grant na system tables<span class="chevron">▼</span></div>
     <div class="collapsible-body">
-      <p>System tables jsou ve výchozím stavu přístupné <strong>jen account adminům</strong>. Workspace admin bez role account admin schéma <code class="inline">system.access</code> v Catalog Exploreru nevidí a dotaz skončí chybou, že tabulka neexistuje nebo chybí oprávnění. Kdo má přístup, ukáže:</p>
+      <p>System tables jsou ve výchozím stavu přístupné <strong>jen account adminům</strong>. Kdo workspace založil v Azure Portalu, je v něm workspace admin, ale account admin tím <strong>nestává</strong>; tu roli poprvé získá Global Administrator Entra ID přihlášením do <code class="inline">https://accounts.azuredatabricks.net</code> a pak ji může předat dál. Workspace admin bez role account admin schéma <code class="inline">system.access</code> v Catalog Exploreru nevidí a dotaz skončí chybou, že tabulka neexistuje nebo chybí oprávnění. Kdo má přístup, ukáže:</p>
       <div class="code-block">
         <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
         <pre><span class="kw">SHOW GRANTS ON SCHEMA</span> <span class="tbl">system.access</span>;
