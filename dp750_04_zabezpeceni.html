@@ -720,6 +720,38 @@ df <span class="op">=</span> spark.read.<span class="fn">parquet</span>(<span cl
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> i vy jako vlastník tabulky uvidíte jen dva brněnské řádky, mzdu <code class="inline">NULL</code> a telefon <code class="inline">*** *** 222</code>: funkce se vyhodnocují podle toho, kdo dotaz spouští. View z kroku 3 teď vrací 2 řádky, filtr na tabulce platí všude. <code class="inline">DESCRIBE TABLE EXTENDED</code> ukáže řádky <code class="inline">Row Filter</code> a <code class="inline">Column Masks</code>.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> poslední dotaz skončí <code class="inline">ROW_LEVEL_SECURITY_COLUMN_MASK_FEATURE_NOT_SUPPORTED.TIME_TRAVEL</code>. A pokud vidíte všechny čtyři řádky, jste členem <code class="inline">dp750_demo_admins</code>; ověřte <code class="inline">SELECT is_account_group_member('dp750_demo_admins');</code>.</div></div>
 
+  <div class="collapsible">
+    <div class="collapsible-header">Volitelně: stejný dotaz jako admin bez členství ve skupině (přepnutí role, RBAC)<span class="chevron">▼</span></div>
+    <div class="collapsible-body">
+      <p>Databricks SQL nemá <code class="inline">EXECUTE AS</code>. Podobně ale funguje <strong>RBAC – assume role</strong> (GA od 19. 8. 2026): na account skupinu dostanete oprávnění <em>Assume</em>, aniž byste byli jejím členem, a po přepnutí běží celá session jen s právy té skupiny. Tak ukážete, co vidí admin, a přitom dál platí, že v <code class="inline">dp750_demo_admins</code> nejste.</p>
+      <p><strong>Příprava jednou předem</strong> (account admin a workspace admin):</p>
+      <ol type="a">
+        <li>Ověřte, že je RBAC zapnuté (u většiny accountů už je): v account console <code class="inline">https://accounts.azuredatabricks.net</code> → Previews položka <em>Role-based access control (RBAC) account-level enablement</em> a ve workspace → Settings → Previews položka <em>Role-based access control (RBAC)</em>.</li>
+        <li>V account console → User management → Groups založte prázdnou skupinu <code class="inline">role-dp750-admin</code> a vložte ji jako <strong>člena</strong> do <code class="inline">dp750_demo_admins</code>. Sebe do <code class="inline">role-dp750-admin</code> nepřidávejte.</li>
+        <li>U <code class="inline">role-dp750-admin</code> → Permissions → Grant access → vyberte svůj účet, oprávnění <strong>Assume</strong> → Save.</li>
+        <li>Ve workspace → Settings → Identity and access → Groups přidejte <code class="inline">role-dp750-admin</code> do workspace s entitlementy <em>Workspace access</em> a <em>Databricks SQL access</em> (vyberte je výslovně); na SQL warehouse jí dejte <em>Can use</em>.</li>
+        <li>Data (jako vy, před přepnutím):</li>
+      </ol>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+        <pre><span class="kw">GRANT USE CATALOG ON CATALOG</span> <span class="tbl">dp750</span> <span class="kw">TO</span> `role-dp750-admin`;
+<span class="kw">GRANT USE SCHEMA, SELECT ON SCHEMA</span> <span class="tbl">dp750.m04</span> <span class="kw">TO</span> `role-dp750-admin`;</pre>
+      </div>
+      <p><strong>Ukázka:</strong> klikněte na název workspace vpravo nahoře, najeďte na aktuální workspace a v podmenu vyberte <code class="inline">role-dp750-admin</code>. Stránka se načte znovu a pod názvem workspace je teď role. V SQL editoru:</p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+        <pre><span class="kw">SELECT</span> <span class="fn">session_user</span>() <span class="kw">AS</span> kdo, <span class="fn">is_account_group_member</span>(<span class="str">'dp750_demo_admins'</span>) <span class="kw">AS</span> je_admin;
+<span class="cm">-- kdo = role-dp750-admin, je_admin = true</span>
+
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m04.employees</span> <span class="kw">ORDER BY</span> emp_id;
+<span class="cm">-- ctyri radky, mzdy i cele telefony</span></pre>
+      </div>
+      <p>Zpět na svou identitu: stejné podmenu → vaše uživatelské jméno. Stejný dotaz pak vrátí znovu dva řádky a masky. Audit log (plní se se zpožděním a potřebuje přístup ze kroku 1) pak ukáže obě identity: <code class="inline">identity_metadata.run_by</code> = vy, <code class="inline">identity_metadata.run_as</code> = role.</p>
+      <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> role není členem sama sebe. Kdybyste přepnuli rovnou do <code class="inline">dp750_demo_admins</code>, vrátí <code class="inline">is_account_group_member('dp750_demo_admins')</code> <code class="inline">false</code> a uvidíte totéž co bez role; proto zvláštní skupina <code class="inline">role-dp750-admin</code> vložená do <code class="inline">dp750_demo_admins</code>. Role navíc dědí granty skupiny <code class="inline">account users</code>. Když podmenu s rolemi nevidíte, není v accountu nebo workspace zapnuté RBAC, role není přiřazená k workspace, nebo chybí oprávnění Assume. Přípravu a–d dělá account a workspace admin jednou v UI; samotná ukázka je pak jen SQL.</div></div>
+      <div class="learn-more"><span class="lm-label">📚 Do hloubky na Learn:</span> <span><a href="https://learn.microsoft.com/en-us/azure/databricks/security/auth/rbac/switch-roles" target="_blank" rel="noopener">Switch RBAC roles</a> · <a href="https://learn.microsoft.com/en-us/azure/databricks/security/auth/rbac/abac-interaction" target="_blank" rel="noopener">Use RBAC with ABAC</a> · <a href="https://learn.microsoft.com/en-us/azure/databricks/security/auth/rbac/limitations" target="_blank" rel="noopener">RBAC limitations</a> (EN)</span></div>
+    </div>
+  </div>
+
   <h3>Krok 5 – Secrets přes Azure Key Vault: secret scopes</h3>
   <div class="collapsible">
     <div class="collapsible-header">Příprava jednou předem: Key Vault, secret a secret scope <code class="inline">dp750-kv</code><span class="chevron">▼</span></div>
