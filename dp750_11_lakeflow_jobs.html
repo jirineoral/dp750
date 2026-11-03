@@ -576,18 +576,21 @@ processing_date = dbutils.widgets.<span class="fn">get</span>(<span class="str">
     <h2>Runbook: ukázka krok za krokem</h2>
   </div>
   <p>Ukázka provede jeden job s denním načtením odečtů elektroměrů od založení přes parametry, triggery, plán, notifikace až po retry a repair run, a nakonec ukáže, co z toho vidí system tables. Běží v lektorském workspace na vlastních syntetických datech ve schématu <code class="inline">dp750.m11</code>, ne na datech labu.</p>
-  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> serverless SQL warehouse a serverless compute pro joby; katalog <code class="inline">dp750</code>. Předem spusť SQL z kroku 1, založ dva notebooky z kroku 2 a job <code class="inline">dp750-demo-m11</code> podle kroku 1 a 2 a jednou ho pusť, ať jsou v system tables záznamy (plní se se zpožděním). Asi 15 minut přípravy, ukázka 10 minut.</div></div>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> serverless SQL warehouse a serverless compute pro joby; katalog <code class="inline">dp750</code>. Schéma, volume a tabulku nezakládáš klikáním: založí je SQL skript z kroku 1. Předem ho spusť (dotaz označený <code class="inline">-- 2.</code> se nepouští, jen ukládá) a ručně založ dva notebooky z kroku 2 (obsah je ve skriptu) a v Jobs UI job <code class="inline">dp750-demo-m11</code> podle kroku 1 a 2 a jednou ho pusť, ať jsou v system tables záznamy (plní se se zpožděním). Asi 15 minut přípravy, ukázka 10 minut.</div></div>
+
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Jak číst kroky:</strong> tento runbook učí <strong>Jobs UI</strong>, takže job se záměrně nastavuje klikáním; kopírují se jen přípravné skripty. Kroky 1 a 6 mají <strong>SQL skript</strong> pro SQL editor (vlož ho celý a pusť; v kroku 1 jen část označenou <code class="inline">-- 1.</code>, dotaz <code class="inline">-- 2.</code> s parametrem se pouze uloží), krok 2 obsahuje <strong>kód dvou notebooků</strong> (každý vlož do vlastního notebooku, který jako task spustí job) a krok 3 má <strong>PowerShell skript</strong> pro terminál. Číslované body nejsou samostatné úkony ke zkopírování, popisují, co dělá skript pod nimi, a stejná čísla najdeš ve skriptu jako komentáře <code class="inline">-- 1.</code> nebo <code class="inline"># 1.</code>. Body označené <em>V UI</em> se dělají v Jobs &amp; Pipelines, Catalog Exploreru nebo SQL editoru a kód k nim buď neexistuje, nebo jen dodává obsah (například text uloženého dotazu). Číslo bez komentáře ve skriptu znamená bod, který se klikne nebo ukáže bez kódu.</div></div>
 
   <h3>Krok 1 – Anatomie Lakeflow Jobu: tasky, zdroje kódu, compute</h3>
   <ol>
-    <li>V SQL editoru založ schéma, tabulku odečtů a volume pro příchozí soubory.</li>
-    <li>Ulož denní souhrn jako dotaz (Save, název <code class="inline">m11_daily_summary</code>); SQL task v jobu umí jen uložený dotaz nebo soubor.</li>
-    <li>Jobs &amp; Pipelines → Create → Job <code class="inline">dp750-demo-m11</code>: task <code class="inline">prepare</code> (Notebook <code class="inline">m11_prepare</code>, serverless), task <code class="inline">daily_load</code> (Notebook <code class="inline">m11_daily_load</code>, Depends on <code class="inline">prepare</code>), task <code class="inline">daily_summary</code> (SQL, uložený dotaz, serverless SQL warehouse, Depends on <code class="inline">daily_load</code>).</li>
-    <li>V Job details ukaž Run as: job běží pod touto identitou, ne pod tím, kdo klikne Run now.</li>
+    <li>V SQL editoru založ schéma, tabulku odečtů a volume pro příchozí soubory (skript níže, bez klikání).</li>
+    <li><em>V UI:</em> ulož denní souhrn jako dotaz (Save, název <code class="inline">m11_daily_summary</code>); SQL task v jobu umí jen uložený dotaz nebo soubor. Text dotazu je ve skriptu, ale nepouští se, jen se uloží.</li>
+    <li><em>V UI:</em> Jobs &amp; Pipelines → Create → Job <code class="inline">dp750-demo-m11</code>: task <code class="inline">prepare</code> (Notebook <code class="inline">m11_prepare</code>, serverless), task <code class="inline">daily_load</code> (Notebook <code class="inline">m11_daily_load</code>, Depends on <code class="inline">prepare</code>), task <code class="inline">daily_summary</code> (SQL, uložený dotaz, serverless SQL warehouse, Depends on <code class="inline">daily_load</code>).</li>
+    <li><em>V UI:</em> v Job details ukaž Run as: job běží pod touto identitou, ne pod tím, kdo klikne Run now.</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">CREATE SCHEMA IF NOT EXISTS</span> <span class="tbl">dp750.m11</span>;
+    <pre><span class="cm">-- 1. schema, volume, table and sample rows (run this part as a whole)</span>
+<span class="kw">CREATE SCHEMA IF NOT EXISTS</span> <span class="tbl">dp750.m11</span>;
 <span class="kw">CREATE VOLUME IF NOT EXISTS</span> <span class="tbl">dp750.m11.inbox</span>;
 
 <span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750.m11.meter_readings</span> (
@@ -598,7 +601,7 @@ processing_date = dbutils.widgets.<span class="fn">get</span>(<span class="str">
   (<span class="str">'EM-1002'</span>, <span class="kw">DATE</span><span class="str">'2026-11-04'</span>,  <span class="num">8.115</span>, <span class="fn">current_timestamp</span>()),
   (<span class="str">'EM-1003'</span>, <span class="kw">DATE</span><span class="str">'2026-11-04'</span>, <span class="num">21.902</span>, <span class="fn">current_timestamp</span>());
 
-<span class="cm">-- ulozeny dotaz m11_daily_summary pro SQL task (parametr :load_date)</span>
+<span class="cm">-- 2. ulozeny dotaz m11_daily_summary pro SQL task (parametr :load_date); do not run, only save it</span>
 <span class="kw">SELECT</span> <span class="col">reading_date</span>, <span class="fn">count</span>(<span class="kw">DISTINCT</span> <span class="col">meter_id</span>) <span class="kw">AS</span> <span class="col">meters</span>, <span class="fn">round</span>(<span class="fn">sum</span>(<span class="col">kwh</span>), <span class="num">3</span>) <span class="kw">AS</span> <span class="col">total_kwh</span>
 <span class="kw">FROM</span> <span class="tbl">dp750.m11.meter_readings</span>
 <span class="kw">WHERE</span> <span class="col">reading_date</span> <span class="op">=</span> <span class="fn">to_date</span>(:load_date)
@@ -609,9 +612,9 @@ processing_date = dbutils.widgets.<span class="fn">get</span>(<span class="str">
 
   <h3>Krok 2 – Závislosti tasků a parametry jobu</h3>
   <ol>
-    <li>V Job parameters přidej <code class="inline">load_date</code> s hodnotou <code class="inline">{{job.trigger.time.iso_date}}</code>. U SQL tasku nastav parametr <code class="inline">load_date</code> na <code class="inline">{{job.parameters.load_date}}</code>.</li>
-    <li>Run now. U <code class="inline">daily_load</code> ukaž výstup s dnešním datem (UTC), u <code class="inline">daily_summary</code> výsledek dotazu.</li>
-    <li>Run now with different parameters, <code class="inline">load_date</code> = <code class="inline">2026-11-04</code>: <code class="inline">daily_load</code> přepočítá tento den (3 elektroměry) a souhrn vrátí řádek pro 4. 11. Pusť ho dvakrát a ukaž, že řádků v tabulce nepřibylo.</li>
+    <li><em>V UI:</em> v Job parameters přidej <code class="inline">load_date</code> s hodnotou <code class="inline">{{job.trigger.time.iso_date}}</code>. U SQL tasku nastav parametr <code class="inline">load_date</code> na <code class="inline">{{job.parameters.load_date}}</code>. Notebook <code class="inline">m11_daily_load</code> ho čte widgetem (kód níže).</li>
+    <li><em>V UI:</em> Run now. U <code class="inline">daily_load</code> ukaž výstup s dnešním datem (UTC), u <code class="inline">daily_summary</code> výsledek dotazu.</li>
+    <li><em>V UI:</em> Run now with different parameters, <code class="inline">load_date</code> = <code class="inline">2026-11-04</code>: <code class="inline">daily_load</code> přepočítá tento den (3 elektroměry) a souhrn vrátí řádek pro 4. 11. Pusť ho dvakrát a ukaž, že řádků v tabulce nepřibylo.</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
@@ -621,14 +624,16 @@ processing_date = dbutils.widgets.<span class="fn">get</span>(<span class="str">
 <span class="cm"># m11_daily_load</span>
 <span class="kw">import</span> datetime
 
+<span class="cm"># 1. widget load_date receives the job parameter of the same name</span>
 dbutils.widgets.<span class="fn">text</span>(<span class="str">"load_date"</span>, <span class="str">""</span>)
 load_date = dbutils.widgets.<span class="fn">get</span>(<span class="str">"load_date"</span>)
+<span class="cm"># 2. this printed line is the output shown in the task run</span>
 <span class="fn">print</span>(<span class="str">f"load_date = {load_date}"</span>)
 <span class="kw">if</span> load_date == <span class="str">"fail"</span>:
     <span class="kw">raise</span> <span class="fn">ValueError</span>(<span class="str">"Simulated failure for the repair demo"</span>)
 d = datetime.date.<span class="fn">fromisoformat</span>(load_date)  <span class="cm"># validace vstupu</span>
 
-<span class="cm"># idempotentni zapis jednoho dne: opakovany beh den prepise, nezdvoji</span>
+<span class="cm"># 3. idempotentni zapis jednoho dne: opakovany beh den prepise, nezdvoji</span>
 spark.<span class="fn">sql</span>(<span class="str">f"""
     INSERT INTO dp750.m11.meter_readings
     REPLACE WHERE reading_date = DATE'{d}'
@@ -642,42 +647,50 @@ spark.<span class="fn">sql</span>(<span class="str">f"""
 
   <h3>Krok 3 – Triggery: scheduled, file arrival, table update, continuous</h3>
   <ol>
-    <li>Job details → Schedules &amp; Triggers → Add trigger → File arrival, cesta <code class="inline">/Volumes/dp750/m11/inbox/</code>. Ukaž volby Minimum time between triggers a Wait after last change, trigger ulož.</li>
-    <li>Nahraj do volume soubor s unikátním jménem (Catalog Explorer → <code class="inline">inbox</code> → Upload to this volume). Do zhruba minuty se objeví nový běh s typem triggeru file arrival.</li>
-    <li>Otevři znovu Add trigger a ukaž typ Table update s tabulkou <code class="inline">dp750.m11.meter_readings</code> a volbou Any / All tables. Neukládej, job má mít jeden trigger.</li>
-    <li>Trigger pauzni (Pause).</li>
+    <li><em>V UI:</em> Job details → Schedules &amp; Triggers → Add trigger → File arrival, cesta <code class="inline">/Volumes/dp750/m11/inbox/</code>. Ukaž volby Minimum time between triggers a Wait after last change, trigger ulož.</li>
+    <li>Nahraj do volume soubor s unikátním jménem skriptem níže (v UI by to byl Catalog Explorer → <code class="inline">inbox</code> → Upload to this volume). Do zhruba minuty se objeví nový běh s typem triggeru file arrival.</li>
+    <li><em>V UI:</em> otevři znovu Add trigger a ukaž typ Table update s tabulkou <code class="inline">dp750.m11.meter_readings</code> a volbou Any / All tables. Neukládej, job má mít jeden trigger.</li>
+    <li><em>V UI:</em> trigger pauzni (Pause).</li>
   </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">POWERSHELL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm"># 2. create a small csv with a unique name and upload it into the volume (CLI needs the dbfs:/ prefix)</span>
+$file = Join-Path $env:TEMP ("readings_" + (Get-Date -Format "yyyyMMdd_HHmmss") + ".csv")
+Set-Content -Path $file -Value "meter_id,kwh", "EM-1001,1.0"
+databricks fs cp $file dbfs:/Volumes/dp750/m11/inbox/ --profile <span class="str">&lt;profil&gt;</span>
+<span class="cm"># lektor: databricks fs cp $file dbfs:/Volumes/dp750/m11/inbox/ --profile jirin</span></pre>
+  </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> event-based trigger reaguje na data, ne na hodiny. Pauza zachová konfiguraci, jen přestanou vznikat nové běhy.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> přepsání souboru stejným jménem běh nespustí. Bez zapnutých file events platí limit počtu jobů s file arrival triggerem na workspace a počtu souborů ve sledované cestě. Continuous trigger na serverless snese jen bounded streaming (<code class="inline">AvailableNow</code>).</div></div>
 
   <h3>Krok 4 – Plánování: cron, časové zóny, souběžné běhy</h3>
   <ol>
-    <li>Smaž file arrival trigger a dej Add trigger → Scheduled → Advanced (Show cron syntax): <code class="inline">0 30 5 ? * MON-FRI</code>, časová zóna Europe/Prague. Přečti výraz po polích: sekundy, minuty, hodiny, den v měsíci, měsíc, den v týdnu.</li>
-    <li>V Job details nastav Maximum concurrent runs na 1 a ukaž frontu (Queue).</li>
-    <li>Trigger hned pauzni.</li>
+    <li><em>V UI:</em> smaž file arrival trigger a dej Add trigger → Scheduled → Advanced (Show cron syntax): <code class="inline">0 30 5 ? * MON-FRI</code>, časová zóna Europe/Prague. Přečti výraz po polích: sekundy, minuty, hodiny, den v měsíci, měsíc, den v týdnu.</li>
+    <li><em>V UI:</em> v Job details nastav Maximum concurrent runs na 1 a ukaž frontu (Queue).</li>
+    <li><em>V UI:</em> trigger hned pauzni.</li>
   </ol>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> report pro lidi plánuj v jejich zóně a přijmi posun při změně času; technickou pipeline vázanou na UTC plánuj v UTC. Fronta nic nestojí, platí se až běh.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> Quartz cron má pole sekund na začátku, pětipolový unixový výraz neprojde. Nepauznutý demo trigger poběží každý pracovní den.</div></div>
 
   <h3>Krok 5 – Alerty a notifikace</h3>
   <ol>
-    <li>Job notifications → Add: e-mail na sebe pro Failure. Zapni Mute notifications for skipped runs a for canceled runs.</li>
-    <li>U tasku <code class="inline">daily_load</code> otevři Metric thresholds → Run duration, nastav Warning (třeba 2 minuty) a Timeout (10 minut).</li>
-    <li>Ukaž, kde se zakládají cíle Slack, Teams a webhook: Admin Settings → Notifications (jen workspace admin).</li>
+    <li><em>V UI:</em> Job notifications → Add: e-mail na sebe pro Failure. Zapni Mute notifications for skipped runs a for canceled runs.</li>
+    <li><em>V UI:</em> u tasku <code class="inline">daily_load</code> otevři Metric thresholds → Run duration, nastav Warning (třeba 2 minuty) a Timeout (10 minut).</li>
+    <li><em>V UI:</em> ukaž, kde se zakládají cíle Slack, Teams a webhook: Admin Settings → Notifications (jen workspace admin).</li>
   </ol>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> alert, na který nikdo nereaguje, je horší než žádný. Warning podle historie běhů, Timeout proti zaseknutým taskům.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> stav Succeeded with failures se počítá jako úspěch a job-level notifikace na Failure nepřijde; částečná selhání hlídej notifikací na tasku.</div></div>
 
   <h3>Krok 6 – Automatické restarty a retry policy</h3>
   <ol>
-    <li>U <code class="inline">daily_load</code> nastav Retries 1 s krátkým intervalem a u notifikace tasku zapni Mute notifications until the last retry. Na serverless jsou retries ve výchozím stavu auto-optimalizované, UI proto může vypadat jinak.</li>
-    <li>Run now with different parameters, <code class="inline">load_date</code> = <code class="inline">fail</code>. <code class="inline">prepare</code> uspěje, <code class="inline">daily_load</code> spadne s <code class="inline">ValueError</code> i po opakování, <code class="inline">daily_summary</code> se nespustí.</li>
-    <li>Na běhu Repair run: dialog nabídne <code class="inline">daily_load</code> a závislý <code class="inline">daily_summary</code>. Přepiš <code class="inline">load_date</code> na <code class="inline">2026-11-05</code> a potvrď. V matrix view přibude sloupec repairu.</li>
-    <li>V SQL editoru ukaž, jak to vidí system tables: konfiguraci jobu a pokusy tasků.</li>
+    <li><em>V UI:</em> u <code class="inline">daily_load</code> nastav Retries 1 s krátkým intervalem a u notifikace tasku zapni Mute notifications until the last retry. Na serverless jsou retries ve výchozím stavu auto-optimalizované, UI proto může vypadat jinak.</li>
+    <li><em>V UI:</em> Run now with different parameters, <code class="inline">load_date</code> = <code class="inline">fail</code>. <code class="inline">prepare</code> uspěje, <code class="inline">daily_load</code> spadne s <code class="inline">ValueError</code> i po opakování, <code class="inline">daily_summary</code> se nespustí.</li>
+    <li><em>V UI:</em> na běhu Repair run: dialog nabídne <code class="inline">daily_load</code> a závislý <code class="inline">daily_summary</code>. Přepiš <code class="inline">load_date</code> na <code class="inline">2026-11-05</code> a potvrď. V matrix view přibude sloupec repairu.</li>
+    <li>V SQL editoru ukaž skriptem níže, jak to vidí system tables: konfiguraci jobu a pokusy tasků.</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- aktualni konfigurace jobu (system.lakeflow.jobs drzi historii zmen)</span>
+    <pre><span class="cm">-- 4. aktualni konfigurace jobu (system.lakeflow.jobs drzi historii zmen)</span>
 <span class="kw">WITH</span> latest_jobs <span class="kw">AS</span> (
   <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">system.lakeflow.jobs</span>
   <span class="kw">QUALIFY</span> <span class="fn">row_number</span>() <span class="kw">OVER</span> (<span class="kw">PARTITION BY</span> <span class="col">workspace_id</span>, <span class="col">job_id</span> <span class="kw">ORDER BY</span> <span class="col">change_time</span> <span class="kw">DESC</span>) <span class="op">=</span> <span class="num">1</span>)
@@ -688,7 +701,7 @@ spark.<span class="fn">sql</span>(<span class="str">f"""
 <span class="kw">FROM</span> latest_jobs
 <span class="kw">WHERE</span> <span class="col">delete_time</span> <span class="kw">IS NULL AND</span> <span class="col">name</span> <span class="kw">LIKE</span> <span class="str">'dp750-demo%'</span>;
 
-<span class="cm">-- pokusy tasku za 7 dni: vic radku pro tentyz task v jednom behu = retry nebo repair</span>
+<span class="cm">-- 4. pokusy tasku za 7 dni: vic radku pro tentyz task v jednom behu = retry nebo repair</span>
 <span class="kw">SELECT</span> <span class="col">job_run_id</span>, <span class="col">task_key</span>, <span class="col">result_state</span>, <span class="col">termination_code</span>, <span class="col">period_start_time</span>
 <span class="kw">FROM</span> <span class="tbl">system.lakeflow.job_task_run_timeline</span>
 <span class="kw">WHERE</span> <span class="col">period_start_time</span> <span class="op">&gt;=</span> <span class="fn">current_timestamp</span>() <span class="op">-</span> <span class="kw">INTERVAL</span> <span class="num">7</span> <span class="kw">DAYS</span>
@@ -700,8 +713,8 @@ spark.<span class="fn">sql</span>(<span class="str">f"""
 
   <h3>Úklid</h3>
   <ol>
-    <li>Ověř, že scheduled trigger je Paused. Job <code class="inline">dp750-demo-m11</code> nech, ukázka modulu 13 čte jeho běhy (repair, selhání); smaž ho po kurzu.</li>
-    <li>Schéma <code class="inline">dp750.m11</code> nech. Pro čistý start znovu pusť SQL z kroku 1 a smaž soubory z volume <code class="inline">inbox</code>.</li>
+    <li><em>V UI:</em> ověř, že scheduled trigger je Paused. Job <code class="inline">dp750-demo-m11</code> nech, ukázka modulu 13 čte jeho běhy (repair, selhání); smaž ho po kurzu.</li>
+    <li><em>Jen slovně:</em> schéma <code class="inline">dp750.m11</code> nech. Pro čistý start znovu pusť SQL z kroku 1 a smaž soubory z volume <code class="inline">inbox</code>.</li>
   </ol>
 </div>
 

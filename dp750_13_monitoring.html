@@ -643,17 +643,21 @@ final = salted.<span class="fn">groupBy</span>(<span class="str">"customer_id"</
     <h2>Runbook: ukázka krok za krokem</h2>
   </div>
   <p>Ukázka projde tři vrstvy pozorovatelnosti: kolik co stojí ze system tables, kde a proč selhal job z ukázky modulu 11, jak ve Spark UI vypadá skew a jak ho AQE rozbije, a co ze stejných událostí vidí Azure Log Analytics. Běží v lektorském workspace na syntetických datech (<code class="inline">spark.range</code>) a na historii vlastních běhů, ne na labu.</p>
-  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> serverless SQL warehouse; classic cluster (Dedicated, aktuální LTS runtime, Photon vypnutý, single node, auto-termination 30 minut) pusť na začátku výkladu, start trvá minuty; notebook z kroku 4 připojený na tento cluster; den předem běhy jobu <code class="inline">dp750-demo-m11</code> z modulu 11 včetně selhání a repairu; v Azure portálu diagnostic setting workspace s kategoriemi <code class="inline">jobs</code> a <code class="inline">clusters</code> do Log Analytics workspace. Přístup k <code class="inline">system.billing</code> a <code class="inline">system.lakeflow</code> (account admin ho má, ostatním ho uděluje admin). Asi 15 minut přípravy, ukázka 10 minut.</div></div>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> serverless SQL warehouse; classic cluster (Dedicated, aktuální LTS runtime, Photon vypnutý, single node, auto-termination 30 minut) pusť na začátku výkladu, start trvá minuty; notebook z kroku 4 připojený na tento cluster; den předem běhy jobu <code class="inline">dp750-demo-m11</code>, který vzniká v runbooku k modulu 11 (včetně selhání s <code class="inline">load_date = fail</code> a repairu); v Azure portálu diagnostic setting workspace s kategoriemi <code class="inline">jobs</code> a <code class="inline">clusters</code> do Log Analytics workspace. Přístup k <code class="inline">system.billing</code> a <code class="inline">system.lakeflow</code> (account admin ho má, ostatním ho uděluje admin). Asi 15 minut přípravy, ukázka 10 minut.</div></div>
+
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Jak číst kroky:</strong> skripty jsou tři druhy: <strong>SQL</strong> pro SQL editor (kroky 1 až 3), <strong>kód notebooku</strong> pro demo cluster (krok 4) a <strong>KQL</strong> pro Logs v Log Analytics workspace (krok 5). Číslované body nejsou samostatné úkony ke zkopírování, popisují, co dělá skript pod nimi, a stejná čísla najdeš ve skriptu jako komentáře <code class="inline">-- 1.</code>, <code class="inline"># 1.</code> nebo <code class="inline">// 1.</code>. SQL dotazy pusť jeden po druhém a po každém ukaž výsledek. V notebooku komentář s číslem začíná novou buňku (buňky 0 až 3 se v textu jmenují stejně jako v původní ukázce); pouštěj je po jedné, protože mezi nimi se díváš do Spark UI. Body označené <em>V UI</em> se dělají v Compute, ve Spark UI, v Jobs &amp; Pipelines nebo v Azure portálu a kód k nim není; tady UI je to, co se učí. Číslo bez komentáře ve skriptu znamená bod bez kódu.</div></div>
 
   <h3>Krok 1 – Monitoring a řízení spotřeby clusterů</h3>
   <ol>
-    <li>Compute → demo cluster → záložka Metrics: hardware (CPU, paměť), Spark (tasky, shuffle), přepnutí na jednotlivé uzly. V Configuration ukaž auto-termination.</li>
-    <li>SQL Warehouses → warehouse → Monitoring: běžící a čekající dotazy, počet clusterů.</li>
-    <li>SQL editor: nejdřív ceník (jobs compute vs. all-purpose vs. serverless), pak náklady za 30 dní podle produktu a SKU a denní trend s rozlišením serverless.</li>
+    <li><em>V UI:</em> Compute → demo cluster → záložka Metrics: hardware (CPU, paměť), Spark (tasky, shuffle), přepnutí na jednotlivé uzly. V Configuration ukaž auto-termination.</li>
+    <li><em>V UI:</em> SQL Warehouses → warehouse → Monitoring: běžící a čekající dotazy, počet clusterů.</li>
+    <li>V SQL editoru ukaž ceník (jobs compute vs. all-purpose vs. serverless).</li>
+    <li>Ukaž náklady za 30 dní podle workspace, produktu a SKU.</li>
+    <li>Ukaž denní trend DBU s rozlišením serverless.</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- aktualni ceny za DBU (list price, USD); nazvy serverless SKU obsahuji region (zde West Europe, v jinem regionu upravte priponu)</span>
+    <pre><span class="cm">-- 3. aktualni ceny za DBU (list price, USD); nazvy serverless SKU obsahuji region (zde West Europe, v jinem regionu uprav priponu)</span>
 <span class="kw">SELECT</span> <span class="col">sku_name</span>, <span class="col">pricing</span>.<span class="col">effective_list</span>.<span class="col">default</span> <span class="kw">AS</span> <span class="col">list_price_usd</span>, <span class="col">usage_unit</span>
 <span class="kw">FROM</span> <span class="tbl">system.billing.list_prices</span>
 <span class="kw">WHERE</span> <span class="col">price_end_time</span> <span class="kw">IS NULL</span>
@@ -662,7 +666,7 @@ final = salted.<span class="fn">groupBy</span>(<span class="str">"customer_id"</
                    <span class="str">'PREMIUM_ALL_PURPOSE_SERVERLESS_COMPUTE_EU_WEST'</span>)
 <span class="kw">ORDER BY</span> <span class="col">list_price_usd</span>;
 
-<span class="cm">-- naklady za 30 dni podle workspace, produktu a SKU</span>
+<span class="cm">-- 4. naklady za 30 dni podle workspace, produktu a SKU</span>
 <span class="kw">SELECT</span> u.<span class="col">workspace_id</span>, u.<span class="col">billing_origin_product</span>, u.<span class="col">sku_name</span>,
        <span class="fn">round</span>(<span class="fn">sum</span>(u.<span class="col">usage_quantity</span>), <span class="num">2</span>) <span class="kw">AS</span> <span class="col">dbu</span>,
        <span class="fn">round</span>(<span class="fn">sum</span>(u.<span class="col">usage_quantity</span> * p.<span class="col">pricing</span>.<span class="col">effective_list</span>.<span class="col">default</span>), <span class="num">2</span>) <span class="kw">AS</span> <span class="col">list_cost_usd</span>
@@ -675,7 +679,7 @@ final = salted.<span class="fn">groupBy</span>(<span class="str">"customer_id"</
 <span class="kw">GROUP BY ALL</span>
 <span class="kw">ORDER BY</span> <span class="col">list_cost_usd</span> <span class="kw">DESC</span>;
 
-<span class="cm">-- denni trend DBU, serverless zvlast</span>
+<span class="cm">-- 5. denni trend DBU, serverless zvlast</span>
 <span class="kw">SELECT</span> <span class="col">usage_date</span>, <span class="col">product_features</span>.<span class="col">is_serverless</span> <span class="kw">AS</span> <span class="col">serverless</span>,
        <span class="fn">round</span>(<span class="fn">sum</span>(<span class="col">usage_quantity</span>), <span class="num">2</span>) <span class="kw">AS</span> <span class="col">dbu</span>
 <span class="kw">FROM</span> <span class="tbl">system.billing.usage</span>
@@ -688,13 +692,14 @@ final = salted.<span class="fn">groupBy</span>(<span class="str">"customer_id"</
 
   <h3>Krok 2 – Troubleshooting a oprava Lakeflow Jobs</h3>
   <ol>
-    <li>Jobs &amp; Pipelines → <code class="inline">dp750-demo-m11</code> → Runs → matrix view. Najeď myší na červenou buňku <code class="inline">daily_load</code>: chybová zpráva <code class="inline">ValueError</code>. Vedle je sloupec repairu se zelenými tasky.</li>
-    <li>Klikni na selhaný task: Task run details s výstupem. Ukaž tlačítko Diagnose Error.</li>
-    <li>V SQL editoru stejný příběh z <code class="inline">system.lakeflow</code>: běhy s výsledkem a dobou trvání a selhané tasky s kódem ukončení napříč joby.</li>
+    <li><em>V UI:</em> Jobs &amp; Pipelines → <code class="inline">dp750-demo-m11</code> → Runs → matrix view. Najeď myší na červenou buňku <code class="inline">daily_load</code>: chybová zpráva <code class="inline">ValueError</code>. Vedle je sloupec repairu se zelenými tasky.</li>
+    <li><em>V UI:</em> klikni na selhaný task: Task run details s výstupem. Ukaž tlačítko Diagnose Error.</li>
+    <li>V SQL editoru stejný příběh z <code class="inline">system.lakeflow</code>: běhy s výsledkem a dobou trvání.</li>
+    <li>Selhané tasky s kódem ukončení napříč joby.</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- behy za 30 dni: vysledek a delka (beh muze mit vic radku po hodinovych usecich)</span>
+    <pre><span class="cm">-- 3. behy za 30 dni: vysledek a delka (beh muze mit vic radku po hodinovych usecich)</span>
 <span class="kw">SELECT</span> <span class="col">job_id</span>, <span class="col">run_id</span>,
        <span class="fn">min</span>(<span class="col">period_start_time</span>) <span class="kw">AS</span> <span class="col">run_start</span>,
        <span class="fn">timestampdiff</span>(SECOND, <span class="fn">min</span>(<span class="col">period_start_time</span>), <span class="fn">max</span>(<span class="col">period_end_time</span>)) <span class="kw">AS</span> <span class="col">duration_s</span>,
@@ -705,7 +710,7 @@ final = salted.<span class="fn">groupBy</span>(<span class="str">"customer_id"</
 <span class="kw">GROUP BY</span> <span class="col">job_id</span>, <span class="col">run_id</span>
 <span class="kw">ORDER BY</span> <span class="col">run_start</span> <span class="kw">DESC</span>;
 
-<span class="cm">-- ktere tasky padaji nejcasteji a s jakym kodem</span>
+<span class="cm">-- 4. ktere tasky padaji nejcasteji a s jakym kodem</span>
 <span class="kw">SELECT</span> <span class="col">job_id</span>, <span class="col">task_key</span>, <span class="col">result_state</span>, <span class="col">termination_code</span>, <span class="fn">count</span>(*) <span class="kw">AS</span> <span class="col">attempts</span>
 <span class="kw">FROM</span> <span class="tbl">system.lakeflow.job_task_run_timeline</span>
 <span class="kw">WHERE</span> <span class="col">period_start_time</span> <span class="op">&gt;=</span> <span class="fn">current_timestamp</span>() <span class="op">-</span> <span class="kw">INTERVAL</span> <span class="num">30</span> <span class="kw">DAYS</span>
@@ -718,13 +723,14 @@ final = salted.<span class="fn">groupBy</span>(<span class="str">"customer_id"</
 
   <h3>Krok 3 – Troubleshooting Spark jobs a notebooků</h3>
   <ol>
-    <li>Na demo clusteru pusť buňku 1 z kroku 4 a v jejím výstupu rozbal Spark Jobs → odkaz na job. Ve Spark UI ukaž Jobs Timeline a strukturu job → stage → task.</li>
-    <li>Pro SQL warehouse stejná otázka jinou cestou: v SQL editoru najdi nejdelší dotazy za den a u jednoho otevři Query History → See query profile.</li>
-    <li>V Compute → cluster → Event log ukaž, kde hledat problémy prostředí (start, resize, ukončení).</li>
+    <li><em>V UI:</em> na demo clusteru pusť buňku 1 z kroku 4 a v jejím výstupu rozbal Spark Jobs → odkaz na job. Ve Spark UI ukaž Jobs Timeline a strukturu job → stage → task.</li>
+    <li>Pro SQL warehouse stejná otázka jinou cestou: v SQL editoru najdi nejdelší dotazy za den.</li>
+    <li><em>V UI:</em> u jednoho z nich otevři Query History → See query profile.</li>
+    <li><em>V UI:</em> v Compute → cluster → Event log ukaž, kde hledat problémy prostředí (start, resize, ukončení).</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- nejdelsi dotazy za posledni den</span>
+    <pre><span class="cm">-- 2. nejdelsi dotazy za posledni den</span>
 <span class="kw">SELECT</span> <span class="col">statement_type</span>, <span class="col">execution_status</span>,
        <span class="fn">round</span>(<span class="col">total_duration_ms</span> / <span class="num">1000</span>, <span class="num">1</span>) <span class="kw">AS</span> <span class="col">total_s</span>,
        <span class="fn">round</span>(<span class="col">waiting_for_compute_duration_ms</span> / <span class="num">1000</span>, <span class="num">1</span>) <span class="kw">AS</span> <span class="col">wait_compute_s</span>,
@@ -741,19 +747,21 @@ final = salted.<span class="fn">groupBy</span>(<span class="str">"customer_id"</
   <h3>Krok 4 – Caching, skew, spill a shuffle</h3>
   <ol>
     <li>Buňka 0: ukaž stav disk cache a AQE na clusteru.</li>
-    <li>Buňka 1 (AQE vypnuté, broadcast vypnutý): 90 % řádků má klíč 0. Ve Spark UI otevři stage joinu → Summary Metrics: Max duration výrazně nad 75. percentilem, totéž u Shuffle Read. Podívej se i na Spill.</li>
-    <li>Buňka 2 (AQE zapnuté, nižší práh pro skew): v záložce SQL / DataFrame otevři dotaz a v plánu najdi <code class="inline">SortMergeJoin</code> s <code class="inline">isSkew=true</code>; tasky stage jsou vyrovnanější.</li>
+    <li>Buňka 1 (AQE vypnuté, broadcast vypnutý): 90 % řádků má klíč 0.</li>
+    <li><em>V UI:</em> ve Spark UI otevři stage joinu → Summary Metrics: Max duration výrazně nad 75. percentilem, totéž u Shuffle Read. Podívej se i na Spill.</li>
+    <li>Buňka 2 (AQE zapnuté, nižší práh pro skew).</li>
+    <li><em>V UI:</em> ve Spark UI v záložce SQL / DataFrame otevři dotaz a v plánu najdi <code class="inline">SortMergeJoin</code> s <code class="inline">isSkew=true</code>; tasky stage jsou vyrovnanější.</li>
     <li>Buňka 3: broadcast join jako alternativa, shuffle u menší strany zmizí.</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
     <pre><span class="kw">from</span> pyspark.sql <span class="kw">import</span> functions <span class="kw">as</span> F
 
-<span class="cm"># bunka 0: aktualni stav</span>
+<span class="cm"># 1. bunka 0: aktualni stav</span>
 <span class="fn">print</span>(spark.conf.<span class="fn">get</span>(<span class="str">"spark.databricks.io.cache.enabled"</span>))
 <span class="fn">print</span>(spark.conf.<span class="fn">get</span>(<span class="str">"spark.databricks.optimizer.adaptive.enabled"</span>))
 
-<span class="cm"># bunka 1: skew bez AQE a bez broadcastu</span>
+<span class="cm"># 2. bunka 1: skew bez AQE a bez broadcastu</span>
 spark.conf.<span class="fn">set</span>(<span class="str">"spark.databricks.optimizer.adaptive.enabled"</span>, <span class="str">"false"</span>)
 spark.conf.<span class="fn">set</span>(<span class="str">"spark.sql.adaptive.enabled"</span>, <span class="str">"false"</span>)
 spark.conf.<span class="fn">set</span>(<span class="str">"spark.sql.autoBroadcastJoinThreshold"</span>, <span class="str">"-1"</span>)
@@ -768,7 +776,7 @@ sensors = (spark.<span class="fn">range</span>(<span class="num">0</span>, <span
 (readings.<span class="fn">join</span>(sensors, <span class="str">"sensor_key"</span>).<span class="fn">groupBy</span>(<span class="str">"site"</span>).<span class="fn">count</span>()
  .write.<span class="fn">format</span>(<span class="str">"noop"</span>).<span class="fn">mode</span>(<span class="str">"overwrite"</span>).<span class="fn">save</span>())
 
-<span class="cm"># bunka 2: stejny dotaz s AQE; prah snizeny jen kvuli malym demo datum</span>
+<span class="cm"># 4. bunka 2: stejny dotaz s AQE; prah snizeny jen kvuli malym demo datum</span>
 spark.conf.<span class="fn">set</span>(<span class="str">"spark.databricks.optimizer.adaptive.enabled"</span>, <span class="str">"true"</span>)
 spark.conf.<span class="fn">set</span>(<span class="str">"spark.sql.adaptive.enabled"</span>, <span class="str">"true"</span>)
 spark.conf.<span class="fn">set</span>(<span class="str">"spark.databricks.adaptive.autoBroadcastJoinThreshold"</span>, <span class="str">"-1"</span>)
@@ -778,7 +786,7 @@ spark.conf.<span class="fn">set</span>(<span class="str">"spark.sql.adaptive.ske
 (readings.<span class="fn">join</span>(sensors, <span class="str">"sensor_key"</span>).<span class="fn">groupBy</span>(<span class="str">"site"</span>).<span class="fn">count</span>()
  .write.<span class="fn">format</span>(<span class="str">"noop"</span>).<span class="fn">mode</span>(<span class="str">"overwrite"</span>).<span class="fn">save</span>())
 
-<span class="cm"># bunka 3: explicitni broadcast male tabulky</span>
+<span class="cm"># 6. bunka 3: explicitni broadcast male tabulky</span>
 (readings.<span class="fn">join</span>(F.<span class="fn">broadcast</span>(sensors), <span class="str">"sensor_key"</span>).<span class="fn">groupBy</span>(<span class="str">"site"</span>).<span class="fn">count</span>()
  .write.<span class="fn">format</span>(<span class="str">"noop"</span>).<span class="fn">mode</span>(<span class="str">"overwrite"</span>).<span class="fn">save</span>())</pre>
   </div>
@@ -787,19 +795,20 @@ spark.conf.<span class="fn">set</span>(<span class="str">"spark.sql.adaptive.ske
 
   <h3>Krok 5 – Log streaming do Azure Log Analytics</h3>
   <ol>
-    <li>Azure portál → Azure Databricks workspace → Monitoring → Diagnostic settings: ukaž nastavení s kategoriemi <code class="inline">jobs</code> a <code class="inline">clusters</code> a cílem Log Analytics workspace. Řekni, že to typicky nastavuje platformní admin a vyžaduje Premium.</li>
-    <li>Log Analytics workspace → Logs: první dotaz ukáže, jaké akce jobů dorazily, druhý selhání a repair z ukázky modulu 11.</li>
-    <li>Z druhého dotazu ukaž New alert rule (podmínka a action group). Pravidlo neukládej.</li>
+    <li><em>V UI:</em> Azure portál → Azure Databricks workspace → Monitoring → Diagnostic settings: ukaž nastavení s kategoriemi <code class="inline">jobs</code> a <code class="inline">clusters</code> a cílem Log Analytics workspace. Řekni, že to typicky nastavuje platformní admin a vyžaduje Premium.</li>
+    <li>V Log Analytics workspace → Logs pusť první dotaz: jaké akce jobů dorazily.</li>
+    <li>Pusť druhý dotaz: selhání a repair z ukázky modulu 11.</li>
+    <li><em>V UI:</em> z druhého dotazu ukaž New alert rule (podmínka a action group). Pravidlo neukládej.</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">KQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">// jake akce jobu dorazily za posledni den</span>
+    <pre><span class="cm">// 2. jake akce jobu dorazily za posledni den</span>
 DatabricksJobs
 | <span class="kw">where</span> TimeGenerated &gt; <span class="fn">ago</span>(<span class="num">1d</span>)
 | <span class="kw">summarize</span> events = <span class="fn">count</span>() <span class="kw">by</span> ActionName
 | <span class="kw">order by</span> events <span class="kw">desc</span>
 
-<span class="cm">// selhani a repair za tyden, s parametry pozadavku</span>
+<span class="cm">// 3. selhani a repair za tyden, s parametry pozadavku</span>
 DatabricksJobs
 | <span class="kw">where</span> TimeGenerated &gt; <span class="fn">ago</span>(<span class="num">7d</span>)
 | <span class="kw">where</span> ActionName <span class="kw">in</span> (<span class="str">"runFailed"</span>, <span class="str">"runSucceeded"</span>, <span class="str">"repairRun"</span>)

@@ -603,14 +603,17 @@ df <span class="op">=</span> spark.read.<span class="fn">parquet</span>(<span cl
   </div>
   <p>Ukázka zabezpečí malou personální tabulku: granty pro skupinu, dynamic view, row filter podle pobočky, masky na mzdu a telefon, secret z Key Vaultu a pohled na identity, přes které Unity Catalog sahá na úložiště. Běží v lektorském workspace v katalogu <code class="inline">dp750</code>, schéma <code class="inline">m04</code>, na syntetických datech.</p>
   <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> serverless SQL warehouse a Python notebook na serverless. Na úrovni <strong>accountu</strong> dvě skupiny <code class="inline">dp750_demo_analysts</code> a <code class="inline">dp750_demo_admins</code> a v nich sebe <strong>nepřidávejte</strong>: ukázka stojí na tom, že členem nejste. Skupiny založené jen ve workspace (workspace-local) nestačí, Unity Catalog na ně grant nedá. Key Vault s modelem <em>Vault access policy</em>, v něm secret <code class="inline">dp750-demo-secret</code>, a nad ním secret scope <code class="inline">dp750-kv</code> typu Azure Key Vault (postup je v rozbalovacím bloku na začátku kroku 5). Pro audit log v kroku 1 musíte být <strong>account admin</strong>, workspace admin nestačí, a to ani když jste workspace sami založili. Ověřte si to předem: v <code class="inline">https://accounts.azuredatabricks.net</code> → User management → váš uživatel → Roles musí být zapnuté <em>Account admin</em>. Když nejste, roli vám zapne stávající account admin; v novém tenantu se jím stane Global Administrator Entra ID prvním přihlášením do account console (podrobnosti v rozbalovacím bloku u kroku 1). Celá ukázka zabere asi 15 minut, dá se rozdělit na část A (kroky 1–4) a B (kroky 5–7).</div></div>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Jak číst kroky:</strong> každý krok je skript (SQL editor, buňka Python notebooku na serverless, někdy příkaz v terminálu), který zkopírujete tlačítkem Kopírovat, vložíte a pustíte celý. Číslované body nad kódem nejsou samostatné úkony, popisují, co skript dělá, a stejná čísla najdete ve skriptu jako komentáře <code class="inline">-- 1.</code> (SQL) nebo <code class="inline"># 1.</code> (Python a terminál). Body označené <em>Jen slovně</em> ve skriptu nejsou: říkáte je nahlas nebo jen ukazujete výsledek. Body označené <em>V UI</em> jsou jediné, které se dělají kliknutím; příprava v rozbalovacích blocích je v UI záměrně.</div></div>
 
   <h3>Krok 1 – Query lifecycle: jak Unity Catalog vyhodnocuje dotaz</h3>
   <ol>
-    <li>Založte tabulku a pusťte na ni dotaz:</li>
+    <li>Založte schéma a tabulku zaměstnanců se čtyřmi řádky a pusťte na ni dotaz.</li>
+    <li>V audit logu ukažte, že Unity Catalog k dotazům vydává dočasné credentials (dotaz pusťte na data z předchozího dne, audit není real-time).</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">CREATE SCHEMA IF NOT EXISTS</span> <span class="tbl">dp750.m04</span> <span class="kw">COMMENT</span> <span class="str">'Demo modulu 4: zabezpeceni'</span>;
+    <pre><span class="cm">-- 1. schema, table and sample rows</span>
+<span class="kw">CREATE SCHEMA IF NOT EXISTS</span> <span class="tbl">dp750.m04</span> <span class="kw">COMMENT</span> <span class="str">'Demo modulu 4: zabezpeceni'</span>;
 
 <span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750.m04.employees</span> (
   emp_id <span class="kw">INT</span>, full_name <span class="kw">STRING</span>, department <span class="kw">STRING</span>, office <span class="kw">STRING</span>,
@@ -625,12 +628,10 @@ df <span class="op">=</span> spark.read.<span class="fn">parquet</span>(<span cl
 
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m04.employees</span>;</pre>
   </div>
-  <ol start="2">
-    <li>V audit logu ukažte, že Unity Catalog k dotazům vydává dočasné credentials (dotaz pusťte na data z předchozího dne, audit není real-time):</li>
-  </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">SELECT</span> event_time, action_name, request_params.full_name_arg <span class="kw">AS</span> object, response.status_code <span class="kw">AS</span> status
+    <pre><span class="cm">-- 2. audit log: temporary credentials issued for the query</span>
+<span class="kw">SELECT</span> event_time, action_name, request_params.full_name_arg <span class="kw">AS</span> object, response.status_code <span class="kw">AS</span> status
 <span class="kw">FROM</span> <span class="tbl">system.access.audit</span>
 <span class="kw">WHERE</span> service_name = <span class="str">'unityCatalog'</span>
   <span class="kw">AND</span> action_name <span class="kw">IN</span> (<span class="str">'getTable'</span>, <span class="str">'generateTemporaryTableCredential'</span>)
@@ -661,13 +662,18 @@ df <span class="op">=</span> spark.read.<span class="fn">parquet</span>(<span cl
   <div class="learn-more"><span class="lm-label">📚 Do hloubky na Learn:</span> <span><a href="https://learn.microsoft.com/en-us/azure/databricks/admin/system-tables/#grant-access-to-system-tables" target="_blank" rel="noopener">Grant access to system tables</a> (EN)</span></div>
 
   <h3>Krok 2 – Strategie access control: privilege model a dědičnost</h3>
+  <ol>
+    <li>Dejte skupině analytiků celou cestu k tabulkám: <code class="inline">USE CATALOG</code>, <code class="inline">USE SCHEMA</code> a <code class="inline">SELECT</code> na schématu (zdědí ho všechny tabulky).</li>
+    <li>Vypište granty na všech třech úrovních: katalog, schéma, tabulka.</li>
+  </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- cela cesta: katalog, schema, objekty (SELECT na schematu dedi vsechny tabulky)</span>
+    <pre><span class="cm">-- 1. cela cesta: katalog, schema, objekty (SELECT na schematu dedi vsechny tabulky)</span>
 <span class="kw">GRANT USE CATALOG ON CATALOG</span> <span class="tbl">dp750</span> <span class="kw">TO</span> `dp750_demo_analysts`;
 <span class="kw">GRANT USE SCHEMA ON SCHEMA</span> <span class="tbl">dp750.m04</span> <span class="kw">TO</span> `dp750_demo_analysts`;
 <span class="kw">GRANT SELECT ON SCHEMA</span> <span class="tbl">dp750.m04</span> <span class="kw">TO</span> `dp750_demo_analysts`;
 
+<span class="cm">-- 2. grants on every level</span>
 <span class="kw">SHOW GRANTS ON CATALOG</span> <span class="tbl">dp750</span>;
 <span class="kw">SHOW GRANTS ON SCHEMA</span> <span class="tbl">dp750.m04</span>;
 <span class="kw">SHOW GRANTS ON TABLE</span> <span class="tbl">dp750.m04.employees</span>;</pre>
@@ -676,23 +682,34 @@ df <span class="op">=</span> spark.read.<span class="fn">parquet</span>(<span cl
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> když account skupina neexistuje (nebo existuje jen jako workspace-local), <code class="inline">GRANT</code> skončí <code class="inline">PRINCIPAL_DOES_NOT_EXIST … Could not find principal with name dp750_demo_analysts</code>. Nouzově ukažte logiku na vestavěném principalu <code class="inline">`account users`</code> a hned ho odeberte: <code class="inline">GRANT USE SCHEMA, SELECT ON SCHEMA dp750.m04 TO `account users`;</code> a pak totéž s <code class="inline">REVOKE … FROM</code>.</div></div>
 
   <h3>Krok 3 – Fine-grained access control: dynamic view</h3>
+  <ol>
+    <li>Založte view, které telefon ukáže jen členům skupiny adminů.</li>
+    <li>Přečtěte data přes view: všechny čtyři řádky, telefon skrytý.</li>
+  </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- adresar pro celou firmu: telefon jen pro adminy HR</span>
+    <pre><span class="cm">-- 1. adresar pro celou firmu: telefon jen pro adminy HR</span>
 <span class="kw">CREATE OR REPLACE VIEW</span> <span class="tbl">dp750.m04.vw_employees_directory</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> emp_id, full_name, department, office,
        <span class="kw">CASE WHEN</span> <span class="fn">is_account_group_member</span>(<span class="str">'dp750_demo_admins'</span>) <span class="kw">THEN</span> personal_phone
             <span class="kw">ELSE</span> <span class="str">'skryto'</span> <span class="kw">END AS</span> personal_phone
 <span class="kw">FROM</span> <span class="tbl">dp750.m04.employees</span>;
 
+<span class="cm">-- 2. read through the view</span>
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m04.vw_employees_directory</span>;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> view vrátí všechny čtyři řádky a u telefonu <code class="inline">skryto</code>, protože v <code class="inline">dp750_demo_admins</code> nejste. Pravidlo ale platí jen pro toho, kdo čte přes view; kdo má <code class="inline">SELECT</code> na tabulku, vidí vše. To řeší až krok 4.</div></div>
 
   <h3>Krok 4 – Row filtering a column masking v praxi</h3>
+  <ol>
+    <li>Založte tři funkce: row filter podle pobočky a masky na mzdu a telefon.</li>
+    <li>Připojte je k tabulce.</li>
+    <li>Ukažte výsledek: tabulku, počet řádků ve view z kroku 3 a řádky <code class="inline">Row Filter</code> a <code class="inline">Column Masks</code> v <code class="inline">DESCRIBE TABLE EXTENDED</code>.</li>
+    <li>Záměrná chyba: time travel nad chráněnou tabulkou.</li>
+  </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- admini vidi vse, ostatni jen brnenskou pobocku</span>
+    <pre><span class="cm">-- 1. admini vidi vse, ostatni jen brnenskou pobocku (row filter + dve masky)</span>
 <span class="kw">CREATE OR REPLACE FUNCTION</span> <span class="tbl">dp750.m04.rf_office</span>(office <span class="kw">STRING</span>)
 <span class="kw">RETURNS BOOLEAN</span>
 <span class="kw">RETURN</span> <span class="fn">is_account_group_member</span>(<span class="str">'dp750_demo_admins'</span>) <span class="kw">OR</span> office = <span class="str">'Brno'</span>;
@@ -706,15 +723,17 @@ df <span class="op">=</span> spark.read.<span class="fn">parquet</span>(<span cl
 <span class="kw">RETURN CASE WHEN</span> <span class="fn">is_account_group_member</span>(<span class="str">'dp750_demo_admins'</span>) <span class="kw">THEN</span> phone
             <span class="kw">ELSE</span> <span class="fn">concat</span>(<span class="str">'*** *** '</span>, <span class="fn">right</span>(phone, <span class="num">3</span>)) <span class="kw">END</span>;
 
+<span class="cm">-- 2. attach filter and masks to the table</span>
 <span class="kw">ALTER TABLE</span> <span class="tbl">dp750.m04.employees</span> <span class="kw">SET ROW FILTER</span> <span class="tbl">dp750.m04.rf_office</span> <span class="kw">ON</span> (office);
 <span class="kw">ALTER TABLE</span> <span class="tbl">dp750.m04.employees</span> <span class="kw">ALTER COLUMN</span> salary_czk <span class="kw">SET MASK</span> <span class="tbl">dp750.m04.mask_salary</span>;
 <span class="kw">ALTER TABLE</span> <span class="tbl">dp750.m04.employees</span> <span class="kw">ALTER COLUMN</span> personal_phone <span class="kw">SET MASK</span> <span class="tbl">dp750.m04.mask_phone</span>;
 
+<span class="cm">-- 3. result: filtered rows, view, table metadata</span>
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m04.employees</span> <span class="kw">ORDER BY</span> emp_id;
 <span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">FROM</span> <span class="tbl">dp750.m04.vw_employees_directory</span>;
 <span class="kw">DESCRIBE TABLE EXTENDED</span> <span class="tbl">dp750.m04.employees</span>;
 
-<span class="cm">-- zamerna chyba: time travel nad chranenou tabulkou</span>
+<span class="cm">-- 4. zamerna chyba: time travel nad chranenou tabulkou</span>
 <span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">FROM</span> <span class="tbl">dp750.m04.employees</span> <span class="kw">VERSION AS OF</span> <span class="num">1</span>;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> i vy jako vlastník tabulky uvidíte jen dva brněnské řádky, mzdu <code class="inline">NULL</code> a telefon <code class="inline">*** *** 222</code>: funkce se vyhodnocují podle toho, kdo dotaz spouští. View z kroku 3 teď vrací 2 řádky, filtr na tabulce platí všude. <code class="inline">DESCRIBE TABLE EXTENDED</code> ukáže řádky <code class="inline">Row Filter</code> a <code class="inline">Column Masks</code>.</div></div>
@@ -734,15 +753,18 @@ df <span class="op">=</span> spark.read.<span class="fn">parquet</span>(<span cl
       </ol>
       <div class="code-block">
         <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-        <pre><span class="kw">GRANT USE CATALOG ON CATALOG</span> <span class="tbl">dp750</span> <span class="kw">TO</span> `role-dp750-admin`;
+        <pre><span class="cm">-- e. grants for the role group (as yourself, before switching)</span>
+<span class="kw">GRANT USE CATALOG ON CATALOG</span> <span class="tbl">dp750</span> <span class="kw">TO</span> `role-dp750-admin`;
 <span class="kw">GRANT USE SCHEMA, SELECT ON SCHEMA</span> <span class="tbl">dp750.m04</span> <span class="kw">TO</span> `role-dp750-admin`;</pre>
       </div>
-      <p><strong>Ukázka:</strong> klikněte na název workspace vpravo nahoře, najeďte na aktuální workspace a v podmenu vyberte <code class="inline">role-dp750-admin</code>. Stránka se načte znovu a pod názvem workspace je teď role. V SQL editoru:</p>
+      <p><strong>Ukázka:</strong> <em>V UI:</em> klikněte na název workspace vpravo nahoře, najeďte na aktuální workspace a v podmenu vyberte <code class="inline">role-dp750-admin</code>. Stránka se načte znovu a pod názvem workspace je teď role. V SQL editoru:</p>
       <div class="code-block">
         <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-        <pre><span class="kw">SELECT</span> <span class="fn">session_user</span>() <span class="kw">AS</span> kdo, <span class="fn">is_account_group_member</span>(<span class="str">'dp750_demo_admins'</span>) <span class="kw">AS</span> je_admin;
+        <pre><span class="cm">-- 1. who am I in this session</span>
+<span class="kw">SELECT</span> <span class="fn">session_user</span>() <span class="kw">AS</span> kdo, <span class="fn">is_account_group_member</span>(<span class="str">'dp750_demo_admins'</span>) <span class="kw">AS</span> je_admin;
 <span class="cm">-- kdo = role-dp750-admin, je_admin = true</span>
 
+<span class="cm">-- 2. the table as the admin role</span>
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m04.employees</span> <span class="kw">ORDER BY</span> emp_id;
 <span class="cm">-- ctyri radky, mzdy i cele telefony</span></pre>
       </div>
@@ -780,80 +802,92 @@ az keyvault show -n $kv --query <span class="str">"{DNS:properties.vaultUri, Res
   </div>
   <ol>
     <li>Nejdřív v SQL editoru: seznam klíčů a pokus o přečtení hodnoty.</li>
+    <li>Pak v Python notebooku na serverless: totéž přes <code class="inline">dbutils.secrets</code>.</li>
+    <li>ACL na scope z terminálu (jen čtení).</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="fn">list_secrets</span>(<span class="str">'dp750-kv'</span>);
+    <pre><span class="cm">-- 1. list keys, try to read a value, tolerate a missing key</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="fn">list_secrets</span>(<span class="str">'dp750-kv'</span>);
 <span class="kw">SELECT</span> <span class="fn">secret</span>(<span class="str">'dp750-kv'</span>, <span class="str">'dp750-demo-secret'</span>) <span class="kw">AS</span> hodnota;
 <span class="kw">SELECT</span> <span class="fn">try_secret</span>(<span class="str">'dp750-kv'</span>, <span class="str">'neexistuje'</span>) <span class="kw">AS</span> chybi;</pre>
   </div>
-  <ol start="2">
-    <li>Pak v Python notebooku na serverless:</li>
-  </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="fn">print</span>([s.name <span class="kw">for</span> s <span class="kw">in</span> dbutils.secrets.<span class="fn">listScopes</span>()])
+    <pre><span class="cm"># 2. list scopes and keys, read the value (output is redacted)</span>
+<span class="fn">print</span>([s.name <span class="kw">for</span> s <span class="kw">in</span> dbutils.secrets.<span class="fn">listScopes</span>()])
 <span class="fn">print</span>([k.key <span class="kw">for</span> k <span class="kw">in</span> dbutils.secrets.<span class="fn">list</span>(<span class="str">"dp750-kv"</span>)])
 
 value = dbutils.secrets.<span class="fn">get</span>(scope=<span class="str">"dp750-kv"</span>, key=<span class="str">"dp750-demo-secret"</span>)
 <span class="fn">print</span>(value)
 <span class="fn">print</span>(<span class="fn">len</span>(value) &gt; <span class="num">0</span>)</pre>
   </div>
-  <ol start="3">
-    <li>ACL na scope z CLI (jen čtení):</li>
-  </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">BASH</span><button class="copy-btn">Kopírovat</button></div>
-    <pre>databricks secrets list-acls dp750-kv --profile <span class="str">&lt;profil&gt;</span></pre>
+    <pre><span class="cm"># 3. read-only: ACLs of the scope</span>
+databricks secrets list-acls dp750-kv --profile <span class="str">&lt;profil&gt;</span></pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> SQL i notebook vrátí místo hodnoty <code class="inline">[REDACTED]</code>, ale <code class="inline">len(value) &gt; 0</code> je <code class="inline">True</code>: hodnota v paměti je, redakce chrání jen výstup. <code class="inline">try_secret</code> vrátí pro chybějící klíč <code class="inline">NULL</code> místo chyby. ACL je na celém scope; tvůrce scope má <code class="inline">MANAGE</code>.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> <code class="inline">list_secrets</code> u scope nad Key Vaultem vypíše <strong>všechny</strong> secrets ve vaultu, i ty, které s demem nesouvisí. Na kurz proto použijte vault jen pro demo. Scope se zakládá na <code class="inline">https://&lt;workspace&gt;#secrets/createScope</code> (velké S) a na vaultu s modelem Azure RBAC selže.</div></div>
 
   <h3>Krok 6 – Autentizace přes service principals</h3>
   <ol>
-    <li>Workspace → uživatelské jméno vpravo nahoře → <strong>Settings</strong> → <strong>Identity and access</strong> → <strong>Service principals</strong> → <strong>Manage</strong>. Ukažte, že service principal má Application ID a lze mu dát entitlements jako uživateli.</li>
-    <li>Z CLI výpis service principalů ve workspace:</li>
+    <li><em>V UI:</em> Workspace → uživatelské jméno vpravo nahoře → <strong>Settings</strong> → <strong>Identity and access</strong> → <strong>Service principals</strong> → <strong>Manage</strong>. Ukažte, že service principal má Application ID a lze mu dát entitlements jako uživateli.</li>
+    <li>V terminálu vypište service principaly ve workspace a z výstupu si opište Application ID.</li>
+    <li>V SQL editoru dejte service principalu <code class="inline">SELECT</code> na tabulku (v zpětných apostrofech je jeho Application ID).</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">BASH</span><button class="copy-btn">Kopírovat</button></div>
-    <pre>databricks service-principals list --profile <span class="str">&lt;profil&gt;</span></pre>
+    <pre><span class="cm"># 2. list service principals in the workspace</span>
+databricks service-principals list --profile <span class="str">&lt;profil&gt;</span></pre>
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- grant service principalu: v backtickach jeho Application ID</span>
+    <pre><span class="cm">-- 3. grant service principalu: v backtickach jeho Application ID</span>
 <span class="kw">GRANT SELECT ON TABLE</span> <span class="tbl">dp750.m04.employees</span> <span class="kw">TO</span> `<span class="str">&lt;application-id&gt;</span>`;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> produkční job má běžet pod service principalem (Run as v nastavení jobu), ne pod osobním účtem, který jednou odejde z firmy. Client secret service principalu patří do secret scope z kroku 5.</div></div>
 
   <h3>Krok 7 – Managed identities a access connector</h3>
+  <ol>
+    <li>V SQL editoru vypište storage credentials a external locations a podrobnosti jednoho credentialu.</li>
+    <li><em>Jen slovně:</em> ve výstupu ukažte typ <code class="inline">AzureManagedIdentity</code>, ID access connectoru a <code class="inline">System-Assigned MI</code>.</li>
+    <li><em>V UI:</em> Azure portál → managed resource group workspace → access connector → <strong>Identity</strong>; na storage účtu pak <strong>Access control (IAM)</strong> s rolí Storage Blob Data Contributor.</li>
+  </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">SHOW STORAGE CREDENTIALS</span>;
+    <pre><span class="cm">-- 1. credentials and locations behind the catalog storage</span>
+<span class="kw">SHOW STORAGE CREDENTIALS</span>;
 <span class="kw">SHOW EXTERNAL LOCATIONS</span>;
 <span class="kw">DESCRIBE STORAGE CREDENTIAL</span> <span class="tbl">&lt;nazev_z_predchoziho_vypisu&gt;</span>;</pre>
   </div>
-  <ol>
-    <li>Ve výstupu ukažte typ <code class="inline">AzureManagedIdentity</code>, ID access connectoru a <code class="inline">System-Assigned MI</code>.</li>
-    <li>Azure portál → managed resource group workspace → access connector → <strong>Identity</strong>; na storage účtu pak <strong>Access control (IAM)</strong> s rolí Storage Blob Data Contributor.</li>
-  </ol>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> v čerstvém workspace s automaticky přiřazeným Unity Catalogem už jeden credential a jedna external location existují: úložiště katalogu workspace čte Unity Catalog přes managed identity access connectoru. Žádný secret, žádná rotace.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> výstup obsahuje ID předplatného a název storage účtu. Na sdílené obrazovce ho ukažte jen krátce, nebo jen sloupec s typem credentialu.</div></div>
 
   <h3>Úklid</h3>
   <ol>
-    <li>Pokud jste v kroku 2 grantovali <code class="inline">`account users`</code>, ověřte <code class="inline">SHOW GRANTS ON SCHEMA dp750.m04;</code>, že tam nezůstal.</li>
-    <li>Schéma <code class="inline">dp750.m04</code> nechte do konce kurzu. Po kurzu nejdřív sundejte filtr a masky, pak teprve mažte funkce, jinak tabulka zůstane nečitelná:</li>
+    <li>Pokud jste v kroku 2 grantovali <code class="inline">`account users`</code>, ověřte, že tam nezůstal.</li>
+    <li>Schéma <code class="inline">dp750.m04</code> nechte do konce kurzu. Po kurzu nejdřív sundejte filtr a masky, pak teprve mažte funkce a schéma, jinak tabulka zůstane nečitelná.</li>
+    <li>Secret scope po kurzu smažte; vault podle toho, zda ho chcete dál.</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">ALTER TABLE</span> <span class="tbl">dp750.m04.employees</span> <span class="kw">DROP ROW FILTER</span>;
+    <pre><span class="cm">-- 1. no leftover grant to account users</span>
+<span class="kw">SHOW GRANTS ON SCHEMA</span> <span class="tbl">dp750.m04</span>;</pre>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm">-- 2. after the course: filter and masks first, then drop the schema</span>
+<span class="kw">ALTER TABLE</span> <span class="tbl">dp750.m04.employees</span> <span class="kw">DROP ROW FILTER</span>;
 <span class="kw">ALTER TABLE</span> <span class="tbl">dp750.m04.employees</span> <span class="kw">ALTER COLUMN</span> salary_czk <span class="kw">DROP MASK</span>;
 <span class="kw">ALTER TABLE</span> <span class="tbl">dp750.m04.employees</span> <span class="kw">ALTER COLUMN</span> personal_phone <span class="kw">DROP MASK</span>;
 <span class="kw">DROP SCHEMA</span> <span class="tbl">dp750.m04</span> <span class="kw">CASCADE</span>;</pre>
   </div>
-  <ol start="3">
-    <li>Secret scope po kurzu: <code class="inline">databricks secrets delete-scope dp750-kv</code>; vault podle toho, zda ho chcete dál.</li>
-  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">BASH</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm"># 3. after the course: delete the secret scope</span>
+databricks secrets delete-scope dp750-kv --profile <span class="str">&lt;profil&gt;</span></pre>
+  </div>
 </div>
 
     <div class="footer-nav">

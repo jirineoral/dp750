@@ -540,15 +540,16 @@ df = spark.read.<span class="fn">csv</span>(<span class="str">"/Volumes/main/def
   </div>
   <p>Ukázka provede workspace od Azure portálu až po první Delta tabulku s historií verzí. Běží v lektorském workspace nad vlastními daty (katalog <code class="inline">dp750</code>, schéma <code class="inline">m01</code>, ukázková data <code class="inline">samples.nyctaxi</code>), ne nad daty labu.</p>
   <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> běžící serverless SQL warehouse (spusťte ho před výkladem, start chvíli trvá), katalog <code class="inline">dp750</code> a v Azure portálu otevřená záložka s workspace. Ve workspace musí být katalog <code class="inline">samples</code>. Celá ukázka zabere asi 10 minut.</div></div>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Jak číst kroky:</strong> skripty běží na třech místech: SQL skripty v SQL editoru připojeném na serverless SQL warehouse, Python skript v buňkách serverless notebooku a jeden příkaz v terminálu (krok 1). Skript zkopírujte celý tlačítkem Kopírovat a pusťte najednou. Číslované body nad skriptem nejsou samostatné úkony, popisují, co skript dělá a co ve výsledcích ukázat. Stejná čísla najdete ve skriptu jako komentáře <code class="inline">-- 1.</code> (SQL) a <code class="inline"># 1.</code> (Python, bash). Body označené <em>V UI:</em> jsou kliknutí v Azure portálu nebo ve workspace; v tomto modulu je prohlídka UI sama předmětem výkladu, takže ve skriptu nejsou. Body označené <em>Jen slovně:</em> se řeknou nahlas a ve skriptu také nejsou.</div></div>
 
   <h3>Krok 1 – Co je Azure Databricks a jak vzniká workspace</h3>
   <ol>
-    <li>Azure portál → workspace → <strong>Overview</strong>: ukažte pricing tier <em>Premium</em> a odkaz na <strong>Managed Resource Group</strong>.</li>
+    <li><em>V UI:</em> Azure portál → workspace → <strong>Overview</strong>: ukažte pricing tier <em>Premium</em> a odkaz na <strong>Managed Resource Group</strong>.</li>
     <li>Totéž ukažte z příkazové řádky (jen čtení, nic nemění):</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">BASH</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># sku, region a managed resource group workspace</span>
+    <pre><span class="cm"># 2. sku, region a managed resource group workspace</span>
 az databricks workspace show \
     --resource-group <span class="str">&lt;resource-group&gt;</span> \
     --name <span class="str">&lt;workspace&gt;</span> \
@@ -559,20 +560,22 @@ az databricks workspace show \
 
   <h3>Krok 2 – Orientace ve workspace UI</h3>
   <ol>
-    <li><strong>Launch Workspace</strong> a postupně klikněte v sidebaru na <strong>Workspace</strong>, <strong>Catalog</strong>, <strong>Jobs &amp; Pipelines</strong>, <strong>Compute</strong> a <strong>SQL Editor</strong>.</li>
-    <li>V Catalogu rozbalte katalog workspace, <code class="inline">samples</code> a <code class="inline">system</code>.</li>
-    <li>Ukažte <strong>+ New</strong> (notebook, query, job, pipeline) a horní vyhledávání: zkuste hledat <code class="inline">trips</code>.</li>
-    <li>V SQL editoru otevřete <strong>Genie Code</strong> (ikona jiskry) a položte otázku „Which tables in samples.nyctaxi can I query?“.</li>
+    <li><em>V UI:</em> <strong>Launch Workspace</strong> a postupně klikněte v sidebaru na <strong>Workspace</strong>, <strong>Catalog</strong>, <strong>Jobs &amp; Pipelines</strong>, <strong>Compute</strong> a <strong>SQL Editor</strong>.</li>
+    <li><em>V UI:</em> V Catalogu rozbalte katalog workspace, <code class="inline">samples</code> a <code class="inline">system</code>.</li>
+    <li><em>V UI:</em> Ukažte <strong>+ New</strong> (notebook, query, job, pipeline) a horní vyhledávání: zkuste hledat <code class="inline">trips</code>.</li>
+    <li><em>V UI:</em> V SQL editoru otevřete <strong>Genie Code</strong> (ikona jiskry) a položte otázku „Which tables in samples.nyctaxi can I query?“.</li>
   </ol>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> Genie Code nemusí být v každém prostředí zapnutý (spravuje ho admin). Když chybí, řekněte to nahlas a pokračujte; v labu 1 si to účastníci vyzkouší sami.</div></div>
 
   <h3>Krok 3 – Tři workloady jedné platformy</h3>
   <ol>
-    <li>SQL workload: v SQL editoru na serverless SQL warehouse spusťte agregaci a z výsledku udělejte sloupcový graf (<strong>+</strong> u výsledku → <strong>Visualization</strong>).</li>
+    <li>SQL workload: v SQL editoru na serverless SQL warehouse spusťte agregaci (skript níže).</li>
+    <li><em>V UI:</em> z výsledku udělejte sloupcový graf (<strong>+</strong> u výsledku → <strong>Visualization</strong>).</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">SELECT</span> pickup_zip,
+    <pre><span class="cm">-- 1. top pickup zips by number of trips</span>
+<span class="kw">SELECT</span> pickup_zip,
        <span class="fn">count</span>(*) <span class="kw">AS</span> trips,
        <span class="fn">round</span>(<span class="fn">avg</span>(fare_amount), <span class="num">2</span>) <span class="kw">AS</span> avg_fare
 <span class="kw">FROM</span> <span class="tbl">samples.nyctaxi.trips</span>
@@ -580,25 +583,26 @@ az databricks workspace show \
 <span class="kw">ORDER BY</span> trips <span class="kw">DESC</span>
 <span class="kw">LIMIT</span> <span class="num">10</span>;</pre>
   </div>
-  <ol start="2">
-    <li>Data engineering: tatáž data za chvíli v notebooku (krok 4). ML: jen ukažte v sidebaru <strong>Experiments</strong> a <strong>Models</strong>.</li>
+  <ol start="3">
+    <li><em>Jen slovně:</em> data engineering: tatáž data za chvíli v notebooku (krok 4). ML: jen ukažte v sidebaru <strong>Experiments</strong> a <strong>Models</strong>.</li>
   </ol>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> analytik v SQL editoru, inženýr v notebooku a data scientist v experimentu pracují nad stejnou tabulkou a stejnými oprávněními. Nic se nekopíruje do odděleného skladu.</div></div>
 
   <h3>Krok 4 – Klíčové koncepty: compute a notebook</h3>
   <ol>
-    <li>V SQL editoru ukažte, kdo a kde dotaz spouští:</li>
+    <li>V SQL editoru ukažte, kdo a kde dotaz spouští (skript níže):</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">SELECT</span> <span class="fn">current_metastore</span>(), <span class="fn">current_catalog</span>(), <span class="fn">current_user</span>(), <span class="fn">current_version</span>();</pre>
+    <pre><span class="cm">-- 1. who runs the query and where</span>
+<span class="kw">SELECT</span> <span class="fn">current_metastore</span>(), <span class="fn">current_catalog</span>(), <span class="fn">current_user</span>(), <span class="fn">current_version</span>();</pre>
   </div>
   <ol start="2">
-    <li><strong>+ New → Notebook</strong>, připojte <strong>Serverless</strong> a vytvořte tři buňky: Python, <code class="inline">%sql</code> a <code class="inline">%md</code>.</li>
+    <li><em>V UI:</em> <strong>+ New → Notebook</strong>, připojte <strong>Serverless</strong> a do tří buněk vložte kód níže: Python, <code class="inline">%sql</code> a <code class="inline">%md</code> (v kódu jsou odděleny řádky <code class="inline"># bunka 1</code> až <code class="inline"># bunka 3</code>; ty do buněk nekopírujte, <code class="inline">%sql</code> a <code class="inline">%md</code> musí být první řádek své buňky).</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># bunka 1: Python nad tabulkou Unity Catalogu</span>
+    <pre><span class="cm"># 2. bunka 1: Python nad tabulkou Unity Catalogu</span>
 df = spark.<span class="fn">table</span>(<span class="str">"samples.nyctaxi.trips"</span>)
 <span class="fn">print</span>(spark.version, df.<span class="fn">count</span>())
 
@@ -615,13 +619,16 @@ df = spark.<span class="fn">table</span>(<span class="str">"samples.nyctaxi.trip
 
   <h3>Krok 5 – Lakehouse a Delta Lake</h3>
   <ol>
-    <li>Vytvořte z ukázkových dat vlastní Delta tabulku, změňte jeden řádek a ukažte historii a time travel.</li>
+    <li>Vytvořte z ukázkových dat vlastní Delta tabulku a ukažte <code class="inline">DESCRIBE DETAIL</code>.</li>
+    <li>Změňte jeden řádek („omyl“) a ukažte historii verzí.</li>
+    <li>Přes <code class="inline">VERSION AS OF</code> porovnejte původní a aktuální hodnotu (time travel).</li>
+    <li>Vraťte tabulku před chybu přes <code class="inline">RESTORE</code>.</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">CREATE SCHEMA IF NOT EXISTS</span> <span class="tbl">dp750.m01</span> <span class="kw">COMMENT</span> <span class="str">'Demo modulu 1: prvni Delta tabulka'</span>;
+    <pre><span class="cm">-- 1. schema and Delta table: CTAS without USING = Delta</span>
+<span class="kw">CREATE SCHEMA IF NOT EXISTS</span> <span class="tbl">dp750.m01</span> <span class="kw">COMMENT</span> <span class="str">'Demo modulu 1: prvni Delta tabulka'</span>;
 
-<span class="cm">-- CTAS bez USING = Delta</span>
 <span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750.m01.taxi_by_zip</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> pickup_zip, <span class="fn">count</span>(*) <span class="kw">AS</span> trips, <span class="fn">round</span>(<span class="fn">avg</span>(fare_amount), <span class="num">2</span>) <span class="kw">AS</span> avg_fare
 <span class="kw">FROM</span> <span class="tbl">samples.nyctaxi.trips</span>
@@ -629,28 +636,30 @@ df = spark.<span class="fn">table</span>(<span class="str">"samples.nyctaxi.trip
 
 <span class="kw">DESCRIBE DETAIL</span> <span class="tbl">dp750.m01.taxi_by_zip</span>;
 
-<span class="cm">-- zamerna "chyba"</span>
+<span class="cm">-- 2. zamerna "chyba", pak historie verzi</span>
 <span class="kw">UPDATE</span> <span class="tbl">dp750.m01.taxi_by_zip</span> <span class="kw">SET</span> avg_fare = <span class="num">0</span> <span class="kw">WHERE</span> pickup_zip = <span class="str">'10001'</span>;
 
 <span class="kw">DESCRIBE HISTORY</span> <span class="tbl">dp750.m01.taxi_by_zip</span>;
 
+<span class="cm">-- 3. time travel: verze 0 proti aktualnimu stavu</span>
 <span class="kw">SELECT</span> <span class="str">'verze 0'</span> <span class="kw">AS</span> stav, avg_fare <span class="kw">FROM</span> <span class="tbl">dp750.m01.taxi_by_zip</span> <span class="kw">VERSION AS OF</span> <span class="num">0</span> <span class="kw">WHERE</span> pickup_zip = <span class="str">'10001'</span>
 <span class="kw">UNION ALL</span>
 <span class="kw">SELECT</span> <span class="str">'aktualni'</span>, avg_fare <span class="kw">FROM</span> <span class="tbl">dp750.m01.taxi_by_zip</span> <span class="kw">WHERE</span> pickup_zip = <span class="str">'10001'</span>;
 
-<span class="cm">-- navrat pred chybu</span>
+<span class="cm">-- 4. navrat pred chybu</span>
 <span class="kw">RESTORE TABLE</span> <span class="tbl">dp750.m01.taxi_by_zip</span> <span class="kw">TO VERSION AS OF</span> <span class="num">0</span>;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> <code class="inline">DESCRIBE DETAIL</code> ukáže <code class="inline">format = delta</code> a mezi vlastnostmi a table features typicky i zapnuté deletion vectors. V historii je verze 0 (CTAS) a 1 (UPDATE). Time travel vrátí původní průměr, <code class="inline">RESTORE</code> ho vrátí do tabulky jako novou verzi; historie se nemaže.</div></div>
 
   <h3>Krok 6 – Data governance: Unity Catalog a Microsoft Purview</h3>
   <ol>
-    <li>Catalog Explorer → <code class="inline">dp750</code> → <code class="inline">m01</code> → <code class="inline">taxi_by_zip</code>: záložky <strong>Details</strong>, <strong>History</strong>, <strong>Lineage</strong> a <strong>Permissions</strong>.</li>
-    <li>Totéž jako metadata v SQL:</li>
+    <li><em>V UI:</em> Catalog Explorer → <code class="inline">dp750</code> → <code class="inline">m01</code> → <code class="inline">taxi_by_zip</code>: záložky <strong>Details</strong>, <strong>History</strong>, <strong>Lineage</strong> a <strong>Permissions</strong>.</li>
+    <li>Totéž jako metadata v SQL (skript níže):</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">SELECT</span> table_catalog, table_schema, table_name, table_type, table_owner
+    <pre><span class="cm">-- 2. the same metadata via information_schema</span>
+<span class="kw">SELECT</span> table_catalog, table_schema, table_name, table_type, table_owner
 <span class="kw">FROM</span> <span class="tbl">system.information_schema.tables</span>
 <span class="kw">WHERE</span> table_catalog = <span class="str">'dp750'</span> <span class="kw">AND</span> table_schema = <span class="str">'m01'</span>;</pre>
   </div>
@@ -659,7 +668,7 @@ df = spark.<span class="fn">table</span>(<span class="str">"samples.nyctaxi.trip
 
   <h3>Úklid</h3>
   <ol>
-    <li>Notebook z kroku 4 smažte, nebo ho nechte ve vlastní složce.</li>
+    <li><em>V UI:</em> notebook z kroku 4 smažte, nebo ho nechte ve vlastní složce.</li>
     <li>Schéma <code class="inline">dp750.m01</code> nechte do konce kurzu. Po kurzu: <code class="inline">DROP SCHEMA dp750.m01 CASCADE;</code></li>
   </ol>
 </div>

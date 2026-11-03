@@ -718,15 +718,17 @@ $$;
     <h2>Runbook: ukázka krok za krokem</h2>
   </div>
   <p>Ukázka postaví malý namespace pro sdílená kola v Brně: katalog, schéma, tabulky s PK/FK, view, materialized view, volume, funkce, proceduru a tagy, a na konci obnoví smazanou tabulku. Běží v lektorském workspace v katalogu <code class="inline">dp750</code>, schéma <code class="inline">m03</code>, na syntetických datech.</p>
-  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> serverless SQL warehouse (materialized view a Python UDF na něm běží), katalog <code class="inline">dp750</code>, privilegium <code class="inline">CREATE CATALOG</code> na metastoru pro krok 2 a malý CSV soubor <code class="inline">station_status.csv</code> pro krok 5 (obsah je v kroku). Zástupné hodnoty v kódu (<code class="inline">&lt;profil&gt;</code>, <code class="inline">&lt;katalog_workspace&gt;</code>) mají hned pod sebou zakomentovaný řádek <code class="inline">lektor:</code> s hodnotami lektorského prostředí (profil <code class="inline">jirin</code>, katalog workspace <code class="inline">dp750</code>); ten řádek zkopírujte bez úvodního <code class="inline">#</code> nebo <code class="inline">--</code>. Celá ukázka zabere asi 15 minut.</div></div>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> serverless SQL warehouse (materialized view a Python UDF na něm běží), katalog <code class="inline">dp750</code>, privilegium <code class="inline">CREATE CATALOG</code> na metastoru pro krok 2 a složka s právem zápisu pro malý CSV soubor <code class="inline">station_status.csv</code>, který si skript v kroku 5 sám vytvoří. Zástupné hodnoty v kódu (<code class="inline">&lt;profil&gt;</code>, <code class="inline">&lt;katalog_workspace&gt;</code>) mají hned pod sebou zakomentovaný řádek <code class="inline">lektor:</code> s hodnotami lektorského prostředí (profil <code class="inline">jirin</code>, katalog workspace <code class="inline">dp750</code>); ten řádek zkopírujte bez úvodního <code class="inline">#</code> nebo <code class="inline">--</code>. Celá ukázka zabere asi 15 minut.</div></div>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Jak číst kroky:</strong> skripty jsou převážně SQL pro SQL editor připojený na serverless SQL warehouse; krok 5 a 7 mají i příkazy pro terminál (bash, PowerShell) a krok 7 Python buňku notebooku. Zkopírujte blok tlačítkem Kopírovat a pusťte ho najednou; v UI při tom nic neklikáte. Číslované body nad skriptem nejsou samostatné úkony, popisují, co skript dělá a co ukázat. Stejná čísla najdete ve skriptu jako komentáře <code class="inline">-- 1.</code> (SQL) a <code class="inline"># 1.</code> (Python, bash, PowerShell). Body označené <em>V UI:</em> jsou kliknutí ve workspace (Catalog Explorer, průvodce connection, Genie); jejich prohlídka je v tomto modulu sama předmětem výkladu, takže ve skriptu nejsou. Výjimka: kde komentář ve skriptu hlásí záměrnou chybu (krok 2, krok 6), nebo je zástupná hodnota v lomených závorkách (krok 2, 7), pusťte skript po částech: nejdřív část před chybným příkazem, pak chybný příkaz sám, pak zbytek.</div></div>
 
   <h3>Krok 1 – Třívrstvý namespace a naming conventions</h3>
   <ol>
-    <li>V SQL editoru projděte hierarchii shora dolů:</li>
+    <li>V SQL editoru projděte hierarchii shora dolů (skript níže):</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">SELECT</span> <span class="fn">current_metastore</span>();
+    <pre><span class="cm">-- 1. metastore, catalogs, schemas, then a naming check</span>
+<span class="kw">SELECT</span> <span class="fn">current_metastore</span>();
 <span class="kw">SHOW CATALOGS</span>;
 <span class="kw">SHOW SCHEMAS IN</span> <span class="tbl">dp750</span>;
 
@@ -740,43 +742,51 @@ $$;
 
   <h3>Krok 2 – Vytvoření katalogu</h3>
   <ol>
-    <li>Zkuste založit katalog bez úložiště, ať účastníci vidí chybu:</li>
+    <li>Zkuste založit katalog bez úložiště, ať účastníci vidí chybu.</li>
+    <li>Zjistěte, kde leží úložiště katalogu workspace.</li>
+    <li>Druhý pokus s <code class="inline">MANAGED LOCATION</code> pod Storage Root z předchozího příkazu a výpis schémat nového katalogu.</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">CREATE CATALOG IF NOT EXISTS</span> <span class="tbl">dp750_m03_sandbox</span> <span class="kw">COMMENT</span> <span class="str">'Docasny katalog z dema modulu 3'</span>;
+    <pre><span class="cm">-- 1. first attempt without storage (fails in the lecturer workspace)</span>
+<span class="kw">CREATE CATALOG IF NOT EXISTS</span> <span class="tbl">dp750_m03_sandbox</span> <span class="kw">COMMENT</span> <span class="str">'Docasny katalog z dema modulu 3'</span>;
 
-<span class="cm">-- kde lezi uloziste katalogu workspace</span>
+<span class="cm">-- 2. kde lezi uloziste katalogu workspace</span>
 <span class="kw">DESCRIBE CATALOG EXTENDED</span> <span class="tbl">&lt;katalog_workspace&gt;</span>;
 <span class="cm">-- lektor: DESCRIBE CATALOG EXTENDED dp750;</span>
 
-<span class="cm">-- druhy pokus s managed location pod Storage Root z predchoziho prikazu</span>
+<span class="cm">-- 3. druhy pokus s managed location pod Storage Root z predchoziho prikazu</span>
 <span class="kw">CREATE CATALOG IF NOT EXISTS</span> <span class="tbl">dp750_m03_sandbox</span>
 <span class="kw">MANAGED LOCATION</span> <span class="str">'&lt;storage_root&gt;/dp750_m03_sandbox'</span>
 <span class="kw">COMMENT</span> <span class="str">'Docasny katalog z dema modulu 3'</span>;
 
 <span class="kw">SHOW SCHEMAS IN</span> <span class="tbl">dp750_m03_sandbox</span>;</pre>
   </div>
-  <ol start="2">
-    <li>Catalog Explorer → <code class="inline">dp750_m03_sandbox</code> → záložka <strong>Workspaces</strong>: ukažte volbu <strong>All workspaces have access</strong> (workspace bindings).</li>
+  <ol start="4">
+    <li><em>V UI:</em> Catalog Explorer → <code class="inline">dp750_m03_sandbox</code> → záložka <strong>Workspaces</strong>: ukažte volbu <strong>All workspaces have access</strong> (workspace bindings).</li>
   </ol>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> v lektorském workspace metastore nemá vlastní storage root a první příkaz skončí chybou <code class="inline">INVALID_STATE … Metastore storage root URL does not exist</code>. Chyba sama radí buď <code class="inline">MANAGED LOCATION</code>, nebo založení přes UI s Default Storage. Nový katalog má hned schémata <code class="inline">default</code> a <code class="inline">information_schema</code>.</div></div>
 
   <h3>Krok 3 – Vytvoření schématu</h3>
+  <ol>
+    <li>Založte schéma a ukažte jeho vlastnosti včetně úložiště (skript níže).</li>
+  </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">CREATE SCHEMA IF NOT EXISTS</span> <span class="tbl">dp750.m03</span> <span class="kw">COMMENT</span> <span class="str">'Demo modulu 3: sdilena kola Brno'</span>;
+    <pre><span class="cm">-- 1. schema and its properties (storage fallback)</span>
+<span class="kw">CREATE SCHEMA IF NOT EXISTS</span> <span class="tbl">dp750.m03</span> <span class="kw">COMMENT</span> <span class="str">'Demo modulu 3: sdilena kola Brno'</span>;
 <span class="kw">DESCRIBE SCHEMA EXTENDED</span> <span class="tbl">dp750.m03</span>;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> schéma bez vlastní managed location ukládá do úložiště katalogu. Řetězec fallbacku je schema → catalog → metastore; tady končí na katalogu, protože metastore úložiště nemá.</div></div>
 
   <h3>Krok 4 – Tabulky a views</h3>
   <ol>
-    <li>Dvě managed tabulky s PK/FK, data a pokus o duplicitní klíč:</li>
+    <li>Dvě managed tabulky s PK/FK, data a pokus o duplicitní klíč (skript níže):</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750.m03.stations</span> (
+    <pre><span class="cm">-- 1. two managed tables with PK/FK, data, duplicate key test</span>
+<span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750.m03.stations</span> (
   station_id   <span class="kw">INT NOT NULL COMMENT</span> <span class="str">'ID stanice'</span>,
   station_name <span class="kw">STRING</span>,
   district     <span class="kw">STRING</span>,
@@ -810,11 +820,12 @@ $$;
 <span class="kw">DELETE FROM</span> <span class="tbl">dp750.m03.stations</span> <span class="kw">WHERE</span> station_name = <span class="str">'Duplicitni stanice'</span>;</pre>
   </div>
   <ol start="2">
-    <li>Standardní view a materialized view nad stejnými tabulkami:</li>
+    <li>Standardní view a materialized view nad stejnými tabulkami (skript níže):</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">CREATE OR REPLACE VIEW</span> <span class="tbl">dp750.m03.vw_long_rides</span>
+    <pre><span class="cm">-- 2. standard view and materialized view over the same tables</span>
+<span class="kw">CREATE OR REPLACE VIEW</span> <span class="tbl">dp750.m03.vw_long_rides</span>
 <span class="kw">COMMENT</span> <span class="str">'Vypujcky delsi nez 30 minut'</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> r.ride_id, s.station_name, r.minutes, r.price_czk
 <span class="kw">FROM</span> <span class="tbl">dp750.m03.rides</span> r
@@ -836,39 +847,51 @@ $$;
 
   <h3>Krok 5 – Volumes: governance pro soubory</h3>
   <ol>
-    <li>Založte volume a nahrajte do něj CSV. Buď v Catalog Exploreru (volume → <strong>Upload to this volume</strong>), nebo z CLI:</li>
+    <li>Založte volume (skript níže).</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">CREATE VOLUME IF NOT EXISTS</span> <span class="tbl">dp750.m03.raw_exports</span> <span class="kw">COMMENT</span> <span class="str">'CSV exporty z terminalu stanic'</span>;</pre>
+    <pre><span class="cm">-- 1. managed volume for files</span>
+<span class="kw">CREATE VOLUME IF NOT EXISTS</span> <span class="tbl">dp750.m03.raw_exports</span> <span class="kw">COMMENT</span> <span class="str">'CSV exporty z terminalu stanic'</span>;</pre>
   </div>
+  <ol start="2">
+    <li>Vytvořte lokálně malý CSV soubor a nahrajte ho do volume z CLI. V Catalog Exploreru jde totéž přes <strong>Upload to this volume</strong>, skript to nahrazuje.</li>
+  </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">BASH</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># obsah station_status.csv:</span>
-<span class="cm"># station_id,checked_at,bikes_available</span>
-<span class="cm"># 1,2026-10-03T07:00:00,8</span>
-<span class="cm"># 2,2026-10-03T07:00:00,3</span>
-<span class="cm"># 3,2026-10-03T07:00:00,0</span>
-databricks fs cp station_status.csv dbfs:/Volumes/dp750/m03/raw_exports/station_status.csv --profile <span class="str">&lt;profil&gt;</span>
-<span class="cm"># lektor: databricks fs cp station_status.csv dbfs:/Volumes/dp750/m03/raw_exports/station_status.csv --profile jirin</span></pre>
+    <pre><span class="cm"># 2. create station_status.csv in the current folder, then upload it</span>
+<span class="kw">cat</span> &gt; station_status.csv &lt;&lt;<span class="str">'EOF'</span>
+station_id,checked_at,bikes_available
+1,2026-10-03T07:00:00,8
+2,2026-10-03T07:00:00,3
+3,2026-10-03T07:00:00,0
+EOF
+databricks fs cp station_status.csv dbfs:/Volumes/dp750/m03/raw_exports/station_status.csv --overwrite --profile <span class="str">&lt;profil&gt;</span>
+<span class="cm"># lektor: databricks fs cp station_status.csv dbfs:/Volumes/dp750/m03/raw_exports/station_status.csv --overwrite --profile jirin</span></pre>
   </div>
+  <ol start="3">
+    <li>Vypište obsah volume a přečtěte soubor z SQL.</li>
+  </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">LIST</span> <span class="str">'/Volumes/dp750/m03/raw_exports'</span>;
+    <pre><span class="cm">-- 3. list the volume and read the file</span>
+<span class="kw">LIST</span> <span class="str">'/Volumes/dp750/m03/raw_exports'</span>;
 
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="fn">read_files</span>(<span class="str">'/Volumes/dp750/m03/raw_exports/station_status.csv'</span>,
                         format =&gt; <span class="str">'csv'</span>, header =&gt; <span class="kw">true</span>);</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> soubor má cestu <code class="inline">/Volumes/katalog/schema/volume/…</code> a čte se bez klíčů a connection stringů. <code class="inline">read_files</code> odvodí typy a přidá sloupec <code class="inline">_rescued_data</code> pro hodnoty, které do schématu nesednou.</div></div>
-  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> v Git Bash na Windows přepíše shell cestu <code class="inline">/Volumes/…</code> na windowsovou. Před příkazem nastavte <code class="inline">export MSYS_NO_PATHCONV=1</code>, nebo pusťte příkaz z PowerShellu.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> v Git Bash na Windows přepíše shell cestu <code class="inline">/Volumes/…</code> na windowsovou. Před skriptem nastavte <code class="inline">export MSYS_NO_PATHCONV=1</code>, nebo pusťte samotný příkaz <code class="inline">databricks fs cp</code> z PowerShellu (soubor <code class="inline">station_status.csv</code> si pak založte ručně se stejným obsahem).</div></div>
 
   <h3>Krok 6 – DDL operace: funkce, procedury, ALTER a tagy</h3>
   <ol>
-    <li>SQL funkce, Python funkce a procedura s kontrolou vstupu:</li>
+    <li>SQL funkce a Python funkce a jejich volání v dotazu.</li>
+    <li>Procedura s kontrolou vstupu: první <code class="inline">CALL</code> projde, druhý záměrně selže; pak <code class="inline">REFRESH MATERIALIZED VIEW</code>.</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">CREATE OR REPLACE FUNCTION</span> <span class="tbl">dp750.m03.fn_tariff</span>(minutes <span class="kw">INT</span>)
+    <pre><span class="cm">-- 1. SQL function, Python function, and a query that uses both</span>
+<span class="kw">CREATE OR REPLACE FUNCTION</span> <span class="tbl">dp750.m03.fn_tariff</span>(minutes <span class="kw">INT</span>)
 <span class="kw">RETURNS STRING</span>
 <span class="kw">COMMENT</span> <span class="str">'Tarifni pasmo podle delky vypujcky'</span>
 <span class="kw">RETURN CASE WHEN</span> minutes &lt;= <span class="num">15</span> <span class="kw">THEN</span> <span class="str">'zaklad'</span>
@@ -891,6 +914,7 @@ $$;
 <span class="kw">FROM</span> <span class="tbl">dp750.m03.rides</span> r <span class="kw">JOIN</span> <span class="tbl">dp750.m03.stations</span> s <span class="kw">USING</span> (station_id)
 <span class="kw">ORDER BY</span> r.ride_id;
 
+<span class="cm">-- 2. procedure with input check, two calls (the second one fails on purpose), then refresh</span>
 <span class="kw">CREATE OR REPLACE PROCEDURE</span> <span class="tbl">dp750.m03.sp_add_ride</span>(
   <span class="kw">IN</span> p_ride_id <span class="kw">BIGINT</span>, <span class="kw">IN</span> p_station_id <span class="kw">INT</span>, <span class="kw">IN</span> p_minutes <span class="kw">INT</span>)
 <span class="kw">LANGUAGE SQL SQL SECURITY INVOKER</span>
@@ -906,12 +930,13 @@ $$;
 <span class="kw">CALL</span> <span class="fn">dp750.m03.sp_add_ride</span>(<span class="num">1007</span>, <span class="num">2</span>, <span class="num">0</span>);   <span class="cm">-- zamerna chyba</span>
 <span class="kw">REFRESH MATERIALIZED VIEW</span> <span class="tbl">dp750.m03.mv_rides_by_district</span>;</pre>
   </div>
-  <ol start="2">
-    <li>ALTER: nový sloupec, rozšíření typu a tagy:</li>
+  <ol start="3">
+    <li>ALTER: nový sloupec, rozšíření typu a tagy (první pokus o rozšíření typu záměrně selže):</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">ALTER TABLE</span> <span class="tbl">dp750.m03.rides</span> <span class="kw">ADD COLUMN</span> bike_type <span class="kw">STRING COMMENT</span> <span class="str">'mechanicke nebo elektro'</span>;
+    <pre><span class="cm">-- 3. new column, type widening, schema and table tags</span>
+<span class="kw">ALTER TABLE</span> <span class="tbl">dp750.m03.rides</span> <span class="kw">ADD COLUMN</span> bike_type <span class="kw">STRING COMMENT</span> <span class="str">'mechanicke nebo elektro'</span>;
 
 <span class="cm">-- prvni pokus selze, druhy po zapnuti type widening projde</span>
 <span class="kw">ALTER TABLE</span> <span class="tbl">dp750.m03.rides</span> <span class="kw">ALTER COLUMN</span> minutes <span class="kw">TYPE BIGINT</span>;
@@ -925,12 +950,13 @@ $$;
 <span class="kw">FROM</span> <span class="tbl">system.information_schema.schema_tags</span>
 <span class="kw">WHERE</span> catalog_name = <span class="str">'dp750'</span> <span class="kw">AND</span> schema_name = <span class="str">'m03'</span>;</pre>
   </div>
-  <ol start="3">
+  <ol start="4">
     <li>Obnova smazané managed tabulky (na kopii, ať nerozbijete view a MV):</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750.m03.tmp_rides_copy</span> <span class="kw">AS SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m03.rides</span>;
+    <pre><span class="cm">-- 4. drop a copy of the table and bring it back</span>
+<span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750.m03.tmp_rides_copy</span> <span class="kw">AS SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m03.rides</span>;
 <span class="kw">DROP TABLE</span> <span class="tbl">dp750.m03.tmp_rides_copy</span>;
 <span class="kw">SHOW TABLES DROPPED IN</span> <span class="tbl">dp750.m03</span>;
 <span class="kw">UNDROP TABLE</span> <span class="tbl">dp750.m03.tmp_rides_copy</span>;
@@ -941,12 +967,12 @@ $$;
 
   <h3>Krok 7 – Foreign catalog a Lakehouse Federation</h3>
   <ol>
-    <li>Catalog → ikona <strong>+</strong> nahoře v panelu → <strong>Create a connection</strong>. Projděte průvodce (Connection type, Authentication) a ukažte, že na konci rovnou nabízí založení foreign catalogu. <strong>Nic neukládejte</strong>, pokud nemáte připravenou testovací databázi.</li>
+    <li><em>V UI:</em> Catalog → ikona <strong>+</strong> nahoře v panelu → <strong>Create a connection</strong>. Projděte průvodce (Connection type, Authentication) a ukažte, že na konci rovnou nabízí založení foreign catalogu. <strong>Nic neukládejte</strong>, pokud nemáte připravenou testovací databázi.</li>
     <li>Připravte přihlášení do zdrojové databáze jako <strong>secret</strong>. Secret je dvojice klíč a hodnota uložená v <strong>secret scope</strong> (pojmenovaná skupina secretů ve workspace). Secret scopes v UI workspace nenajdete, zakládají se a prohlížejí přes CLI, API nebo <code class="inline">dbutils</code> (novější Unity Catalog secrets v Catalog Exploreru jsou jiný objekt, viz odkaz na Learn níže). Hodnoty níže jsou jen ukázkové:</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">POWERSHELL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># scope (Databricks-backed) a dva secrety; jednoduche uvozovky, at PowerShell nerozbali $</span>
+    <pre><span class="cm"># 2. scope (Databricks-backed) a dva secrety; jednoduche uvozovky, at PowerShell nerozbali $</span>
 databricks secrets create-scope <span class="str">dp750-demo</span> -p <span class="str">&lt;profil&gt;</span>
 <span class="cm"># lektor: databricks secrets create-scope dp750-demo -p jirin</span>
 databricks secrets put-secret <span class="str">dp750-demo</span> <span class="str">pg-user</span> --string-value <span class="str">'demo_reader'</span> -p <span class="str">&lt;profil&gt;</span>
@@ -966,11 +992,12 @@ $v = (databricks secrets get-secret <span class="str">dp750-demo</span> <span cl
 [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($v))   <span class="cm"># Pa$$w0rd</span></pre>
   </div>
   <ol start="3">
-    <li>Ukažte, jak secret čte kód. V notebooku (Python) i v SQL se hodnota ve výstupu zobrazí jako <code class="inline">[REDACTED]</code>, ale kód s ní pracuje normálně:</li>
+    <li>Ukažte, jak secret čte kód (skripty níže). V notebooku (Python) i v SQL se hodnota ve výstupu zobrazí jako <code class="inline">[REDACTED]</code>, ale kód s ní pracuje normálně:</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="fn">print</span>(dbutils.secrets.<span class="fn">listScopes</span>())
+    <pre><span class="cm"># 3. list scopes and keys, read a secret (the value is redacted in output)</span>
+<span class="fn">print</span>(dbutils.secrets.<span class="fn">listScopes</span>())
 <span class="fn">print</span>(dbutils.secrets.<span class="fn">list</span>(<span class="str">"dp750-demo"</span>))
 
 heslo = dbutils.secrets.<span class="fn">get</span>(scope=<span class="str">"dp750-demo"</span>, key=<span class="str">"pg-password"</span>)
@@ -979,15 +1006,17 @@ heslo = dbutils.secrets.<span class="fn">get</span>(scope=<span class="str">"dp7
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">SELECT</span> <span class="fn">secret</span>(<span class="str">'dp750-demo'</span>, <span class="str">'pg-password'</span>) <span class="kw">AS</span> <span class="col">heslo</span>,          <span class="cm">-- [REDACTED]</span>
+    <pre><span class="cm">-- 3. the same in SQL</span>
+<span class="kw">SELECT</span> <span class="fn">secret</span>(<span class="str">'dp750-demo'</span>, <span class="str">'pg-password'</span>) <span class="kw">AS</span> <span class="col">heslo</span>,          <span class="cm">-- [REDACTED]</span>
        <span class="fn">length</span>(<span class="fn">secret</span>(<span class="str">'dp750-demo'</span>, <span class="str">'pg-password'</span>)) <span class="kw">AS</span> <span class="col">delka</span>; <span class="cm">-- 8</span></pre>
   </div>
   <ol start="4">
-    <li>V SQL ukažte, že connection je samostatný objekt, a šablonu obou příkazů. Přihlášení bere ze secretů z předchozího kroku:</li>
+    <li>V SQL ukažte, že connection je samostatný objekt, a šablonu obou příkazů. Přihlášení bere ze secretů z předchozího kroku (skript níže):</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">SHOW CONNECTIONS</span>;
+    <pre><span class="cm">-- 4. existing connections, then the template (needs a real test database)</span>
+<span class="kw">SHOW CONNECTIONS</span>;
 
 <span class="cm">-- sablona, spoustejte jen proti vlastni testovaci databazi</span>
 <span class="kw">CREATE CONNECTION</span> pg_bikes_test <span class="kw">TYPE</span> postgresql
@@ -1005,10 +1034,10 @@ heslo = dbutils.secrets.<span class="fn">get</span>(scope=<span class="str">"dp7
 
   <h3>Krok 8 – AI/BI Genie instructions</h3>
   <ol>
-    <li>Sidebar → <strong>Genie Agents</strong> (dříve Genie spaces) → <strong>New</strong>, jako zdroje vyberte <code class="inline">stations</code>, <code class="inline">rides</code> a <code class="inline">mv_rides_by_district</code> → <strong>Create</strong>.</li>
-    <li>Ukažte, že join mezi tabulkami si Genie odvodil z PK/FK z kroku 4.</li>
-    <li>V <strong>Configure</strong> přidejte obecnou textovou instrukci „Tržby počítej ze sloupce price_czk v Kč, výpůjčky delší než 60 minut jsou dlouhé.“ a na záložce <strong>Examples</strong> vzorový dotaz s otázkou „Kolik vydělala která městská část?“ a SQL nad <code class="inline">mv_rides_by_district</code>.</li>
-    <li>Položte otázku „Které stanice mají dlouhé výpůjčky?“ a přes <strong>Show generated code</strong> zkontrolujte SQL.</li>
+    <li><em>V UI:</em> Sidebar → <strong>Genie Agents</strong> (dříve Genie spaces) → <strong>New</strong>, jako zdroje vyberte <code class="inline">stations</code>, <code class="inline">rides</code> a <code class="inline">mv_rides_by_district</code> → <strong>Create</strong>.</li>
+    <li><em>V UI:</em> Ukažte, že join mezi tabulkami si Genie odvodil z PK/FK z kroku 4.</li>
+    <li><em>V UI:</em> V <strong>Configure</strong> přidejte obecnou textovou instrukci „Tržby počítej ze sloupce price_czk v Kč, výpůjčky delší než 60 minut jsou dlouhé.“ a na záložce <strong>Examples</strong> vzorový dotaz s otázkou „Kolik vydělala která městská část?“ a SQL nad <code class="inline">mv_rides_by_district</code>.</li>
+    <li><em>V UI:</em> Položte otázku „Které stanice mají dlouhé výpůjčky?“ a přes <strong>Show generated code</strong> zkontrolujte SQL.</li>
   </ol>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> komentáře, PK/FK a jasná jména z předchozích kroků jsou kontext, který Genie čte sám. Ruční instrukce dávejte až na to, co z metadat vyčíst nejde.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> Genie Agent potřebuje pro/serverless SQL warehouse a zapnuté partner-powered AI funkce na úrovni accountu a workspace. Bez nich ikona v sidebaru je, ale agent nepůjde použít.</div></div>
@@ -1017,7 +1046,7 @@ heslo = dbutils.secrets.<span class="fn">get</span>(scope=<span class="str">"dp7
   <ol>
     <li>Ihned po ukázce: <code class="inline">DROP CATALOG dp750_m03_sandbox CASCADE;</code></li>
     <li>Secret scope z kroku 7: <code class="inline">databricks secrets delete-scope dp750-demo -p &lt;profil&gt;</code> (smaže i oba secrety; lektor: <code class="inline">-p jirin</code>).</li>
-    <li>Genie Agent smažte (menu ⋮ → <strong>Move to trash</strong>), pokud ho nechcete dál ukazovat.</li>
+    <li><em>V UI:</em> Genie Agent smažte (menu ⋮ → <strong>Move to trash</strong>), pokud ho nechcete dál ukazovat.</li>
     <li>Schéma <code class="inline">dp750.m03</code> nechte do konce kurzu (Catalog Explorer v dalších modulech). Po kurzu: <code class="inline">DROP SCHEMA dp750.m03 CASCADE;</code></li>
   </ol>
 </div>

@@ -522,11 +522,13 @@ dbutils.jobs.taskValues.<span class="fn">set</span>(key<span class="op">=</span>
     <h2>Runbook: ukázka krok za krokem</h2>
   </div>
   <p>Ukázka staví malou pipeline nad událostmi výdejních boxů na zásilky: surová data v bronze, karanténa vadných řádků, idempotentní MERGE do silver, agregace do gold, quality gate v jobu a nakonec stejný tok deklarativně. Běží v lektorském workspace na vlastních syntetických datech ve schématu <code class="inline">dp750.m10</code>, ne na datech labu.</p>
-  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> serverless SQL warehouse a serverless compute pro notebooky, joby a pipelines; katalog <code class="inline">dp750</code>. Předem spusť SQL z kroků 1, 2 a 4 (vytvoří schéma, tabulky a volume), do volume <code class="inline">dp750.m10.landing</code> nahraj dva JSON soubory z kroku 6 a založ tři notebooky z kroku 5 a job z kroku 3. Pipeline z kroku 6 stačí založit ve třídě. Asi 15 minut přípravy, ukázka 10 minut.</div></div>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> serverless SQL warehouse a serverless compute pro notebooky, joby a pipelines; katalog <code class="inline">dp750</code>. Předem spusť SQL z kroků 1, 2 a 4 (vytvoří schéma a tabulky) a Python buňku z kroku 6, bod 1 (založí volume <code class="inline">dp750.m10.landing</code> a zapíše do něj dva JSON soubory), založ tři notebooky z kroku 5 a job z kroku 3. Pipeline z kroku 6 stačí založit ve třídě. Asi 15 minut přípravy, ukázka 10 minut.</div></div>
+
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Jak číst kroky:</strong> kroky 1, 2 a 4 jsou <strong>SQL skripty</strong> pro SQL editor, kroky 4 a 5 mají i <strong>buňku Python notebooku</strong>, krok 6 je Python buňka, SQL dotaz a zdrojový soubor pipeline. Kód zkopíruj tlačítkem Kopírovat a vlož do editoru nebo buňky. Číslované body nad kódem nejsou samostatné úkony, popisují, co kód dělá; stejná čísla najdeš v kódu jako komentáře <code class="inline">-- 1.</code> (SQL) a <code class="inline"># 1.</code> (Python). Bod označený <em>Jen slovně</em> v kódu není, jen se řekne nahlas. Bod označený <em>V UI</em> je klik v prohlížeči (job, notebooky, pipeline); ty zůstávají v UI schválně, protože jsou předmětem ukázky.</div></div>
 
   <h3>Krok 1 – Návrh pořadí operací v pipeline</h3>
   <ol>
-    <li>Na tabuli nakresli tok odzadu: co chce konzument (denní přehled po boxech) → gold → silver → bronze → zdroj.</li>
+    <li><em>Jen slovně:</em> na tabuli nakresli tok odzadu: co chce konzument (denní přehled po boxech) → gold → silver → bronze → zdroj.</li>
     <li>V SQL editoru založ schéma a bronze tabulku. Všechny sloupce jsou záměrně <code class="inline">STRING</code>, bronze drží data tak, jak přišla.</li>
     <li>Ukaž výsledek posledního dotazu: 8 řádků, ale jen 7 různých <code class="inline">event_id</code> (událost <code class="inline">e04</code> přišla dvakrát).</li>
   </ol>
@@ -534,7 +536,7 @@ dbutils.jobs.taskValues.<span class="fn">set</span>(key<span class="op">=</span>
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
     <pre><span class="kw">CREATE SCHEMA IF NOT EXISTS</span> <span class="tbl">dp750.m10</span>;
 
-<span class="cm">-- bronze: surova data, vsechno jako text</span>
+<span class="cm">-- 2. bronze: surova data, vsechno jako text</span>
 <span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750.m10.parcel_events_bronze</span> (
   <span class="col">event_id</span> <span class="kw">STRING</span>, <span class="col">locker_id</span> <span class="kw">STRING</span>, <span class="col">event_ts</span> <span class="kw">STRING</span>,
   <span class="col">weight_kg</span> <span class="kw">STRING</span>, <span class="col">status</span> <span class="kw">STRING</span>, <span class="col">_ingested_at</span> <span class="kw">TIMESTAMP</span>);
@@ -549,6 +551,7 @@ dbutils.jobs.taskValues.<span class="fn">set</span>(key<span class="op">=</span>
   (<span class="str">'e06'</span>, <span class="str">'OSTRAVA-03'</span>, <span class="str">'2026-11-02 13:20:00'</span>, <span class="str">'5.0'</span>, <span class="str">'RETURNED'</span>,  <span class="fn">current_timestamp</span>()),
   (<span class="str">'e07'</span>, <span class="kw">NULL</span>,         <span class="str">'2026-11-02 14:00:00'</span>, <span class="str">'1.0'</span>, <span class="str">'DELIVERED'</span>, <span class="fn">current_timestamp</span>());
 
+<span class="cm">-- 3. result: 8 rows, 7 distinct events</span>
 <span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">AS</span> <span class="col">total_rows</span>, <span class="fn">count</span>(<span class="kw">DISTINCT</span> <span class="col">event_id</span>) <span class="kw">AS</span> <span class="col">distinct_events</span>
 <span class="kw">FROM</span> <span class="tbl">dp750.m10.parcel_events_bronze</span>;</pre>
   </div>
@@ -557,11 +560,12 @@ dbutils.jobs.taskValues.<span class="fn">set</span>(key<span class="op">=</span>
   <h3>Krok 2 – Volba: notebook, nebo deklarativní pipeline?</h3>
   <ol>
     <li>Pusť dotaz, který spočítá vadné řádky. Výsledek je <code class="inline">bad_rows = 3</code>: <code class="inline">e03</code> (desetinná čárka), <code class="inline">e05</code> (jiný formát data), <code class="inline">e07</code> (chybí box).</li>
-    <li>Polož třídě otázku: tuhle logiku teď píšeme procedurálně (my rozhodujeme o pořadí, opakování a duplicitách). V kroku 6 napíšeme stejný tok deklarativně a porovnáme, kolik kódu za nás převezme framework.</li>
+    <li><em>Jen slovně:</em> polož třídě otázku: tuhle logiku teď píšeme procedurálně (my rozhodujeme o pořadí, opakování a duplicitách). V kroku 6 napíšeme stejný tok deklarativně a porovnáme, kolik kódu za nás převezme framework.</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">AS</span> <span class="col">bad_rows</span>
+    <pre><span class="cm">-- 1. count the bad rows (try_cast gives NULL, not an error)</span>
+<span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">AS</span> <span class="col">bad_rows</span>
 <span class="kw">FROM</span> <span class="tbl">dp750.m10.parcel_events_bronze</span>
 <span class="kw">WHERE</span> <span class="col">locker_id</span> <span class="kw">IS NULL</span>
    <span class="kw">OR</span> <span class="fn">try_cast</span>(<span class="col">event_ts</span> <span class="kw">AS TIMESTAMP</span>) <span class="kw">IS NULL</span>
@@ -579,10 +583,10 @@ dbutils.jobs.taskValues.<span class="fn">set</span>(key<span class="op">=</span>
     <tr><td><code class="inline">build_gold</code></td><td>Notebook <code class="inline">m10_build_gold</code></td><td><code class="inline">quality_gate (false)</code></td><td>–</td></tr>
   </table>
   <ol>
-    <li>Otevři job, ukaž graf a nastavení <code class="inline">quality_gate</code>.</li>
-    <li>Run now. V běhu klikni na <code class="inline">check_quality</code> (výstup <code class="inline">bad_rows = 3</code>) a pak zpět na graf: <code class="inline">quarantine_alert</code> proběhl, <code class="inline">build_gold</code> je přeskočený.</li>
-    <li>U <code class="inline">quarantine_alert</code> otevři pole Run if dependencies a projdi volby: All succeeded, At least one succeeded, None failed, All done, At least one failed, All failed.</li>
-    <li>Volitelně: For each task s Inputs <code class="inline">["BRNO-01","PRAHA-07","OSTRAVA-03"]</code> a v parametru vnořeného tasku <code class="inline">{{input}}</code>; jeden notebook pak běží jednou za každý box.</li>
+    <li><em>V UI:</em> otevři job, ukaž graf a nastavení <code class="inline">quality_gate</code>.</li>
+    <li><em>V UI:</em> run now. V běhu klikni na <code class="inline">check_quality</code> (výstup <code class="inline">bad_rows = 3</code>) a pak zpět na graf: <code class="inline">quarantine_alert</code> proběhl, <code class="inline">build_gold</code> je přeskočený.</li>
+    <li><em>V UI:</em> u <code class="inline">quarantine_alert</code> otevři pole Run if dependencies a projdi volby: All succeeded, At least one succeeded, None failed, All done, At least one failed, All failed.</li>
+    <li><em>V UI:</em> volitelně: For each task s Inputs <code class="inline">["BRNO-01","PRAHA-07","OSTRAVA-03"]</code> a v parametru vnořeného tasku <code class="inline">{{input}}</code>; jeden notebook pak běží jednou za každý box.</li>
   </ol>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> If/else větví podle dat, Run if podle výsledku předchůdců. Úklid patří na All done, notifikace o chybě na At least one failed.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> UI název tasku ani klíč task value v podmínce nedoplňuje. Překlep v <code class="inline">{{tasks.check_quality.values.bad_rows}}</code> se projeví až při běhu. Task value musí jít serializovat do JSON a mít nejvýš 48 KiB.</div></div>
@@ -595,7 +599,7 @@ dbutils.jobs.taskValues.<span class="fn">set</span>(key<span class="op">=</span>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- karantena (dead-letter) s duvodem odmitnuti</span>
+    <pre><span class="cm">-- 1. karantena (dead-letter) s duvodem odmitnuti</span>
 <span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750.m10.parcel_events_quarantine</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> *,
   <span class="kw">CASE WHEN</span> <span class="col">locker_id</span> <span class="kw">IS NULL THEN</span> <span class="str">'missing locker_id'</span>
@@ -611,7 +615,7 @@ dbutils.jobs.taskValues.<span class="fn">set</span>(key<span class="op">=</span>
   <span class="col">event_id</span> <span class="kw">STRING</span>, <span class="col">locker_id</span> <span class="kw">STRING</span>, <span class="col">event_ts</span> <span class="kw">TIMESTAMP</span>,
   <span class="col">weight_kg</span> <span class="kw">DECIMAL</span>(<span class="num">6</span>,<span class="num">2</span>), <span class="col">status</span> <span class="kw">STRING</span>);
 
-<span class="cm">-- idempotentni zapis: spust dvakrat, pocet radku v silver se nezmeni</span>
+<span class="cm">-- 2. idempotentni zapis: spust dvakrat, pocet radku v silver se nezmeni</span>
 <span class="kw">MERGE INTO</span> <span class="tbl">dp750.m10.parcel_events_silver</span> <span class="kw">AS</span> t
 <span class="kw">USING</span> (
   <span class="kw">SELECT</span> <span class="col">event_id</span>, <span class="col">locker_id</span>,
@@ -631,7 +635,8 @@ dbutils.jobs.taskValues.<span class="fn">set</span>(key<span class="op">=</span>
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">from</span> pyspark.errors <span class="kw">import</span> PySparkException
+    <pre><span class="cm"># 3. error class handling in a serverless notebook cell</span>
+<span class="kw">from</span> pyspark.errors <span class="kw">import</span> PySparkException
 
 <span class="kw">try</span>:
     spark.<span class="fn">table</span>(<span class="str">"dp750.m10.parcel_events_missing"</span>).<span class="fn">count</span>()
@@ -646,13 +651,15 @@ dbutils.jobs.taskValues.<span class="fn">set</span>(key<span class="op">=</span>
 
   <h3>Krok 5 – Pipeline z notebooků</h3>
   <ol>
-    <li>Ukaž tři notebooky, ze kterých je job z kroku 3 složený. <code class="inline">m10_check_quality</code> čte widget a nastavuje task value.</li>
-    <li>Pusť <code class="inline">m10_check_quality</code> interaktivně: vypíše <code class="inline">bad_rows = 3</code> a projde bez chyby. Řekni, že <code class="inline">taskValues.set</code> mimo job nic neukládá, hodnotu uvidí až downstream task v jobu.</li>
-    <li>Ukaž <code class="inline">m10_build_gold</code>: přepočet gold z silver je <code class="inline">CREATE OR REPLACE</code>, takže je také idempotentní.</li>
+    <li><em>V UI:</em> ukaž tři notebooky, ze kterých je job z kroku 3 složený. <code class="inline">m10_check_quality</code> čte widget a nastavuje task value.</li>
+    <li><em>V UI:</em> pusť <code class="inline">m10_check_quality</code> interaktivně: vypíše <code class="inline">bad_rows = 3</code> a projde bez chyby. Řekni, že <code class="inline">taskValues.set</code> mimo job nic neukládá, hodnotu uvidí až downstream task v jobu.</li>
+    <li><em>V UI:</em> ukaž <code class="inline">m10_build_gold</code>: přepočet gold z silver je <code class="inline">CREATE OR REPLACE</code>, takže je také idempotentní.</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># m10_check_quality</span>
+    <pre><span class="cm"># 1. three notebooks of the job from step 3, one cell each</span>
+<span class="cm"># m10_check_quality</span>
+<span class="cm"># 2. run interactively: prints bad_rows, the task value is stored only inside a job</span>
 dbutils.widgets.<span class="fn">text</span>(<span class="str">"source_table"</span>, <span class="str">"dp750.m10.parcel_events_bronze"</span>)
 source_table = dbutils.widgets.<span class="fn">get</span>(<span class="str">"source_table"</span>)
 
@@ -669,6 +676,7 @@ dbutils.jobs.taskValues.<span class="fn">set</span>(key=<span class="str">"bad_r
 <span class="fn">print</span>(<span class="str">"Quality gate failed: see dp750.m10.parcel_events_quarantine"</span>)
 
 <span class="cm"># m10_build_gold</span>
+<span class="cm"># 3. gold rebuild is CREATE OR REPLACE, so it is idempotent</span>
 spark.<span class="fn">sql</span>(<span class="str">"""
     CREATE OR REPLACE TABLE dp750.m10.locker_daily_gold AS
     SELECT locker_id, to_date(event_ts) AS event_date, count(*) AS events,
@@ -682,26 +690,33 @@ spark.<span class="fn">sql</span>(<span class="str">"""
 
   <h3>Krok 6 – Deklarativní pipelines: orchestrace a inkrementální zpracování</h3>
   <ol>
-    <li>Ve volume <code class="inline">dp750.m10.landing</code> leží dva soubory ve formátu JSON lines: <code class="inline">events_2026-11-03_01.json</code> (první dva řádky níže) a <code class="inline">events_2026-11-03_02.json</code> (další dva). Nejdřív je přečti dávkově v SQL editoru přes <code class="inline">read_files</code>: 4 řádky, jeden bez <code class="inline">locker_id</code>.</li>
-    <li>Jobs &amp; Pipelines → Create → ETL pipeline, výchozí katalog <code class="inline">dp750</code>, schéma <code class="inline">m10</code>, serverless. Do zdrojového souboru vlož SQL deklarace níže a spusť pipeline.</li>
-    <li>V grafu pipeline ukaž, že pořadí (streaming table → materialized view) framework odvodil sám, a u <code class="inline">parcel_events_stream</code> metriku expectation (1 zahozený řádek).</li>
-    <li>Nahraj do volume třetí soubor (Catalog Explorer → volume → Upload to this volume) a spusť update znovu: streaming table zpracuje jen nový soubor.</li>
+    <li>Zapiš do volume <code class="inline">dp750.m10.landing</code> dva soubory ve formátu JSON lines: <code class="inline">events_2026-11-03_01.json</code> (první dva řádky) a <code class="inline">events_2026-11-03_02.json</code> (další dva). Stačí první Python buňka níže: volume založí a soubory zapíše, takže se nic neuploaduje klikáním.</li>
+    <li>Přečti je dávkově v SQL editoru přes <code class="inline">read_files</code>: 4 řádky, jeden bez <code class="inline">locker_id</code>.</li>
+    <li><em>V UI:</em> Jobs &amp; Pipelines → Create → ETL pipeline, výchozí katalog <code class="inline">dp750</code>, schéma <code class="inline">m10</code>, serverless. Do zdrojového souboru vlož SQL deklarace z druhé části SQL bloku níže a spusť pipeline.</li>
+    <li><em>V UI:</em> v grafu pipeline ukaž, že pořadí (streaming table → materialized view) framework odvodil sám, a u <code class="inline">parcel_events_stream</code> metriku expectation (1 zahozený řádek).</li>
+    <li>Dopiš do volume třetí soubor druhou Python buňkou níže a pak <em>V UI:</em> spusť update pipeline znovu: streaming table zpracuje jen nový soubor.</li>
   </ol>
   <div class="code-block">
-    <div class="code-header"><span class="code-lang">JSON</span><button class="copy-btn">Kopírovat</button></div>
-    <pre>{<span class="str">"event_id"</span>:<span class="str">"e10"</span>,<span class="str">"locker_id"</span>:<span class="str">"BRNO-01"</span>,<span class="str">"event_ts"</span>:<span class="str">"2026-11-03 07:55:00"</span>,<span class="str">"weight_kg"</span>:<span class="num">0.8</span>,<span class="str">"status"</span>:<span class="str">"DELIVERED"</span>}
-{<span class="str">"event_id"</span>:<span class="str">"e11"</span>,<span class="str">"locker_id"</span>:<span class="str">"PRAHA-07"</span>,<span class="str">"event_ts"</span>:<span class="str">"2026-11-03 08:10:00"</span>,<span class="str">"weight_kg"</span>:<span class="num">2.2</span>,<span class="str">"status"</span>:<span class="str">"DELIVERED"</span>}
-{<span class="str">"event_id"</span>:<span class="str">"e12"</span>,<span class="str">"locker_id"</span>:<span class="str">"BRNO-01"</span>,<span class="str">"event_ts"</span>:<span class="str">"2026-11-03 09:30:00"</span>,<span class="str">"weight_kg"</span>:<span class="num">1.1</span>,<span class="str">"status"</span>:<span class="str">"PICKED_UP"</span>}
-{<span class="str">"event_id"</span>:<span class="str">"e13"</span>,<span class="str">"locker_id"</span>:<span class="kw">null</span>,<span class="str">"event_ts"</span>:<span class="str">"2026-11-03 09:45:00"</span>,<span class="str">"weight_kg"</span>:<span class="num">4.0</span>,<span class="str">"status"</span>:<span class="str">"DELIVERED"</span>}</pre>
+    <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm"># 1. create the volume and write the first two landing files (JSON lines)</span>
+spark.<span class="fn">sql</span>(<span class="str">"CREATE VOLUME IF NOT EXISTS dp750.m10.landing"</span>)
+base = <span class="str">"/Volumes/dp750/m10/landing"</span>
+
+dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/events_2026-11-03_01.json"</span>,
+    <span class="str">'{"event_id":"e10","locker_id":"BRNO-01","event_ts":"2026-11-03 07:55:00","weight_kg":0.8,"status":"DELIVERED"}\n'</span>
+    <span class="str">'{"event_id":"e11","locker_id":"PRAHA-07","event_ts":"2026-11-03 08:10:00","weight_kg":2.2,"status":"DELIVERED"}\n'</span>, <span class="kw">True</span>)
+dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/events_2026-11-03_02.json"</span>,
+    <span class="str">'{"event_id":"e12","locker_id":"BRNO-01","event_ts":"2026-11-03 09:30:00","weight_kg":1.1,"status":"PICKED_UP"}\n'</span>
+    <span class="str">'{"event_id":"e13","locker_id":null,"event_ts":"2026-11-03 09:45:00","weight_kg":4.0,"status":"DELIVERED"}\n'</span>, <span class="kw">True</span>)</pre>
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 1) davkove v SQL editoru: co v landing zone lezi</span>
+    <pre><span class="cm">-- 2. davkove v SQL editoru: co v landing zone lezi</span>
 <span class="kw">SELECT</span> <span class="col">event_id</span>, <span class="col">locker_id</span>, <span class="col">weight_kg</span>, <span class="col">_metadata</span>.<span class="col">file_name</span> <span class="kw">AS</span> <span class="col">file_name</span>
 <span class="kw">FROM</span> <span class="fn">read_files</span>(<span class="str">'/Volumes/dp750/m10/landing'</span>, format <span class="op">=&gt;</span> <span class="str">'json'</span>)
 <span class="kw">ORDER BY</span> <span class="col">event_id</span>;
 
-<span class="cm">-- 2) zdrojovy soubor pipeline (vychozi katalog dp750, schema m10)</span>
+<span class="cm">-- 3. zdrojovy soubor pipeline (vychozi katalog dp750, schema m10); vloz ho do pipeline, v SQL editoru nepousti</span>
 <span class="kw">CREATE OR REFRESH STREAMING TABLE</span> <span class="tbl">parcel_events_stream</span> (
   <span class="kw">CONSTRAINT</span> has_locker <span class="kw">EXPECT</span> (<span class="col">locker_id</span> <span class="kw">IS NOT NULL</span>) <span class="kw">ON VIOLATION DROP ROW</span>
 ) <span class="kw">AS SELECT</span> *, <span class="col">_metadata</span>.<span class="col">file_name</span> <span class="kw">AS</span> <span class="col">source_file</span>
@@ -713,13 +728,21 @@ spark.<span class="fn">sql</span>(<span class="str">"""
 <span class="kw">FROM</span> <span class="tbl">parcel_events_stream</span>
 <span class="kw">GROUP BY ALL</span>;</pre>
   </div>
-  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> porovnej s kroky 2–5. Deduplikaci po souborech, checkpointy, pořadí a retry tady řeší framework; v notebookové variantě jsi to psal sám. Výsledná <code class="inline">locker_daily_mv</code> má pro 3. 11. dva řádky (BRNO-01: 2 události, PRAHA-07: 1).</div></div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm"># 5. third file with a new name (run it before the second pipeline update)</span>
+base = <span class="str">"/Volumes/dp750/m10/landing"</span>
+dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/events_2026-11-03_03.json"</span>,
+    <span class="str">'{"event_id":"e14","locker_id":"BRNO-01","event_ts":"2026-11-03 10:20:00","weight_kg":0.5,"status":"DELIVERED"}\n'</span>
+    <span class="str">'{"event_id":"e15","locker_id":"PRAHA-07","event_ts":"2026-11-03 10:40:00","weight_kg":1.6,"status":"PICKED_UP"}\n'</span>, <span class="kw">True</span>)</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> porovnej s kroky 2–5. Deduplikaci po souborech, checkpointy, pořadí a retry tady řeší framework; v notebookové variantě jsi to psal sám. Výsledná <code class="inline">locker_daily_mv</code> má po prvním updatu pro 3. 11. dva řádky (BRNO-01: 2 události, PRAHA-07: 1), po třetím souboru a druhém updatu BRNO-01: 3 a PRAHA-07: 2.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> přepsání existujícího souboru stejným jménem streaming table nezpracuje znovu, nové dodávky pojmenuj unikátně. A materialized view není obyčejné view: data jsou tak čerstvá jako poslední update pipeline.</div></div>
 
   <h3>Úklid</h3>
   <ol>
-    <li>Job <code class="inline">dp750-demo-m10</code> a pipeline z kroku 6 smaž po kurzu (pipeline před případným mazáním schématu, tabulky pipeline spravuje ona).</li>
-    <li>Schéma <code class="inline">dp750.m10</code> nech, ukázka se dá zopakovat. Pro čistý start znovu pusť SQL z kroku 1 (<code class="inline">CREATE OR REPLACE</code>) a <code class="inline">TRUNCATE TABLE dp750.m10.parcel_events_silver</code>.</li>
+    <li><em>V UI:</em> job <code class="inline">dp750-demo-m10</code> a pipeline z kroku 6 smaž po kurzu (pipeline před případným mazáním schématu, tabulky pipeline spravuje ona).</li>
+    <li><em>Jen slovně:</em> schéma <code class="inline">dp750.m10</code> nech, ukázka se dá zopakovat. Pro čistý start znovu pusť SQL z kroku 1 (<code class="inline">CREATE OR REPLACE</code>) a <code class="inline">TRUNCATE TABLE dp750.m10.parcel_events_silver</code>.</li>
   </ol>
 </div>
 

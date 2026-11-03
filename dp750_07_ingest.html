@@ -731,13 +731,14 @@ df_stream = (spark.readStream
     <h2>Runbook: ukázka krok za krokem</h2>
   </div>
   <p>Ukázka načítá objednávky malého e-shopu z CSV souborů ve volume všemi cestami z kapitoly: <code class="inline">spark.read</code>, <code class="inline">COPY INTO</code>, CTAS, Structured Streaming a Auto Loader; CDC a deklarativní pipeline ukazuje na kódu. Běží v lektorském workspace nad syntetickými daty ve schématu <code class="inline">dp750.m07</code>, ne nad daty labu.</p>
-  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> Python notebook <code class="inline">m07_ingest</code> ve složce <code class="inline">/Workspace/Users/&lt;váš e-mail&gt;/dp750-dema</code>, připojený na <strong>Serverless</strong>. SQL buňky začínají řádkem <code class="inline">%sql</code>. Katalog <code class="inline">dp750</code> musí existovat; schéma a volume <code class="inline">dp750.m07.landing</code> založí první buňka. Checkpointy a schema location patří do volume: DBFS root je ve workspace vypnutý a cesta <code class="inline">/tmp/…</code> skončí chybou <code class="inline">DBFS_DISABLED</code>. Asi 12 minut, první spuštění serverless notebooku chvíli trvá.</div></div>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> Python notebook <code class="inline">m07_ingest</code> ve složce <code class="inline">/Workspace/Users/&lt;tvůj e-mail&gt;/dp750-dema</code>, připojený na <strong>Serverless</strong>. SQL buňky začínají řádkem <code class="inline">%sql</code>. Katalog <code class="inline">dp750</code> musí existovat; schéma a volume <code class="inline">dp750.m07.landing</code> založí první buňka. Checkpointy a schema location patří do volume: DBFS root je ve workspace vypnutý a cesta <code class="inline">/tmp/…</code> skončí chybou <code class="inline">DBFS_DISABLED</code>. Asi 12 minut, první spuštění serverless notebooku chvíli trvá.</div></div>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Jak číst kroky:</strong> skripty jsou buňky notebooku <code class="inline">m07_ingest</code>: Python buňky a SQL buňky, které už mají na prvním řádku <code class="inline">%sql</code>. Každou buňku zkopíruj tlačítkem Kopírovat, vlož do nové buňky a pusť celou. Číslované body nad kódem nejsou samostatné úkony, popisují, co buňka dělá, a stejná čísla najdeš v buňkách jako komentáře <code class="inline">-- 1.</code> (SQL) nebo <code class="inline"># 1.</code> (Python). Body označené <em>Jen slovně</em> ve skriptu nejsou: říkáš je nahlas, ukazuješ výsledek nebo buňku jen pustíš znovu. Body označené <em>V UI</em> jsou jediné, které se dělají kliknutím; krok 1 je celý v UI.</div></div>
 
   <h3>Krok 1 – Lakeflow Connect: managed konektory (7.1)</h3>
   <ol>
-    <li>V postranním panelu klikni na <strong>+ New</strong> → <strong>Add or upload data</strong> a ukaž stránku <strong>Add data</strong> s dlaždicemi konektorů (podle Learn tam jsou managed konektory a sekce <strong>Community connectors</strong>).</li>
-    <li>Druhý vstup ukaž přes <strong>Jobs &amp; Pipelines</strong> → <strong>Create new</strong> → <strong>Ingestion pipeline</strong>.</li>
-    <li>Otevři průvodce libovolného konektoru jen na první obrazovku (connection) a vysvětli tři části, které popisuje Learn: connection v Unity Catalogu, ingestion definition (které tabulky a kam) a schedule. Pipeline nezakládej.</li>
+    <li><em>V UI:</em> V postranním panelu klikni na <strong>+ New</strong> → <strong>Add or upload data</strong> a ukaž stránku <strong>Add data</strong> s dlaždicemi konektorů (podle Learn tam jsou managed konektory a sekce <strong>Community connectors</strong>).</li>
+    <li><em>V UI:</em> Druhý vstup ukaž přes <strong>Jobs &amp; Pipelines</strong> → <strong>Create new</strong> → <strong>Ingestion pipeline</strong>.</li>
+    <li><em>V UI:</em> Otevři průvodce libovolného konektoru jen na první obrazovku (connection) a vysvětli tři části, které popisuje Learn: connection v Unity Catalogu, ingestion definition (které tabulky a kam) a schedule. Pipeline nezakládej.</li>
   </ol>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> managed konektor je nejvíc spravovaná volba ze stromu v sekci 6.2: kód extrakce nepíšeš, jen konfiguruješ. Všechno, co následuje v krocích 2 až 7, je cesta pro případ, kdy pro zdroj managed konektor neexistuje.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> nabídka konektorů a jejich stav (Beta, Public Preview, GA) se mění a některé je potřeba zapnout v <strong>Previews</strong>. Neslibuj konkrétní konektor, dokud ho v galerii nevidíš. Krok je jen v UI, přesné kliky si projdi při přípravě.</div></div>
@@ -745,12 +746,13 @@ df_stream = (spark.readStream
   <h3>Krok 2 – Ingest v notebooku: spark.read (7.2)</h3>
   <ol>
     <li>Pusť první buňku: založí schéma a volume, uklidí stav po zkoušce a zapíše první CSV soubor se dvěma objednávkami.</li>
-    <li>Ukaž výstup <code class="inline">printSchema()</code>: <code class="inline">inferSchema</code> odvodil <code class="inline">order_id</code> jako <code class="inline">integer</code>, <code class="inline">order_ts</code> jako <code class="inline">timestamp</code> a <code class="inline">amount</code> jako <code class="inline">double</code>.</li>
-    <li>Tabulka <code class="inline">orders_nb</code> má 2 řádky.</li>
+    <li>Načti CSV přes <code class="inline">spark.read</code> a ukaž výstup <code class="inline">printSchema()</code>: <code class="inline">inferSchema</code> odvodil <code class="inline">order_id</code> jako <code class="inline">integer</code>, <code class="inline">order_ts</code> jako <code class="inline">timestamp</code> a <code class="inline">amount</code> jako <code class="inline">double</code>.</li>
+    <li>Zapiš tabulku <code class="inline">orders_nb</code> a ukaž ji: 2 řádky.</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
-<pre>spark.<span class="fn">sql</span>(<span class="str">"CREATE SCHEMA IF NOT EXISTS dp750.m07"</span>)
+<pre><span class="cm"># 1. schema, volume, reset of demo state, first csv file</span>
+spark.<span class="fn">sql</span>(<span class="str">"CREATE SCHEMA IF NOT EXISTS dp750.m07"</span>)
 spark.<span class="fn">sql</span>(<span class="str">"CREATE VOLUME IF NOT EXISTS dp750.m07.landing"</span>)
 base = <span class="str">"/Volumes/dp750/m07/landing"</span>
 
@@ -765,12 +767,14 @@ dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/orders/orders_
     <span class="str">"1,ACME,1250.50,2026-11-03 08:15:00\n"</span>
     <span class="str">"2,Bikeshop,89.90,2026-11-03 09:00:00\n"</span>, <span class="kw">True</span>)
 
+<span class="cm"># 2. read the csv; schema inferred</span>
 df = (spark.read
       .<span class="fn">format</span>(<span class="str">"csv"</span>)
       .<span class="fn">option</span>(<span class="str">"header"</span>, <span class="str">"true"</span>)
       .<span class="fn">option</span>(<span class="str">"inferSchema"</span>, <span class="str">"true"</span>)
       .<span class="fn">load</span>(<span class="str">f"{base}/orders/orders_001.csv"</span>))
 df.<span class="fn">printSchema</span>()
+<span class="cm"># 3. write to a Delta table and show it</span>
 df.write.<span class="fn">mode</span>(<span class="str">"overwrite"</span>).<span class="fn">saveAsTable</span>(<span class="str">"dp750.m07.orders_nb"</span>)
 <span class="fn">display</span>(spark.<span class="fn">table</span>(<span class="str">"dp750.m07.orders_nb"</span>))</pre>
   </div>
@@ -785,7 +789,8 @@ df.write.<span class="fn">mode</span>(<span class="str">"overwrite"</span>).<spa
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="cm">-- cell A: run twice, then again after cell B</span>
+<pre><span class="kw">%sql</span>
+<span class="cm">-- 1. cell A: run twice, then again after cell B</span>
 <span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> <span class="tbl">dp750.m07.orders_copy</span> (
   order_id <span class="kw">INT</span>, customer <span class="kw">STRING</span>, amount <span class="kw">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>), order_ts <span class="kw">TIMESTAMP</span>);
 
@@ -801,14 +806,15 @@ df.write.<span class="fn">mode</span>(<span class="str">"overwrite"</span>).<spa
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="cm"># cell B: a new file lands in the folder</span>
+<pre><span class="cm"># 2. cell B: a new file lands in the folder</span>
 dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/orders/orders_002.csv"</span>,
     <span class="str">"order_id,customer,amount,order_ts\n"</span>
     <span class="str">"3,Velo,455.00,2026-11-04 10:30:00\n"</span>, <span class="kw">True</span>)</pre>
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="cm">-- cell C: history of COPY INTO, CTAS, CREATE OR REPLACE</span>
+<pre><span class="kw">%sql</span>
+<span class="cm">-- 3. cell C: history of COPY INTO, CTAS, CREATE OR REPLACE</span>
 <span class="kw">SELECT</span> version, operation, operationMetrics
 <span class="kw">FROM</span> (<span class="kw">DESCRIBE</span> <span class="kw">HISTORY</span> <span class="tbl">dp750.m07.orders_copy</span>) <span class="kw">ORDER</span> <span class="kw">BY</span> version;
 
@@ -833,11 +839,13 @@ dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/orders/orders_
   <ol>
     <li>SQL buňka: založ feed změn zákazníků s typem operace a pořadovým číslem. Záznam se <code class="inline">seq = 3</code> dorazil až po <code class="inline">seq = 4</code>.</li>
     <li>Ukaž, co je „správný“ stav: poslední záznam podle <code class="inline">seq</code> na klíč. Zákazník 1 skončí v Olomouci, ne ve Zlíně; zákazník 2 má poslední operaci <code class="inline">DELETE</code>.</li>
-    <li>Ukaž na plátně kód flow s <code class="inline">AUTO CDC</code> pro zdrojový soubor deklarativní pipeline. Tenhle kód v SQL editoru ani v notebooku nespouštěj, patří do pipeline.</li>
+    <li><em>Jen slovně:</em> ukaž na plátně kód flow s <code class="inline">AUTO CDC</code> pro zdrojový soubor deklarativní pipeline (druhý blok níže). Tenhle kód v SQL editoru ani v notebooku nespouštěj, patří do pipeline.</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m07.customer_changes</span> <span class="kw">AS</span>
+<pre><span class="kw">%sql</span>
+<span class="cm">-- 1. change feed with operation type and sequence number</span>
+<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m07.customer_changes</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">VALUES</span>
   (<span class="num">1</span>, <span class="str">'ACME'</span>, <span class="str">'Brno'</span>,    <span class="str">'INSERT'</span>, <span class="num">1</span>),
   (<span class="num">2</span>, <span class="str">'Velo'</span>, <span class="str">'Praha'</span>,   <span class="str">'INSERT'</span>, <span class="num">2</span>),
@@ -846,7 +854,7 @@ dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/orders/orders_
   (<span class="num">2</span>, <span class="kw">NULL</span>,   <span class="kw">NULL</span>,      <span class="str">'DELETE'</span>, <span class="num">5</span>)
 <span class="kw">AS</span> t(customer_id, name, city, operation, seq);
 
-<span class="cm">-- correct state = last event per key by sequence, not by arrival</span>
+<span class="cm">-- 2. correct state = last event per key by sequence, not by arrival</span>
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m07.customer_changes</span>
 <span class="kw">QUALIFY</span> <span class="fn">row_number</span>() <span class="kw">OVER</span> (<span class="kw">PARTITION</span> <span class="kw">BY</span> customer_id <span class="kw">ORDER</span> <span class="kw">BY</span> seq <span class="kw">DESC</span>) = <span class="num">1</span>;</pre>
   </div>
@@ -871,17 +879,19 @@ dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/orders/orders_
   <ol>
     <li>Python buňka: stream z Delta tabulky <code class="inline">orders_copy</code> do <code class="inline">orders_stream</code> s triggerem <code class="inline">availableNow</code> a checkpointem ve volume.</li>
     <li>Ukaž <code class="inline">recentProgress</code> (kolik řádků mikrodávka zpracovala) a počet řádků v cíli: 3.</li>
-    <li>Pusť buňku znovu: stream skončí bez nových řádků, protože checkpoint ví, kde přestal.</li>
+    <li><em>Jen slovně:</em> pusť buňku znovu: stream skončí bez nových řádků, protože checkpoint ví, kde přestal.</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
-<pre>q = (spark.readStream
+<pre><span class="cm"># 1. stream the delta table to orders_stream, availableNow, checkpoint in the volume</span>
+q = (spark.readStream
      .<span class="fn">table</span>(<span class="str">"dp750.m07.orders_copy"</span>)
      .writeStream
      .<span class="fn">option</span>(<span class="str">"checkpointLocation"</span>, <span class="str">f"{base}/_checkpoints/orders_stream"</span>)
      .<span class="fn">trigger</span>(availableNow=<span class="kw">True</span>)
      .<span class="fn">toTable</span>(<span class="str">"dp750.m07.orders_stream"</span>))
 q.<span class="fn">awaitTermination</span>()
+<span class="cm"># 2. rows per micro-batch and row count in the target</span>
 <span class="fn">print</span>([p[<span class="str">"numInputRows"</span>] <span class="kw">for</span> p <span class="kw">in</span> q.recentProgress])
 <span class="fn">print</span>(spark.<span class="fn">table</span>(<span class="str">"dp750.m07.orders_stream"</span>).<span class="fn">count</span>())</pre>
   </div>
@@ -896,7 +906,8 @@ q.<span class="fn">awaitTermination</span>()
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="kw">from</span> pyspark.sql.functions <span class="kw">import</span> col
+<pre><span class="cm"># 1. auto loader as a function: cloudFiles, schema location and checkpoint in the volume</span>
+<span class="kw">from</span> pyspark.sql.functions <span class="kw">import</span> col
 
 <span class="kw">def</span> <span class="fn">run_autoloader</span>():
     q = (spark.readStream
@@ -913,6 +924,7 @@ q.<span class="fn">awaitTermination</span>()
          .<span class="fn">toTable</span>(<span class="str">"dp750.m07.orders_autoloader"</span>))
     q.<span class="fn">awaitTermination</span>()
 
+<span class="cm"># 2. run it twice: 3 rows after the first run, still 3 after the second</span>
 <span class="fn">run_autoloader</span>()
 <span class="fn">print</span>(spark.<span class="fn">table</span>(<span class="str">"dp750.m07.orders_autoloader"</span>).<span class="fn">count</span>())
 <span class="fn">run_autoloader</span>()
@@ -920,7 +932,9 @@ q.<span class="fn">awaitTermination</span>()
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="kw">SELECT</span> path <span class="kw">FROM</span> <span class="fn">cloud_files_state</span>(<span class="str">'/Volumes/dp750/m07/landing/_checkpoints/orders_al'</span>);
+<pre><span class="kw">%sql</span>
+<span class="cm">-- 3. processed files and the table with source_file</span>
+<span class="kw">SELECT</span> path <span class="kw">FROM</span> <span class="fn">cloud_files_state</span>(<span class="str">'/Volumes/dp750/m07/landing/_checkpoints/orders_al'</span>);
 
 <span class="kw">SELECT</span> order_id, amount, source_file, _rescued_data
 <span class="kw">FROM</span> <span class="tbl">dp750.m07.orders_autoloader</span> <span class="kw">ORDER</span> <span class="kw">BY</span> order_id;</pre>
@@ -930,15 +944,15 @@ q.<span class="fn">awaitTermination</span>()
 
   <h3>Krok 7 – Deklarativní pipeline jako rámec nad ingestem (7.7)</h3>
   <ol>
-    <li>Ukaž na plátně zdrojový soubor pipeline, který dělá totéž co krok 6, ale checkpoint a schema location řeší pipeline sama.</li>
-    <li>Vysvětli, že jméno flow (ve výchozím stavu název tabulky z <code class="inline">name=…</code>) identifikuje checkpoint: přejmenování znamená nový ingest od začátku.</li>
-    <li>Pipeline zakládej jen tehdy, když zbývá čas: <strong>Jobs &amp; Pipelines</strong> → vytvořit ETL pipeline, výchozí katalog <code class="inline">dp750</code>, schéma <code class="inline">m07</code>, serverless. Pak ji po ukázce smaž.</li>
+    <li><em>Jen slovně:</em> ukaž na plátně zdrojový soubor pipeline (kód níže), který dělá totéž co krok 6, ale checkpoint a schema location řeší pipeline sama.</li>
+    <li><em>Jen slovně:</em> vysvětli, že jméno flow (ve výchozím stavu název tabulky z <code class="inline">name=…</code>) identifikuje checkpoint: přejmenování znamená nový ingest od začátku.</li>
+    <li><em>V UI:</em> pipeline zakládej jen tehdy, když zbývá čas: <strong>Jobs &amp; Pipelines</strong> → vytvořit ETL pipeline, výchozí katalog <code class="inline">dp750</code>, schéma <code class="inline">m07</code>, serverless. Pak ji po ukázce smaž.</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
 <pre><span class="kw">from</span> pyspark <span class="kw">import</span> pipelines <span class="kw">as</span> dp
 
-<span class="cm"># streaming table; checkpoint and schema location are managed by the pipeline</span>
+<span class="cm"># pipeline source file only (not for a notebook cell): streaming table, checkpoint and schema location are managed by the pipeline</span>
 <span class="fn">@dp.table</span>(name=<span class="str">"orders_bronze_pl"</span>)
 <span class="kw">def</span> <span class="fn">orders_bronze_pl</span>():
     <span class="kw">return</span> (spark.readStream
@@ -953,9 +967,16 @@ q.<span class="fn">awaitTermination</span>()
 
   <h3>Úklid</h3>
   <ol>
-    <li>Tabulky, volume a soubory ve <code class="inline">dp750.m07</code> nech, první buňka kroku 2 je před dalším průchodem sama vyčistí.</li>
-    <li>Pokud jsi v kroku 7 založil pipeline, smaž ji v <strong>Jobs &amp; Pipelines</strong>; po kurzu <code class="inline">DROP SCHEMA dp750.m07 CASCADE;</code>.</li>
+    <li><em>Jen slovně:</em> tabulky, volume a soubory ve <code class="inline">dp750.m07</code> nech, první buňka kroku 2 je před dalším průchodem sama vyčistí.</li>
+    <li><em>V UI:</em> pokud jsi v kroku 7 založil pipeline, smaž ji v <strong>Jobs &amp; Pipelines</strong>.</li>
+    <li>Po kurzu smaž schéma i s obsahem.</li>
   </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="kw">%sql</span>
+<span class="cm">-- 3. after the course: drop the schema with everything in it</span>
+<span class="kw">DROP SCHEMA</span> <span class="tbl">dp750.m07</span> <span class="kw">CASCADE</span>;</pre>
+  </div>
 </div>
 
     <div class="footer-nav">

@@ -495,6 +495,7 @@ df = spark.<span class="fn">createDataFrame</span>(pacienti, [<span class="str">
   </div>
   <p>Ukázka porovná serverless, classic compute a SQL warehouse na jednom formuláři a z příkazové řádky, nainstaluje notebook-scoped knihovnu a ukáže oprávnění ke compute. Běží v lektorském workspace; classic cluster se nezakládá, formulář se jen projde.</p>
   <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> běžící serverless SQL warehouse, lokální Databricks CLI přihlášené k workspace (profil podle sebe, v ukázkách <code class="inline">&lt;profil&gt;</code>), prázdný Python notebook. Celá ukázka zabere asi 10 minut. CLI zatím nemáte? Začněte krokem 0.</div></div>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Jak číst kroky:</strong> skripty jsou příkazy v terminálu (PowerShell nebo bash) a ve kroku 4 buňky Python notebooku. Zkopírujte celý blok tlačítkem Kopírovat a pusťte ho najednou; příkazy v krocích 1 až 3 a 5 jen čtou a nic ve workspace nemění. Číslované body nad skriptem nejsou samostatné úkony, popisují, co skript dělá a co ukázat. Stejná čísla najdete ve skriptu jako komentáře <code class="inline"># 1.</code>, <code class="inline"># 2.</code> … Body označené <em>V UI:</em> jsou kliknutí ve workspace; v tomto modulu je prohlídka formulářů a záložek compute sama předmětem výkladu, takže ve skriptu nejsou. U kroku 0 je skript rozdělen do několika bloků, protože mezi nimi musíte zavřít PowerShell a přihlásit se v prohlížeči; čísla bodů i komentářů v něm přesto sedí.</div></div>
 
   <h3>Krok 0 – Databricks CLI na Windows: instalace, přihlášení, první příkaz</h3>
   <p>CLI je jeden soubor <code class="inline">databricks.exe</code> (napsaný v Go, nepotřebuje Python). Volá stejné REST API jako UI, takže co v ukázce uvidíte v UI, uvidíte i z příkazové řádky.</p>
@@ -503,7 +504,7 @@ df = spark.<span class="fn">createDataFrame</span>(pacienti, [<span class="str">
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">POWERSHELL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># instalace (balicek od Databricks v katalogu WinGet)</span>
+    <pre><span class="cm"># 1. instalace (balicek od Databricks v katalogu WinGet)</span>
 winget search databricks
 winget install Databricks.DatabricksCLI
 
@@ -515,7 +516,8 @@ winget upgrade Databricks.DatabricksCLI</pre>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">POWERSHELL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre>databricks -v                      <span class="cm"># nebo: databricks version</span>
+    <pre><span class="cm"># 2. v novem okne PowerShellu: overeni instalace</span>
+databricks -v                      <span class="cm"># nebo: databricks version</span>
 (Get-Command databricks).Source    <span class="cm"># odkud se exe skutecne spousti</span></pre>
   </div>
   <ol start="3">
@@ -523,7 +525,7 @@ winget upgrade Databricks.DatabricksCLI</pre>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">POWERSHELL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># otevre prohlizec, po prihlaseni ulozi profil do %USERPROFILE%\.databrickscfg</span>
+    <pre><span class="cm"># 3. otevre prohlizec, po prihlaseni ulozi profil do %USERPROFILE%\.databrickscfg</span>
 databricks auth login --host <span class="str">https://adb-&lt;id&gt;.&lt;n&gt;.azuredatabricks.net</span> --profile <span class="str">&lt;profil&gt;</span>
 
 <span class="cm"># kontrola: seznam profilu a kdo jsem</span>
@@ -533,7 +535,7 @@ databricks current-user me --profile <span class="str">&lt;profil&gt;</span></pr
   <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Co je profil:</strong> pojmenovaná sekce v souboru <code class="inline">%USERPROFILE%\.databrickscfg</code>, která říká, ke kterému workspace a jak se přihlásit (host, způsob ověření). Je to obdoba uloženého připojení ke zdroji dat v Power BI: jednou ho nastavíte, pak se na něj jen odkazujete jménem. Název si volíte sami (např. <code class="inline">lektor</code>, <code class="inline">skoleni</code>, <code class="inline">prod</code>) a <code class="inline">--profile</code> (zkráceně <code class="inline">-p</code>) vybírá workspace a identitu pro jeden příkaz a má vždy přednost. Bez něj CLI vezme výchozí profil nastavený přes <code class="inline">databricks auth switch</code>, jinak sekci <code class="inline">[DEFAULT]</code>; profil jde vybrat i proměnnou prostředí <code class="inline">DATABRICKS_CONFIG_PROFILE</code>. Při <code class="inline">auth login</code> nový název přidá nový profil a ostatní nechá být, existující název profil bez varování přepíše. Když <code class="inline">--profile</code> vynecháte, CLI se na název zeptá a nabídne <code class="inline">adb-&lt;id&gt;</code> z URL. Na čistém počítači se <code class="inline">.databrickscfg</code> založí při prvním přihlášení.</div></div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">POWERSHELL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># soubor s profily (jen nastaveni, token je v Credential Manageru)</span>
+    <pre><span class="cm"># 3. soubor s profily (jen nastaveni, token je v Credential Manageru)</span>
 notepad $env:USERPROFILE\.databrickscfg
 
 <span class="cm"># ukazkovy obsah se dvema profily (hosty vymyslene):</span>
@@ -560,7 +562,8 @@ databricks auth switch --profile <span class="str">&lt;profil&gt;</span></pre>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">POWERSHELL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre>databricks --help                  <span class="cm"># skupiny prikazu (clusters, warehouses, jobs, bundle...)</span>
+    <pre><span class="cm"># 4. napoveda od skupiny prikazu po jednotlivy prikaz</span>
+databricks --help                  <span class="cm"># skupiny prikazu (clusters, warehouses, jobs, bundle...)</span>
 databricks warehouses --help       <span class="cm"># prikazy jedne skupiny</span>
 databricks warehouses list --help  <span class="cm"># parametry jednoho prikazu, napr. -o json</span></pre>
   </div>
@@ -570,13 +573,13 @@ databricks warehouses list --help  <span class="cm"># parametry jednoho prikazu,
 
   <h3>Krok 1 – Volba vhodného typu compute</h3>
   <ol>
-    <li><strong>Compute</strong> v sidebaru: projděte záložky <strong>All-purpose compute</strong>, <strong>Job compute</strong>, <strong>SQL warehouses</strong>, <strong>Pools</strong> a <strong>Policies</strong>.</li>
-    <li>Serverless pro notebook se nevybírá v Compute, ale v notebooku v rozbalovacím menu compute: <strong>Serverless</strong>.</li>
+    <li><em>V UI:</em> <strong>Compute</strong> v sidebaru: projděte záložky <strong>All-purpose compute</strong>, <strong>Job compute</strong>, <strong>SQL warehouses</strong>, <strong>Pools</strong> a <strong>Policies</strong>.</li>
+    <li><em>V UI:</em> serverless pro notebook se nevybírá v Compute, ale v notebooku v rozbalovacím menu compute: <strong>Serverless</strong>.</li>
     <li>Z CLI ukažte, co ve workspace běží:</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">BASH</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># SQL warehouses: typ, velikost, auto stop</span>
+    <pre><span class="cm"># 3. SQL warehouses: typ, velikost, auto stop</span>
 databricks warehouses list --profile <span class="str">&lt;profil&gt;</span>
 
 <span class="cm"># classic clustery a pooly (v ciste serverless praxi casto prazdne)</span>
@@ -587,12 +590,12 @@ databricks instance-pools list --profile <span class="str">&lt;profil&gt;</span>
 
   <h3>Krok 2 – Konfigurace výkonu: VM, workers, autoscaling</h3>
   <ol>
-    <li><strong>Compute → Create compute</strong>. Formulář projděte a <strong>nic neukládejte</strong>: Databricks Runtime (vyberte LTS), worker type, <strong>Enable autoscaling</strong> s min/max workerů, driver type.</li>
+    <li><em>V UI:</em> <strong>Compute → Create compute</strong>. Formulář projděte a <strong>nic neukládejte</strong>: Databricks Runtime (vyberte LTS), worker type, <strong>Enable autoscaling</strong> s min/max workerů, driver type.</li>
     <li>Rodiny VM ukažte z CLI, ať je vidět rozdíl paměti při stejném počtu jader:</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">POWERSHELL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># ctyri jadra, ruzna pamet a kategorie</span>
+    <pre><span class="cm"># 2. ctyri jadra, ruzna pamet a kategorie</span>
 (databricks clusters list-node-types --profile <span class="str">&lt;profil&gt;</span> -o json | ConvertFrom-Json).node_types |
   Where-Object node_type_id -in <span class="str">'Standard_D4ds_v5'</span>, <span class="str">'Standard_E4ds_v5'</span>, <span class="str">'Standard_F4s_v2'</span> |
   Select-Object node_type_id, num_cores, memory_mb, category
@@ -606,12 +609,13 @@ databricks instance-pools list --profile <span class="str">&lt;profil&gt;</span>
 
   <h3>Krok 3 – Funkce compute: Photon, policies, pools, auto-termination</h3>
   <ol>
-    <li>Ve formuláři ukažte <strong>Use Photon Acceleration</strong>, <strong>Terminate after … minutes of inactivity</strong> a pole <strong>Policy</strong>.</li>
-    <li><strong>Compute → Policies</strong>: otevřete předdefinovanou <strong>Job Compute</strong> a ukažte definici. Z CLI totéž:</li>
+    <li><em>V UI:</em> ve formuláři ukažte <strong>Use Photon Acceleration</strong>, <strong>Terminate after … minutes of inactivity</strong> a pole <strong>Policy</strong>.</li>
+    <li><em>V UI:</em> <strong>Compute → Policies</strong>: otevřete předdefinovanou <strong>Job Compute</strong> a ukažte definici.</li>
+    <li>Totéž z CLI (skript níže):</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">BASH</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># policies ve workspace a jejich rodiny</span>
+    <pre><span class="cm"># 3. policies ve workspace a jejich rodiny</span>
 databricks cluster-policies list --profile <span class="str">&lt;profil&gt;</span>
 
 <span class="cm"># definice rodiny Job Compute (vychozi runtime, spot)</span>
@@ -621,11 +625,11 @@ databricks policy-families get job-cluster --profile <span class="str">&lt;profi
 
   <h3>Krok 4 – Instalace knihoven</h3>
   <ol>
-    <li>V notebooku připojte <strong>Serverless</strong> a spusťte tři buňky. Knihovna je záměrně jiná než v labu:</li>
+    <li><em>V UI:</em> v notebooku připojte <strong>Serverless</strong> a do tří buněk vložte kód níže (v kódu jsou odděleny řádky <code class="inline"># bunka 2</code> a <code class="inline"># bunka 3</code>; ty do buněk nekopírujte) a spusťte je po jedné. Knihovna je záměrně jiná než v labu:</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># bunka 1: notebook-scoped instalace s pinnutou verzi</span>
+    <pre><span class="cm"># 1. bunka 1: notebook-scoped instalace s pinnutou verzi</span>
 %pip install humanize==4.16.0
 
 <span class="cm"># bunka 2: %pip sam Python nerestartuje</span>
@@ -637,20 +641,20 @@ dbutils.library.<span class="fn">restartPython</span>()
 <span class="fn">print</span>(md.<span class="fn">version</span>(<span class="str">"humanize"</span>), humanize.<span class="fn">naturalsize</span>(<span class="num">1536000000</span>), humanize.<span class="fn">intcomma</span>(<span class="num">1234567</span>))</pre>
   </div>
   <ol start="2">
-    <li>Otevřete druhý notebook na serverless a zkuste <code class="inline">import humanize</code>.</li>
+    <li><em>V UI:</em> otevřete druhý notebook na serverless a zkuste <code class="inline">import humanize</code> (jeden řádek, nic dalšího nevkládejte).</li>
   </ol>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> první notebook vypíše <code class="inline">4.16.0 1.5 GB 1,234,567</code>. Ve druhém notebooku import selže s <code class="inline">ModuleNotFoundError</code>: notebook-scoped knihovna žije jen v prostředí daného notebooku. Cluster-scoped knihovnu (záložka <strong>Libraries</strong> clusteru) by viděly všechny notebooky na clusteru.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> když serverless nemá odchozí přístup na PyPI, <code class="inline">%pip</code> spadne na síti. Pak se balíčky berou z interního zrcadla nebo jako wheel z volume (<code class="inline">%pip install /Volumes/…/balicek.whl</code>).</div></div>
 
   <h3>Krok 5 – Řízení přístupu ke compute</h3>
   <ol>
-    <li>Ve formuláři z kroku 2 rozbalte <strong>Advanced</strong>: access mode je <strong>Auto</strong>; po přepnutí na <strong>Manual</strong> uvidíte <strong>Standard</strong> a <strong>Dedicated</strong>.</li>
-    <li><strong>Compute → SQL warehouses</strong> → warehouse → <strong>Permissions</strong>: úrovně CAN VIEW, CAN USE, CAN MONITOR, CAN MANAGE, IS OWNER. U classic clusteru (pokud nějaký máte) ukažte CAN ATTACH TO, CAN RESTART, CAN MANAGE.</li>
-    <li>Tatáž oprávnění z CLI:</li>
+    <li><em>V UI:</em> ve formuláři z kroku 2 rozbalte <strong>Advanced</strong>: access mode je <strong>Auto</strong>; po přepnutí na <strong>Manual</strong> uvidíte <strong>Standard</strong> a <strong>Dedicated</strong>.</li>
+    <li><em>V UI:</em> <strong>Compute → SQL warehouses</strong> → warehouse → <strong>Permissions</strong>: úrovně CAN VIEW, CAN USE, CAN MONITOR, CAN MANAGE, IS OWNER. U classic clusteru (pokud nějaký máte) ukažte CAN ATTACH TO, CAN RESTART, CAN MANAGE.</li>
+    <li>Tatáž oprávnění z CLI (skript níže):</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">BASH</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># ID warehouse z kroku 1</span>
+    <pre><span class="cm"># 3. ID warehouse z kroku 1</span>
 databricks permissions get warehouses <span class="str">&lt;warehouse-id&gt;</span> --profile <span class="str">&lt;profil&gt;</span></pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> na startovacím warehouse obvykle uvidíte skupinu <code class="inline">users</code> s CAN USE a <code class="inline">admins</code> s CAN MANAGE. Kdo smí na compute pracovat, řeší oprávnění na compute; co smí číst, řeší až Unity Catalog (kapitola 4).</div></div>
@@ -658,8 +662,8 @@ databricks permissions get warehouses <span class="str">&lt;warehouse-id&gt;</sp
 
   <h3>Úklid</h3>
   <ol>
-    <li>Formulář Create compute zavřete bez uložení a ověřte v <strong>Compute</strong>, že nevznikl žádný cluster.</li>
-    <li>Oba notebooky smažte, nebo je nechte ve vlastní složce; notebook-scoped knihovna zmizí s koncem session sama.</li>
+    <li><em>V UI:</em> formulář Create compute zavřete bez uložení a ověřte v <strong>Compute</strong>, že nevznikl žádný cluster.</li>
+    <li><em>V UI:</em> oba notebooky smažte, nebo je nechte ve vlastní složce; notebook-scoped knihovna zmizí s koncem session sama.</li>
   </ol>
 </div>
 
