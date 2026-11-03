@@ -940,7 +940,42 @@ $$;
   <h3>Krok 7 – Foreign catalog a Lakehouse Federation</h3>
   <ol>
     <li>Catalog → ikona <strong>+</strong> nahoře v panelu → <strong>Create a connection</strong>. Projděte průvodce (Connection type, Authentication) a ukažte, že na konci rovnou nabízí založení foreign catalogu. <strong>Nic neukládejte</strong>, pokud nemáte připravenou testovací databázi.</li>
-    <li>V SQL ukažte, že connection je samostatný objekt, a šablonu obou příkazů:</li>
+    <li>Připravte přihlášení do zdrojové databáze jako <strong>secret</strong>. Secret je dvojice klíč a hodnota uložená v <strong>secret scope</strong> (pojmenovaná skupina secretů ve workspace). Secret scopes v UI workspace nenajdete, zakládají se a prohlížejí přes CLI, API nebo <code class="inline">dbutils</code> (novější Unity Catalog secrets v Catalog Exploreru jsou jiný objekt, viz odkaz na Learn níže). Hodnoty níže jsou jen ukázkové:</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">POWERSHELL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm"># scope (Databricks-backed) a dva secrety; jednoduche uvozovky, at PowerShell nerozbali $</span>
+databricks secrets create-scope <span class="str">dp750-demo</span> -p <span class="str">&lt;profil&gt;</span>
+databricks secrets put-secret <span class="str">dp750-demo</span> <span class="str">pg-user</span> --string-value <span class="str">'demo_reader'</span> -p <span class="str">&lt;profil&gt;</span>
+databricks secrets put-secret <span class="str">dp750-demo</span> <span class="str">pg-password</span> --string-value <span class="str">'Pa$$w0rd'</span> -p <span class="str">&lt;profil&gt;</span>
+
+<span class="cm"># co ve workspace je: scopes a nazvy klicu (hodnoty se nevypisuji)</span>
+databricks secrets list-scopes -p <span class="str">&lt;profil&gt;</span>
+databricks secrets list-secrets <span class="str">dp750-demo</span> -p <span class="str">&lt;profil&gt;</span>
+
+<span class="cm"># hodnota pres CLI prijde v base64, kdo ma pravo READ, ji precte</span>
+$v = (databricks secrets get-secret <span class="str">dp750-demo</span> <span class="str">pg-password</span> -p <span class="str">&lt;profil&gt;</span> -o json | ConvertFrom-Json).value
+[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($v))   <span class="cm"># Pa$$w0rd</span></pre>
+  </div>
+  <ol start="3">
+    <li>Ukažte, jak secret čte kód. V notebooku (Python) i v SQL se hodnota ve výstupu zobrazí jako <code class="inline">[REDACTED]</code>, ale kód s ní pracuje normálně:</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="fn">print</span>(dbutils.secrets.<span class="fn">listScopes</span>())
+<span class="fn">print</span>(dbutils.secrets.<span class="fn">list</span>(<span class="str">"dp750-demo"</span>))
+
+heslo = dbutils.secrets.<span class="fn">get</span>(scope=<span class="str">"dp750-demo"</span>, key=<span class="str">"pg-password"</span>)
+<span class="fn">print</span>(heslo)        <span class="cm"># [REDACTED]</span>
+<span class="fn">print</span>(<span class="fn">len</span>(heslo))   <span class="cm"># 8</span></pre>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="kw">SELECT</span> <span class="fn">secret</span>(<span class="str">'dp750-demo'</span>, <span class="str">'pg-password'</span>) <span class="kw">AS</span> <span class="col">heslo</span>,          <span class="cm">-- [REDACTED]</span>
+       <span class="fn">length</span>(<span class="fn">secret</span>(<span class="str">'dp750-demo'</span>, <span class="str">'pg-password'</span>)) <span class="kw">AS</span> <span class="col">delka</span>; <span class="cm">-- 8</span></pre>
+  </div>
+  <ol start="4">
+    <li>V SQL ukažte, že connection je samostatný objekt, a šablonu obou příkazů. Přihlášení bere ze secretů z předchozího kroku:</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
@@ -950,13 +985,15 @@ $$;
 <span class="kw">CREATE CONNECTION</span> pg_bikes_test <span class="kw">TYPE</span> postgresql
 <span class="kw">OPTIONS</span> (
   host <span class="str">'&lt;host&gt;'</span>, port <span class="str">'5432'</span>,
-  user <span class="fn">secret</span>(<span class="str">'&lt;scope&gt;'</span>, <span class="str">'&lt;klic-uzivatel&gt;'</span>),
-  password <span class="fn">secret</span>(<span class="str">'&lt;scope&gt;'</span>, <span class="str">'&lt;klic-heslo&gt;'</span>)
+  user <span class="fn">secret</span>(<span class="str">'dp750-demo'</span>, <span class="str">'pg-user'</span>),
+  password <span class="fn">secret</span>(<span class="str">'dp750-demo'</span>, <span class="str">'pg-password'</span>)
 );
 <span class="kw">CREATE FOREIGN CATALOG IF NOT EXISTS</span> <span class="tbl">bikes_ops</span>
 <span class="kw">USING CONNECTION</span> pg_bikes_test <span class="kw">OPTIONS</span> (database <span class="str">'&lt;databaze&gt;'</span>);</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> connection drží adresu a přihlášení (přes secret, ne v textu), foreign catalog zrcadlí jednu databázi. Dotaz pak počítá zdrojová databáze, Unity Catalog jen řídí přístup a audit.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> <code class="inline">[REDACTED]</code> není ochrana proti tomu, kdo má k secretu právo: autor scope má <code class="inline">MANAGE</code>, admin workspace vidí vše a hodnotu přečte přes CLI (viz výše) nebo obejde maskování v kódu. Přístup proto řiďte právy na scope (<code class="inline">databricks secrets put-acl</code>), ne spoléháním na maskování. Druhý typ scope je <strong>Azure Key Vault-backed</strong>: jen čte z existujícího Key Vaultu (secrety se spravují v Azure), založí se na skryté stránce <code class="inline">https://&lt;workspace-url&gt;#secrets/createScope</code> a Key Vault musí mít permission model <em>Vault access policy</em>.</div></div>
+  <div class="learn-more"><span class="lm-label">📚 Do hloubky na Learn:</span> <span><a href="https://learn.microsoft.com/en-us/azure/databricks/security/secrets/" target="_blank" rel="noopener">Secret management</a> · <a href="https://learn.microsoft.com/en-us/azure/databricks/security/secrets/unity-catalog-secrets" target="_blank" rel="noopener">Secrets in Unity Catalog</a> (EN)</span></div>
 
   <h3>Krok 8 – AI/BI Genie instructions</h3>
   <ol>
@@ -971,6 +1008,7 @@ $$;
   <h3>Úklid</h3>
   <ol>
     <li>Ihned po ukázce: <code class="inline">DROP CATALOG dp750_m03_sandbox CASCADE;</code></li>
+    <li>Secret scope z kroku 7: <code class="inline">databricks secrets delete-scope dp750-demo -p &lt;profil&gt;</code> (smaže i oba secrety).</li>
     <li>Genie Agent smažte (menu ⋮ → <strong>Move to trash</strong>), pokud ho nechcete dál ukazovat.</li>
     <li>Schéma <code class="inline">dp750_demo.m03</code> nechte do konce kurzu (Catalog Explorer v dalších modulech). Po kurzu: <code class="inline">DROP SCHEMA dp750_demo.m03 CASCADE;</code></li>
   </ol>
