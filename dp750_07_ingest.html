@@ -730,8 +730,8 @@ df_stream = (spark.readStream
     <div class="section-num">7.R</div>
     <h2>Runbook: ukázka krok za krokem</h2>
   </div>
-  <p>Ukázka načítá objednávky malého e-shopu z CSV souborů ve volume všemi cestami z kapitoly: <code class="inline">spark.read</code>, <code class="inline">COPY INTO</code>, CTAS, Structured Streaming a Auto Loader; CDC a deklarativní pipeline ukazuje na kódu. Běží v lektorském workspace nad syntetickými daty ve schématu <code class="inline">dp750_demo.m07</code>, ne nad daty labu.</p>
-  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> Python notebook <code class="inline">m07_ingest</code> ve složce <code class="inline">/Workspace/Users/&lt;váš e-mail&gt;/dp750-dema</code>, připojený na <strong>Serverless</strong>. SQL buňky začínají řádkem <code class="inline">%sql</code>. Katalog <code class="inline">dp750_demo</code> musí existovat; schéma a volume <code class="inline">dp750_demo.m07.landing</code> založí první buňka. Checkpointy a schema location patří do volume: DBFS root je ve workspace vypnutý a cesta <code class="inline">/tmp/…</code> skončí chybou <code class="inline">DBFS_DISABLED</code>. Asi 12 minut, první spuštění serverless notebooku chvíli trvá.</div></div>
+  <p>Ukázka načítá objednávky malého e-shopu z CSV souborů ve volume všemi cestami z kapitoly: <code class="inline">spark.read</code>, <code class="inline">COPY INTO</code>, CTAS, Structured Streaming a Auto Loader; CDC a deklarativní pipeline ukazuje na kódu. Běží v lektorském workspace nad syntetickými daty ve schématu <code class="inline">dp750.m07</code>, ne nad daty labu.</p>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> Python notebook <code class="inline">m07_ingest</code> ve složce <code class="inline">/Workspace/Users/&lt;váš e-mail&gt;/dp750-dema</code>, připojený na <strong>Serverless</strong>. SQL buňky začínají řádkem <code class="inline">%sql</code>. Katalog <code class="inline">dp750</code> musí existovat; schéma a volume <code class="inline">dp750.m07.landing</code> založí první buňka. Checkpointy a schema location patří do volume: DBFS root je ve workspace vypnutý a cesta <code class="inline">/tmp/…</code> skončí chybou <code class="inline">DBFS_DISABLED</code>. Asi 12 minut, první spuštění serverless notebooku chvíli trvá.</div></div>
 
   <h3>Krok 1 – Lakeflow Connect: managed konektory (7.1)</h3>
   <ol>
@@ -750,13 +750,13 @@ df_stream = (spark.readStream
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
-<pre>spark.<span class="fn">sql</span>(<span class="str">"CREATE SCHEMA IF NOT EXISTS dp750_demo.m07"</span>)
-spark.<span class="fn">sql</span>(<span class="str">"CREATE VOLUME IF NOT EXISTS dp750_demo.m07.landing"</span>)
-base = <span class="str">"/Volumes/dp750_demo/m07/landing"</span>
+<pre>spark.<span class="fn">sql</span>(<span class="str">"CREATE SCHEMA IF NOT EXISTS dp750.m07"</span>)
+spark.<span class="fn">sql</span>(<span class="str">"CREATE VOLUME IF NOT EXISTS dp750.m07.landing"</span>)
+base = <span class="str">"/Volumes/dp750/m07/landing"</span>
 
 <span class="cm"># reset pred opakovanim dema: tabulky, soubory, checkpointy</span>
 <span class="kw">for</span> t <span class="kw">in</span> [<span class="str">"orders_nb"</span>, <span class="str">"orders_ctas"</span>, <span class="str">"orders_copy"</span>, <span class="str">"orders_stream"</span>, <span class="str">"orders_autoloader"</span>]:
-    spark.<span class="fn">sql</span>(<span class="str">f"DROP TABLE IF EXISTS dp750_demo.m07.{t}"</span>)
+    spark.<span class="fn">sql</span>(<span class="str">f"DROP TABLE IF EXISTS dp750.m07.{t}"</span>)
 <span class="kw">for</span> p <span class="kw">in</span> [<span class="str">"orders"</span>, <span class="str">"_checkpoints"</span>, <span class="str">"_schemas"</span>]:
     dbutils.fs.<span class="fn">rm</span>(<span class="str">f"{base}/{p}"</span>, <span class="kw">True</span>)
 
@@ -771,8 +771,8 @@ df = (spark.read
       .<span class="fn">option</span>(<span class="str">"inferSchema"</span>, <span class="str">"true"</span>)
       .<span class="fn">load</span>(<span class="str">f"{base}/orders/orders_001.csv"</span>))
 df.<span class="fn">printSchema</span>()
-df.write.<span class="fn">mode</span>(<span class="str">"overwrite"</span>).<span class="fn">saveAsTable</span>(<span class="str">"dp750_demo.m07.orders_nb"</span>)
-<span class="fn">display</span>(spark.<span class="fn">table</span>(<span class="str">"dp750_demo.m07.orders_nb"</span>))</pre>
+df.write.<span class="fn">mode</span>(<span class="str">"overwrite"</span>).<span class="fn">saveAsTable</span>(<span class="str">"dp750.m07.orders_nb"</span>)
+<span class="fn">display</span>(spark.<span class="fn">table</span>(<span class="str">"dp750.m07.orders_nb"</span>))</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> <code class="inline">spark.read</code> je univerzální cesta, když managed konektor neexistuje; <code class="inline">mode("overwrite")</code> dělá z buňky opakovatelný full load. Zápis skončí v Delta tabulce, formát nikdo neuvádí.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> částka v <code class="inline">double</code> je pro peníze špatně (viz sekce 8.2). Stejné odvození (<code class="inline">inferSchema</code> → double) shodí v kroku 3 <code class="inline">COPY INTO</code>, pokud ho tam použiješ.</div></div>
@@ -786,15 +786,15 @@ df.write.<span class="fn">mode</span>(<span class="str">"overwrite"</span>).<spa
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
 <pre><span class="cm">-- cell A: run twice, then again after cell B</span>
-<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> <span class="tbl">dp750_demo.m07.orders_copy</span> (
+<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> <span class="tbl">dp750.m07.orders_copy</span> (
   order_id <span class="kw">INT</span>, customer <span class="kw">STRING</span>, amount <span class="kw">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>), order_ts <span class="kw">TIMESTAMP</span>);
 
-<span class="kw">COPY</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m07.orders_copy</span>
+<span class="kw">COPY</span> <span class="kw">INTO</span> <span class="tbl">dp750.m07.orders_copy</span>
 <span class="kw">FROM</span> (
   <span class="kw">SELECT</span> CAST(order_id <span class="kw">AS</span> <span class="kw">INT</span>) <span class="kw">AS</span> order_id, customer,
          CAST(amount <span class="kw">AS</span> <span class="kw">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>)) <span class="kw">AS</span> amount,
          CAST(order_ts <span class="kw">AS</span> <span class="kw">TIMESTAMP</span>) <span class="kw">AS</span> order_ts
-  <span class="kw">FROM</span> <span class="str">'/Volumes/dp750_demo/m07/landing/orders'</span>
+  <span class="kw">FROM</span> <span class="str">'/Volumes/dp750/m07/landing/orders'</span>
 )
 <span class="kw">FILEFORMAT</span> = <span class="kw">CSV</span>
 <span class="kw">FORMAT_OPTIONS</span> (<span class="str">'header'</span> = <span class="str">'true'</span>);</pre>
@@ -810,21 +810,21 @@ dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/orders/orders_
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
 <pre><span class="cm">-- cell C: history of COPY INTO, CTAS, CREATE OR REPLACE</span>
 <span class="kw">SELECT</span> version, operation, operationMetrics
-<span class="kw">FROM</span> (<span class="kw">DESCRIBE</span> <span class="kw">HISTORY</span> <span class="tbl">dp750_demo.m07.orders_copy</span>) <span class="kw">ORDER</span> <span class="kw">BY</span> version;
+<span class="kw">FROM</span> (<span class="kw">DESCRIBE</span> <span class="kw">HISTORY</span> <span class="tbl">dp750.m07.orders_copy</span>) <span class="kw">ORDER</span> <span class="kw">BY</span> version;
 
-<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m07.orders_ctas</span> <span class="kw">AS</span>
-<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="fn">read_files</span>(<span class="str">'/Volumes/dp750_demo/m07/landing/orders/'</span>,
+<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m07.orders_ctas</span> <span class="kw">AS</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="fn">read_files</span>(<span class="str">'/Volumes/dp750/m07/landing/orders/'</span>,
   format =&gt; <span class="str">'csv'</span>, header =&gt; true, schemaHints =&gt; <span class="str">'amount DECIMAL(10,2)'</span>);
-<span class="kw">DESCRIBE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m07.orders_ctas</span>;
+<span class="kw">DESCRIBE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m07.orders_ctas</span>;
 
 <span class="cm">-- table exists: the whole statement is skipped</span>
-<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> <span class="tbl">dp750_demo.m07.orders_ctas</span> <span class="kw">AS</span> <span class="kw">SELECT</span> <span class="num">1</span> <span class="kw">AS</span> x;
+<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> <span class="tbl">dp750.m07.orders_ctas</span> <span class="kw">AS</span> <span class="kw">SELECT</span> <span class="num">1</span> <span class="kw">AS</span> x;
 
 <span class="cm">-- full refresh that keeps history and grants</span>
-<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m07.orders_ctas</span> <span class="kw">AS</span>
-<span class="kw">SELECT</span> customer, <span class="fn">sum</span>(amount) <span class="kw">AS</span> total <span class="kw">FROM</span> <span class="tbl">dp750_demo.m07.orders_copy</span> <span class="kw">GROUP</span> <span class="kw">BY</span> customer;
+<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m07.orders_ctas</span> <span class="kw">AS</span>
+<span class="kw">SELECT</span> customer, <span class="fn">sum</span>(amount) <span class="kw">AS</span> total <span class="kw">FROM</span> <span class="tbl">dp750.m07.orders_copy</span> <span class="kw">GROUP</span> <span class="kw">BY</span> customer;
 
-<span class="kw">SELECT</span> version, operation <span class="kw">FROM</span> (<span class="kw">DESCRIBE</span> <span class="kw">HISTORY</span> <span class="tbl">dp750_demo.m07.orders_ctas</span>) <span class="kw">ORDER</span> <span class="kw">BY</span> version;</pre>
+<span class="kw">SELECT</span> version, operation <span class="kw">FROM</span> (<span class="kw">DESCRIBE</span> <span class="kw">HISTORY</span> <span class="tbl">dp750.m07.orders_ctas</span>) <span class="kw">ORDER</span> <span class="kw">BY</span> version;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> <code class="inline">COPY INTO</code> si načtené soubory pamatuje, proto opakované spuštění nic nezdvojí; v historii jsou jen dvě verze <code class="inline">COPY INTO</code> (2 a 1 řádek). CTAS u <code class="inline">read_files</code> přidá sloupec <code class="inline">_rescued_data</code>. <code class="inline">CREATE OR REPLACE</code> vytvoří novou verzi téže tabulky, ne novou tabulku.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> varianta s <code class="inline">FORMAT_OPTIONS ('header' = 'true', 'inferSchema' = 'true')</code> nad tabulkou s <code class="inline">DECIMAL(10,2)</code> spadne na <code class="inline">DELTA_FAILED_TO_MERGE_FIELDS</code> (<code class="inline">amount</code> se odvodí jako double); bez <code class="inline">inferSchema</code> a bez přetypování spadne stejně, protože CSV sloupce jsou řetězce. Chyba přijde i tehdy, když by se žádný nový soubor nenačítal. Proto <code class="inline">SELECT</code> s <code class="inline">CAST</code>.</div></div>
@@ -837,7 +837,7 @@ dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/orders/orders_
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m07.customer_changes</span> <span class="kw">AS</span>
+<pre><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m07.customer_changes</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">VALUES</span>
   (<span class="num">1</span>, <span class="str">'ACME'</span>, <span class="str">'Brno'</span>,    <span class="str">'INSERT'</span>, <span class="num">1</span>),
   (<span class="num">2</span>, <span class="str">'Velo'</span>, <span class="str">'Praha'</span>,   <span class="str">'INSERT'</span>, <span class="num">2</span>),
@@ -847,7 +847,7 @@ dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/orders/orders_
 <span class="kw">AS</span> t(customer_id, name, city, operation, seq);
 
 <span class="cm">-- correct state = last event per key by sequence, not by arrival</span>
-<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m07.customer_changes</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m07.customer_changes</span>
 <span class="kw">QUALIFY</span> <span class="fn">row_number</span>() <span class="kw">OVER</span> (<span class="kw">PARTITION</span> <span class="kw">BY</span> customer_id <span class="kw">ORDER</span> <span class="kw">BY</span> seq <span class="kw">DESC</span>) = <span class="num">1</span>;</pre>
   </div>
   <div class="code-block">
@@ -857,7 +857,7 @@ dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/orders/orders_
 
 <span class="kw">CREATE</span> <span class="kw">FLOW</span> customers_history_cdc
 <span class="kw">AS</span> <span class="kw">AUTO</span> CDC <span class="kw">INTO</span> customers_history
-<span class="kw">FROM</span> <span class="fn">stream</span>(<span class="tbl">dp750_demo.m07.customer_changes</span>)
+<span class="kw">FROM</span> <span class="fn">stream</span>(<span class="tbl">dp750.m07.customer_changes</span>)
 <span class="kw">KEYS</span> (customer_id)
 <span class="kw">APPLY</span> <span class="kw">AS</span> <span class="kw">DELETE</span> <span class="kw">WHEN</span> operation = <span class="str">'DELETE'</span>
 <span class="kw">SEQUENCE</span> <span class="kw">BY</span> seq
@@ -876,14 +876,14 @@ dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/orders/orders_
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
 <pre>q = (spark.readStream
-     .<span class="fn">table</span>(<span class="str">"dp750_demo.m07.orders_copy"</span>)
+     .<span class="fn">table</span>(<span class="str">"dp750.m07.orders_copy"</span>)
      .writeStream
      .<span class="fn">option</span>(<span class="str">"checkpointLocation"</span>, <span class="str">f"{base}/_checkpoints/orders_stream"</span>)
      .<span class="fn">trigger</span>(availableNow=<span class="kw">True</span>)
-     .<span class="fn">toTable</span>(<span class="str">"dp750_demo.m07.orders_stream"</span>))
+     .<span class="fn">toTable</span>(<span class="str">"dp750.m07.orders_stream"</span>))
 q.<span class="fn">awaitTermination</span>()
 <span class="fn">print</span>([p[<span class="str">"numInputRows"</span>] <span class="kw">for</span> p <span class="kw">in</span> q.recentProgress])
-<span class="fn">print</span>(spark.<span class="fn">table</span>(<span class="str">"dp750_demo.m07.orders_stream"</span>).<span class="fn">count</span>())</pre>
+<span class="fn">print</span>(spark.<span class="fn">table</span>(<span class="str">"dp750.m07.orders_stream"</span>).<span class="fn">count</span>())</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> stejné API jako batch, jen <code class="inline">readStream</code> a <code class="inline">writeStream</code>. <code class="inline">availableNow</code> zpracuje vše dostupné a skončí, takže se hodí do plánovaného jobu. Místo Kafky čteme Delta tabulku; princip checkpointu je stejný.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> na serverless jsou podporované jen triggery <code class="inline">availableNow</code> a zastaralý <code class="inline">once</code>; <code class="inline">processingTime</code> nebo stream bez triggeru skončí chybou <code class="inline">INFINITE_STREAMING_TRIGGER_NOT_SUPPORTED</code>. Každá streaming query potřebuje vlastní checkpoint; smazání checkpointu znamená začít od nuly.</div></div>
@@ -910,20 +910,20 @@ q.<span class="fn">awaitTermination</span>()
          .writeStream
          .<span class="fn">option</span>(<span class="str">"checkpointLocation"</span>, <span class="str">f"{base}/_checkpoints/orders_al"</span>)
          .<span class="fn">trigger</span>(availableNow=<span class="kw">True</span>)
-         .<span class="fn">toTable</span>(<span class="str">"dp750_demo.m07.orders_autoloader"</span>))
+         .<span class="fn">toTable</span>(<span class="str">"dp750.m07.orders_autoloader"</span>))
     q.<span class="fn">awaitTermination</span>()
 
 <span class="fn">run_autoloader</span>()
-<span class="fn">print</span>(spark.<span class="fn">table</span>(<span class="str">"dp750_demo.m07.orders_autoloader"</span>).<span class="fn">count</span>())
+<span class="fn">print</span>(spark.<span class="fn">table</span>(<span class="str">"dp750.m07.orders_autoloader"</span>).<span class="fn">count</span>())
 <span class="fn">run_autoloader</span>()
-<span class="fn">print</span>(spark.<span class="fn">table</span>(<span class="str">"dp750_demo.m07.orders_autoloader"</span>).<span class="fn">count</span>())</pre>
+<span class="fn">print</span>(spark.<span class="fn">table</span>(<span class="str">"dp750.m07.orders_autoloader"</span>).<span class="fn">count</span>())</pre>
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="kw">SELECT</span> path <span class="kw">FROM</span> <span class="fn">cloud_files_state</span>(<span class="str">'/Volumes/dp750_demo/m07/landing/_checkpoints/orders_al'</span>);
+<pre><span class="kw">SELECT</span> path <span class="kw">FROM</span> <span class="fn">cloud_files_state</span>(<span class="str">'/Volumes/dp750/m07/landing/_checkpoints/orders_al'</span>);
 
 <span class="kw">SELECT</span> order_id, amount, source_file, _rescued_data
-<span class="kw">FROM</span> <span class="tbl">dp750_demo.m07.orders_autoloader</span> <span class="kw">ORDER</span> <span class="kw">BY</span> order_id;</pre>
+<span class="kw">FROM</span> <span class="tbl">dp750.m07.orders_autoloader</span> <span class="kw">ORDER</span> <span class="kw">BY</span> order_id;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> Auto Loader si stav souborů drží v checkpointu, proto každý soubor projde právě jednou. Proti <code class="inline">COPY INTO</code> škáluje na miliony souborů a umí schema evolution; <code class="inline">_metadata.file_name</code> dá v bronze vrstvě dohledatelnost původu.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> bez <code class="inline">inferColumnTypes</code> by u CSV byly všechny sloupce řetězce; s ním je <code class="inline">amount</code> zase <code class="inline">double</code>, pro peníze přidej <code class="inline">cloudFiles.schemaHints</code>. Když první běh nic nenačte, zbyl checkpoint ze zkoušky: smaž <code class="inline">_checkpoints/orders_al</code> i <code class="inline">_schemas/orders_al</code> (dělá to buňka v kroku 2). Neříkej, že ukázka používá directory listing: který režim detekce Auto Loader nad volume zvolí, Learn pro tenhle případ neuvádí.</div></div>
@@ -932,7 +932,7 @@ q.<span class="fn">awaitTermination</span>()
   <ol>
     <li>Ukaž na plátně zdrojový soubor pipeline, který dělá totéž co krok 6, ale checkpoint a schema location řeší pipeline sama.</li>
     <li>Vysvětli, že jméno flow (ve výchozím stavu název tabulky z <code class="inline">name=…</code>) identifikuje checkpoint: přejmenování znamená nový ingest od začátku.</li>
-    <li>Pipeline zakládej jen tehdy, když zbývá čas: <strong>Jobs &amp; Pipelines</strong> → vytvořit ETL pipeline, výchozí katalog <code class="inline">dp750_demo</code>, schéma <code class="inline">m07</code>, serverless. Pak ji po ukázce smaž.</li>
+    <li>Pipeline zakládej jen tehdy, když zbývá čas: <strong>Jobs &amp; Pipelines</strong> → vytvořit ETL pipeline, výchozí katalog <code class="inline">dp750</code>, schéma <code class="inline">m07</code>, serverless. Pak ji po ukázce smaž.</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
@@ -946,15 +946,15 @@ q.<span class="fn">awaitTermination</span>()
             .<span class="fn">option</span>(<span class="str">"cloudFiles.format"</span>, <span class="str">"csv"</span>)
             .<span class="fn">option</span>(<span class="str">"header"</span>, <span class="str">"true"</span>)
             .<span class="fn">option</span>(<span class="str">"cloudFiles.schemaHints"</span>, <span class="str">"amount DECIMAL(10,2)"</span>)
-            .<span class="fn">load</span>(<span class="str">"/Volumes/dp750_demo/m07/landing/orders"</span>))</pre>
+            .<span class="fn">load</span>(<span class="str">"/Volumes/dp750/m07/landing/orders"</span>))</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> v pipeline deklaruješ, co má vzniknout, a framework řeší pořadí, retry, checkpointy i inkrementální zpracování. Stejný Auto Loader, méně vlastního kódu.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> modul <code class="inline">from pyspark import pipelines</code> funguje jen uvnitř pipeline; v běžném notebooku import nebo dekorátor může skončit chybou.</div></div>
 
   <h3>Úklid</h3>
   <ol>
-    <li>Tabulky, volume a soubory ve <code class="inline">dp750_demo.m07</code> nech, první buňka kroku 2 je před dalším průchodem sama vyčistí.</li>
-    <li>Pokud jsi v kroku 7 založil pipeline, smaž ji v <strong>Jobs &amp; Pipelines</strong>; po kurzu <code class="inline">DROP SCHEMA dp750_demo.m07 CASCADE;</code>.</li>
+    <li>Tabulky, volume a soubory ve <code class="inline">dp750.m07</code> nech, první buňka kroku 2 je před dalším průchodem sama vyčistí.</li>
+    <li>Pokud jsi v kroku 7 založil pipeline, smaž ji v <strong>Jobs &amp; Pipelines</strong>; po kurzu <code class="inline">DROP SCHEMA dp750.m07 CASCADE;</code>.</li>
   </ol>
 </div>
 

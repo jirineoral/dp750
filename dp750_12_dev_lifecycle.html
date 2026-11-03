@@ -550,7 +550,7 @@ databricks bundle deploy -t prod --auto-approve</pre>
     <h2>Runbook: ukázka krok za krokem</h2>
   </div>
   <p>Ukázka vezme malé pravidlo pro váhu zásilky z modulu 10, verzuje ho v Git folderu, otestuje přes pytest a zabalí s reportovacím jobem do Declarative Automation Bundle, který nasadí do dev. Běží v lektorském workspace a na lektorském notebooku s vlastním kódem, ne s projektem labu.</p>
-  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> lokálně Databricks CLI a Python s pytest; profil CLI <code class="inline">demo</code> na lektorský workspace (<code class="inline">databricks auth login --host &lt;URL workspace&gt; --profile demo</code>); prázdný Git repozitář u providera (GitHub nebo Azure DevOps) s přístupem z workspace; tabulka <code class="inline">dp750_demo.m10.locker_daily_gold</code> z ukázky modulu 10. Soubory projektu z kroků 3 a 4 dej do repozitáře předem. Jednou celé projeď včetně <code class="inline">destroy</code>. Asi 20 minut přípravy, ukázka 10 minut.</div></div>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> lokálně Databricks CLI a Python s pytest; profil CLI <code class="inline">demo</code> na lektorský workspace (<code class="inline">databricks auth login --host &lt;URL workspace&gt; --profile demo</code>); prázdný Git repozitář u providera (GitHub nebo Azure DevOps) s přístupem z workspace; tabulka <code class="inline">dp750.m10.locker_daily_gold</code> z ukázky modulu 10. Soubory projektu z kroků 3 a 4 dej do repozitáře předem. Jednou celé projeď včetně <code class="inline">destroy</code>. Asi 20 minut přípravy, ukázka 10 minut.</div></div>
 
   <h3>Krok 1 – Git folders: verzování přímo ve workspace</h3>
   <ol>
@@ -646,7 +646,7 @@ retcode = pytest.<span class="fn">main</span>([<span class="str">"tests"</span>,
 <span class="kw">variables</span>:
   <span class="kw">catalog</span>:
     <span class="kw">description</span>: Catalog with the demo data
-    <span class="kw">default</span>: dp750_demo
+    <span class="kw">default</span>: dp750
 
 <span class="kw">resources</span>:
   <span class="kw">jobs</span>:
@@ -702,7 +702,7 @@ databricks bundle validate -t dev -p demo --var=<span class="str">"catalog=dp750
   <ol>
     <li><code class="inline">plan</code>: bez jediné změny vypíše <code class="inline">create jobs.locker_report</code> (podle verze CLI i se souhrnem počtu změn).</li>
     <li><code class="inline">deploy -t dev</code>, pak <code class="inline">summary</code>. Ve workspace otevři Jobs &amp; Pipelines a ukaž job <code class="inline">[dev &lt;uživatel&gt;] dp750-m12-locker-report</code> s pozastaveným plánem.</li>
-    <li><code class="inline">run</code> s přepsaným parametrem: task vypíše <code class="inline">catalog = dp750_demo, report_date = 2026-11-05</code> a počet řádků gold tabulky.</li>
+    <li><code class="inline">run</code> s přepsaným parametrem: task vypíše <code class="inline">catalog = dp750, report_date = 2026-11-05</code> a počet řádků gold tabulky.</li>
     <li>Změň v YAML cron na <code class="inline">"0 30 6 * * ?"</code> a pusť znovu <code class="inline">plan</code>: teď hlásí update, ne create.</li>
     <li><code class="inline">destroy</code> nasazený job smaže.</li>
   </ol>

@@ -667,7 +667,7 @@ $$;
 
   <p><strong>AI/BI Genie</strong> umožňuje business uživatelům ptát se na data přirozeným jazykem — Genie z otázky vygeneruje SQL nad tabulkami Unity Catalogu. Aby generovalo <em>správné</em> SQL, potřebuje kontext: k tomu slouží <strong>knowledge store</strong> objektu <strong>Genie Agent</strong> (dříve Genie space), kde metadata upravujete na jeho úrovni, aniž byste měnili podkladové objekty v katalogu.</p>
 
-  <p>Genie Agent stavíte nad výběrem tabulek (max. 25, doporučeno začít s pěti a méně). Pak vrstvíte kontext:</p>
+  <p>Genie Agent stavíte nad výběrem tabulek, views nebo metric views (max. 50, doporučeno začít s pěti nebo méně; víc tabulek předem spojte do view nebo metric view). Pak vrstvíte kontext:</p>
 
   <table>
     <tr><th>Nástroj</th><th>K čemu slouží</th></tr>
@@ -717,8 +717,8 @@ $$;
     <div class="section-num">3.R</div>
     <h2>Runbook: ukázka krok za krokem</h2>
   </div>
-  <p>Ukázka postaví malý namespace pro sdílená kola v Brně: katalog, schéma, tabulky s PK/FK, view, materialized view, volume, funkce, proceduru a tagy, a na konci obnoví smazanou tabulku. Běží v lektorském workspace v katalogu <code class="inline">dp750_demo</code>, schéma <code class="inline">m03</code>, na syntetických datech.</p>
-  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> serverless SQL warehouse (materialized view a Python UDF na něm běží), katalog <code class="inline">dp750_demo</code>, privilegium <code class="inline">CREATE CATALOG</code> na metastoru pro krok 2 a malý CSV soubor <code class="inline">station_status.csv</code> pro krok 5 (obsah je v kroku). Zástupné hodnoty v kódu (<code class="inline">&lt;profil&gt;</code>, <code class="inline">&lt;katalog_workspace&gt;</code>) mají hned pod sebou zakomentovaný řádek <code class="inline">lektor:</code> s hodnotami lektorského prostředí (profil <code class="inline">jirin</code>, katalog workspace <code class="inline">dp750</code>); ten řádek zkopírujte bez úvodního <code class="inline">#</code> nebo <code class="inline">--</code>. Celá ukázka zabere asi 15 minut.</div></div>
+  <p>Ukázka postaví malý namespace pro sdílená kola v Brně: katalog, schéma, tabulky s PK/FK, view, materialized view, volume, funkce, proceduru a tagy, a na konci obnoví smazanou tabulku. Běží v lektorském workspace v katalogu <code class="inline">dp750</code>, schéma <code class="inline">m03</code>, na syntetických datech.</p>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> serverless SQL warehouse (materialized view a Python UDF na něm běží), katalog <code class="inline">dp750</code>, privilegium <code class="inline">CREATE CATALOG</code> na metastoru pro krok 2 a malý CSV soubor <code class="inline">station_status.csv</code> pro krok 5 (obsah je v kroku). Zástupné hodnoty v kódu (<code class="inline">&lt;profil&gt;</code>, <code class="inline">&lt;katalog_workspace&gt;</code>) mají hned pod sebou zakomentovaný řádek <code class="inline">lektor:</code> s hodnotami lektorského prostředí (profil <code class="inline">jirin</code>, katalog workspace <code class="inline">dp750</code>); ten řádek zkopírujte bez úvodního <code class="inline">#</code> nebo <code class="inline">--</code>. Celá ukázka zabere asi 15 minut.</div></div>
 
   <h3>Krok 1 – Třívrstvý namespace a naming conventions</h3>
   <ol>
@@ -728,12 +728,12 @@ $$;
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
     <pre><span class="kw">SELECT</span> <span class="fn">current_metastore</span>();
 <span class="kw">SHOW CATALOGS</span>;
-<span class="kw">SHOW SCHEMAS IN</span> <span class="tbl">dp750_demo</span>;
+<span class="kw">SHOW SCHEMAS IN</span> <span class="tbl">dp750</span>;
 
 <span class="cm">-- velikost pismen se v nazvech objektu ztraci</span>
 <span class="kw">SELECT</span> table_schema, table_name
 <span class="kw">FROM</span> <span class="tbl">system.information_schema.tables</span>
-<span class="kw">WHERE</span> table_catalog = <span class="str">'dp750_demo'</span>
+<span class="kw">WHERE</span> table_catalog = <span class="str">'dp750'</span>
 <span class="kw">ORDER BY</span> <span class="num">1</span>, <span class="num">2</span>;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> nad katalogy je jeden metastore pro region. Přes <code class="inline">information_schema</code> se dá konvence kontrolovat dotazem, třeba v CI: všechna jména jsou lowercase, žádné <code class="inline">_v2_final</code>.</div></div>
@@ -765,8 +765,8 @@ $$;
   <h3>Krok 3 – Vytvoření schématu</h3>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">CREATE SCHEMA IF NOT EXISTS</span> <span class="tbl">dp750_demo.m03</span> <span class="kw">COMMENT</span> <span class="str">'Demo modulu 3: sdilena kola Brno'</span>;
-<span class="kw">DESCRIBE SCHEMA EXTENDED</span> <span class="tbl">dp750_demo.m03</span>;</pre>
+    <pre><span class="kw">CREATE SCHEMA IF NOT EXISTS</span> <span class="tbl">dp750.m03</span> <span class="kw">COMMENT</span> <span class="str">'Demo modulu 3: sdilena kola Brno'</span>;
+<span class="kw">DESCRIBE SCHEMA EXTENDED</span> <span class="tbl">dp750.m03</span>;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> schéma bez vlastní managed location ukládá do úložiště katalogu. Řetězec fallbacku je schema → catalog → metastore; tady končí na katalogu, protože metastore úložiště nemá.</div></div>
 
@@ -776,28 +776,28 @@ $$;
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750_demo.m03.stations</span> (
+    <pre><span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750.m03.stations</span> (
   station_id   <span class="kw">INT NOT NULL COMMENT</span> <span class="str">'ID stanice'</span>,
   station_name <span class="kw">STRING</span>,
   district     <span class="kw">STRING</span>,
   <span class="kw">CONSTRAINT</span> stations_pk <span class="kw">PRIMARY KEY</span> (station_id)
 ) <span class="kw">COMMENT</span> <span class="str">'Stanice sdilenych kol'</span>;
 
-<span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750_demo.m03.rides</span> (
+<span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750.m03.rides</span> (
   ride_id    <span class="kw">BIGINT NOT NULL</span>,
   station_id <span class="kw">INT</span>,
   started_at <span class="kw">TIMESTAMP</span>,
   minutes    <span class="kw">INT</span>,
   price_czk  <span class="kw">DECIMAL</span>(<span class="num">6</span>,<span class="num">2</span>),
   <span class="kw">CONSTRAINT</span> rides_pk <span class="kw">PRIMARY KEY</span> (ride_id),
-  <span class="kw">CONSTRAINT</span> rides_stations_fk <span class="kw">FOREIGN KEY</span> (station_id) <span class="kw">REFERENCES</span> <span class="tbl">dp750_demo.m03.stations</span> (station_id)
+  <span class="kw">CONSTRAINT</span> rides_stations_fk <span class="kw">FOREIGN KEY</span> (station_id) <span class="kw">REFERENCES</span> <span class="tbl">dp750.m03.stations</span> (station_id)
 ) <span class="kw">COMMENT</span> <span class="str">'Jednotlive vypujcky kol'</span>;
 
-<span class="kw">INSERT INTO</span> <span class="tbl">dp750_demo.m03.stations</span> <span class="kw">VALUES</span>
+<span class="kw">INSERT INTO</span> <span class="tbl">dp750.m03.stations</span> <span class="kw">VALUES</span>
   (<span class="num">1</span>, <span class="str">'Hlavní nádraží'</span>, <span class="str">'Brno-střed'</span>), (<span class="num">2</span>, <span class="str">'Mendlovo náměstí'</span>, <span class="str">'Brno-střed'</span>),
   (<span class="num">3</span>, <span class="str">'Královo Pole nádraží'</span>, <span class="str">'Královo Pole'</span>), (<span class="num">4</span>, <span class="str">'Líšeň Jírova'</span>, <span class="str">'Líšeň'</span>);
 
-<span class="kw">INSERT INTO</span> <span class="tbl">dp750_demo.m03.rides</span> <span class="kw">VALUES</span>
+<span class="kw">INSERT INTO</span> <span class="tbl">dp750.m03.rides</span> <span class="kw">VALUES</span>
   (<span class="num">1001</span>, <span class="num">1</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-10-01 07:42:00'</span>, <span class="num">12</span>, <span class="num">25.00</span>),
   (<span class="num">1002</span>, <span class="num">2</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-10-01 08:05:00'</span>, <span class="num">48</span>, <span class="num">75.00</span>),
   (<span class="num">1003</span>, <span class="num">3</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-10-01 16:30:00'</span>, <span class="num">7</span>, <span class="num">25.00</span>),
@@ -805,31 +805,31 @@ $$;
   (<span class="num">1005</span>, <span class="num">4</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-10-02 17:45:00'</span>, <span class="num">22</span>, <span class="num">25.00</span>);
 
 <span class="cm">-- PK se nevynucuje: projde to</span>
-<span class="kw">INSERT INTO</span> <span class="tbl">dp750_demo.m03.stations</span> <span class="kw">VALUES</span> (<span class="num">1</span>, <span class="str">'Duplicitni stanice'</span>, <span class="str">'Brno-střed'</span>);
-<span class="kw">SELECT</span> station_id, <span class="fn">count</span>(*) <span class="kw">AS</span> n <span class="kw">FROM</span> <span class="tbl">dp750_demo.m03.stations</span> <span class="kw">GROUP BY</span> station_id <span class="kw">HAVING</span> <span class="fn">count</span>(*) &gt; <span class="num">1</span>;
-<span class="kw">DELETE FROM</span> <span class="tbl">dp750_demo.m03.stations</span> <span class="kw">WHERE</span> station_name = <span class="str">'Duplicitni stanice'</span>;</pre>
+<span class="kw">INSERT INTO</span> <span class="tbl">dp750.m03.stations</span> <span class="kw">VALUES</span> (<span class="num">1</span>, <span class="str">'Duplicitni stanice'</span>, <span class="str">'Brno-střed'</span>);
+<span class="kw">SELECT</span> station_id, <span class="fn">count</span>(*) <span class="kw">AS</span> n <span class="kw">FROM</span> <span class="tbl">dp750.m03.stations</span> <span class="kw">GROUP BY</span> station_id <span class="kw">HAVING</span> <span class="fn">count</span>(*) &gt; <span class="num">1</span>;
+<span class="kw">DELETE FROM</span> <span class="tbl">dp750.m03.stations</span> <span class="kw">WHERE</span> station_name = <span class="str">'Duplicitni stanice'</span>;</pre>
   </div>
   <ol start="2">
     <li>Standardní view a materialized view nad stejnými tabulkami:</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">CREATE OR REPLACE VIEW</span> <span class="tbl">dp750_demo.m03.vw_long_rides</span>
+    <pre><span class="kw">CREATE OR REPLACE VIEW</span> <span class="tbl">dp750.m03.vw_long_rides</span>
 <span class="kw">COMMENT</span> <span class="str">'Vypujcky delsi nez 30 minut'</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> r.ride_id, s.station_name, r.minutes, r.price_czk
-<span class="kw">FROM</span> <span class="tbl">dp750_demo.m03.rides</span> r
-<span class="kw">JOIN</span> <span class="tbl">dp750_demo.m03.stations</span> s <span class="kw">ON</span> r.station_id = s.station_id
+<span class="kw">FROM</span> <span class="tbl">dp750.m03.rides</span> r
+<span class="kw">JOIN</span> <span class="tbl">dp750.m03.stations</span> s <span class="kw">ON</span> r.station_id = s.station_id
 <span class="kw">WHERE</span> r.minutes &gt; <span class="num">30</span>;
 
-<span class="kw">CREATE OR REPLACE MATERIALIZED VIEW</span> <span class="tbl">dp750_demo.m03.mv_rides_by_district</span> <span class="kw">AS</span>
+<span class="kw">CREATE OR REPLACE MATERIALIZED VIEW</span> <span class="tbl">dp750.m03.mv_rides_by_district</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> s.district, <span class="fn">count</span>(*) <span class="kw">AS</span> rides, <span class="fn">sum</span>(r.price_czk) <span class="kw">AS</span> revenue_czk
-<span class="kw">FROM</span> <span class="tbl">dp750_demo.m03.rides</span> r
-<span class="kw">JOIN</span> <span class="tbl">dp750_demo.m03.stations</span> s <span class="kw">ON</span> r.station_id = s.station_id
+<span class="kw">FROM</span> <span class="tbl">dp750.m03.rides</span> r
+<span class="kw">JOIN</span> <span class="tbl">dp750.m03.stations</span> s <span class="kw">ON</span> r.station_id = s.station_id
 <span class="kw">GROUP BY</span> s.district;
 
-<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m03.vw_long_rides</span>;
-<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m03.mv_rides_by_district</span> <span class="kw">ORDER BY</span> rides <span class="kw">DESC</span>;
-<span class="kw">DESCRIBE TABLE EXTENDED</span> <span class="tbl">dp750_demo.m03.rides</span>;</pre>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m03.vw_long_rides</span>;
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m03.mv_rides_by_district</span> <span class="kw">ORDER BY</span> rides <span class="kw">DESC</span>;
+<span class="kw">DESCRIBE TABLE EXTENDED</span> <span class="tbl">dp750.m03.rides</span>;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> duplicitní <code class="inline">station_id = 1</code> se uloží, protože PK/FK jsou jen informační (pro optimizer, Genie a dokumentaci). View vrátí dvě dlouhé výpůjčky, MV tři městské části (Brno-střed 3 výpůjčky). <code class="inline">DESCRIBE TABLE EXTENDED</code> ukáže <code class="inline">Type = MANAGED</code>.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> materialized view zakládejte na SQL warehouse; když editor omylem běží na jiném compute, zkontrolujte výběr compute vpravo nahoře. Data se v MV nemění sama: po změně zdroje pusťte <code class="inline">REFRESH MATERIALIZED VIEW</code> (krok 6).</div></div>
@@ -840,7 +840,7 @@ $$;
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">CREATE VOLUME IF NOT EXISTS</span> <span class="tbl">dp750_demo.m03.raw_exports</span> <span class="kw">COMMENT</span> <span class="str">'CSV exporty z terminalu stanic'</span>;</pre>
+    <pre><span class="kw">CREATE VOLUME IF NOT EXISTS</span> <span class="tbl">dp750.m03.raw_exports</span> <span class="kw">COMMENT</span> <span class="str">'CSV exporty z terminalu stanic'</span>;</pre>
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">BASH</span><button class="copy-btn">Kopírovat</button></div>
@@ -849,14 +849,14 @@ $$;
 <span class="cm"># 1,2026-10-03T07:00:00,8</span>
 <span class="cm"># 2,2026-10-03T07:00:00,3</span>
 <span class="cm"># 3,2026-10-03T07:00:00,0</span>
-databricks fs cp station_status.csv dbfs:/Volumes/dp750_demo/m03/raw_exports/station_status.csv --profile <span class="str">&lt;profil&gt;</span>
-<span class="cm"># lektor: databricks fs cp station_status.csv dbfs:/Volumes/dp750_demo/m03/raw_exports/station_status.csv --profile jirin</span></pre>
+databricks fs cp station_status.csv dbfs:/Volumes/dp750/m03/raw_exports/station_status.csv --profile <span class="str">&lt;profil&gt;</span>
+<span class="cm"># lektor: databricks fs cp station_status.csv dbfs:/Volumes/dp750/m03/raw_exports/station_status.csv --profile jirin</span></pre>
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">LIST</span> <span class="str">'/Volumes/dp750_demo/m03/raw_exports'</span>;
+    <pre><span class="kw">LIST</span> <span class="str">'/Volumes/dp750/m03/raw_exports'</span>;
 
-<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="fn">read_files</span>(<span class="str">'/Volumes/dp750_demo/m03/raw_exports/station_status.csv'</span>,
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="fn">read_files</span>(<span class="str">'/Volumes/dp750/m03/raw_exports/station_status.csv'</span>,
                         format =&gt; <span class="str">'csv'</span>, header =&gt; <span class="kw">true</span>);</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> soubor má cestu <code class="inline">/Volumes/katalog/schema/volume/…</code> a čte se bez klíčů a connection stringů. <code class="inline">read_files</code> odvodí typy a přidá sloupec <code class="inline">_rescued_data</code> pro hodnoty, které do schématu nesednou.</div></div>
@@ -868,14 +868,14 @@ databricks fs cp station_status.csv dbfs:/Volumes/dp750_demo/m03/raw_exports/sta
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">CREATE OR REPLACE FUNCTION</span> <span class="tbl">dp750_demo.m03.fn_tariff</span>(minutes <span class="kw">INT</span>)
+    <pre><span class="kw">CREATE OR REPLACE FUNCTION</span> <span class="tbl">dp750.m03.fn_tariff</span>(minutes <span class="kw">INT</span>)
 <span class="kw">RETURNS STRING</span>
 <span class="kw">COMMENT</span> <span class="str">'Tarifni pasmo podle delky vypujcky'</span>
 <span class="kw">RETURN CASE WHEN</span> minutes &lt;= <span class="num">15</span> <span class="kw">THEN</span> <span class="str">'zaklad'</span>
             <span class="kw">WHEN</span> minutes &lt;= <span class="num">60</span> <span class="kw">THEN</span> <span class="str">'stredni'</span>
             <span class="kw">ELSE</span> <span class="str">'dlouha'</span> <span class="kw">END</span>;
 
-<span class="kw">CREATE OR REPLACE FUNCTION</span> <span class="tbl">dp750_demo.m03.fn_station_code</span>(name <span class="kw">STRING</span>)
+<span class="kw">CREATE OR REPLACE FUNCTION</span> <span class="tbl">dp750.m03.fn_station_code</span>(name <span class="kw">STRING</span>)
 <span class="kw">RETURNS STRING</span>
 <span class="kw">LANGUAGE PYTHON</span>
 <span class="kw">AS</span> $$
@@ -886,55 +886,55 @@ return ascii_name.upper().replace(' ', '_')[:12]
 $$;
 
 <span class="kw">SELECT</span> r.ride_id, r.minutes,
-       <span class="fn">dp750_demo.m03.fn_tariff</span>(r.minutes) <span class="kw">AS</span> tarif,
-       <span class="fn">dp750_demo.m03.fn_station_code</span>(s.station_name) <span class="kw">AS</span> kod
-<span class="kw">FROM</span> <span class="tbl">dp750_demo.m03.rides</span> r <span class="kw">JOIN</span> <span class="tbl">dp750_demo.m03.stations</span> s <span class="kw">USING</span> (station_id)
+       <span class="fn">dp750.m03.fn_tariff</span>(r.minutes) <span class="kw">AS</span> tarif,
+       <span class="fn">dp750.m03.fn_station_code</span>(s.station_name) <span class="kw">AS</span> kod
+<span class="kw">FROM</span> <span class="tbl">dp750.m03.rides</span> r <span class="kw">JOIN</span> <span class="tbl">dp750.m03.stations</span> s <span class="kw">USING</span> (station_id)
 <span class="kw">ORDER BY</span> r.ride_id;
 
-<span class="kw">CREATE OR REPLACE PROCEDURE</span> <span class="tbl">dp750_demo.m03.sp_add_ride</span>(
+<span class="kw">CREATE OR REPLACE PROCEDURE</span> <span class="tbl">dp750.m03.sp_add_ride</span>(
   <span class="kw">IN</span> p_ride_id <span class="kw">BIGINT</span>, <span class="kw">IN</span> p_station_id <span class="kw">INT</span>, <span class="kw">IN</span> p_minutes <span class="kw">INT</span>)
 <span class="kw">LANGUAGE SQL SQL SECURITY INVOKER</span>
 <span class="kw">AS BEGIN</span>
   <span class="kw">IF</span> p_minutes &lt;= <span class="num">0</span> <span class="kw">THEN</span>
     <span class="kw">SIGNAL SQLSTATE</span> <span class="str">'22003'</span> <span class="kw">SET</span> MESSAGE_TEXT = <span class="str">'Delka vypujcky musi byt kladna'</span>;
   <span class="kw">END IF</span>;
-  <span class="kw">INSERT INTO</span> <span class="tbl">dp750_demo.m03.rides</span> <span class="kw">VALUES</span> (p_ride_id, p_station_id, <span class="fn">current_timestamp</span>(), p_minutes,
+  <span class="kw">INSERT INTO</span> <span class="tbl">dp750.m03.rides</span> <span class="kw">VALUES</span> (p_ride_id, p_station_id, <span class="fn">current_timestamp</span>(), p_minutes,
     <span class="kw">CASE WHEN</span> p_minutes &lt;= <span class="num">15</span> <span class="kw">THEN</span> <span class="num">25.00</span> <span class="kw">WHEN</span> p_minutes &lt;= <span class="num">60</span> <span class="kw">THEN</span> <span class="num">75.00</span> <span class="kw">ELSE</span> <span class="num">150.00</span> <span class="kw">END</span>);
 <span class="kw">END</span>;
 
-<span class="kw">CALL</span> <span class="fn">dp750_demo.m03.sp_add_ride</span>(<span class="num">1006</span>, <span class="num">2</span>, <span class="num">33</span>);
-<span class="kw">CALL</span> <span class="fn">dp750_demo.m03.sp_add_ride</span>(<span class="num">1007</span>, <span class="num">2</span>, <span class="num">0</span>);   <span class="cm">-- zamerna chyba</span>
-<span class="kw">REFRESH MATERIALIZED VIEW</span> <span class="tbl">dp750_demo.m03.mv_rides_by_district</span>;</pre>
+<span class="kw">CALL</span> <span class="fn">dp750.m03.sp_add_ride</span>(<span class="num">1006</span>, <span class="num">2</span>, <span class="num">33</span>);
+<span class="kw">CALL</span> <span class="fn">dp750.m03.sp_add_ride</span>(<span class="num">1007</span>, <span class="num">2</span>, <span class="num">0</span>);   <span class="cm">-- zamerna chyba</span>
+<span class="kw">REFRESH MATERIALIZED VIEW</span> <span class="tbl">dp750.m03.mv_rides_by_district</span>;</pre>
   </div>
   <ol start="2">
     <li>ALTER: nový sloupec, rozšíření typu a tagy:</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">ALTER TABLE</span> <span class="tbl">dp750_demo.m03.rides</span> <span class="kw">ADD COLUMN</span> bike_type <span class="kw">STRING COMMENT</span> <span class="str">'mechanicke nebo elektro'</span>;
+    <pre><span class="kw">ALTER TABLE</span> <span class="tbl">dp750.m03.rides</span> <span class="kw">ADD COLUMN</span> bike_type <span class="kw">STRING COMMENT</span> <span class="str">'mechanicke nebo elektro'</span>;
 
 <span class="cm">-- prvni pokus selze, druhy po zapnuti type widening projde</span>
-<span class="kw">ALTER TABLE</span> <span class="tbl">dp750_demo.m03.rides</span> <span class="kw">ALTER COLUMN</span> minutes <span class="kw">TYPE BIGINT</span>;
-<span class="kw">ALTER TABLE</span> <span class="tbl">dp750_demo.m03.rides</span> <span class="kw">SET TBLPROPERTIES</span> (<span class="str">'delta.enableTypeWidening'</span> = <span class="str">'true'</span>);
-<span class="kw">ALTER TABLE</span> <span class="tbl">dp750_demo.m03.rides</span> <span class="kw">ALTER COLUMN</span> minutes <span class="kw">TYPE BIGINT</span>;
+<span class="kw">ALTER TABLE</span> <span class="tbl">dp750.m03.rides</span> <span class="kw">ALTER COLUMN</span> minutes <span class="kw">TYPE BIGINT</span>;
+<span class="kw">ALTER TABLE</span> <span class="tbl">dp750.m03.rides</span> <span class="kw">SET TBLPROPERTIES</span> (<span class="str">'delta.enableTypeWidening'</span> = <span class="str">'true'</span>);
+<span class="kw">ALTER TABLE</span> <span class="tbl">dp750.m03.rides</span> <span class="kw">ALTER COLUMN</span> minutes <span class="kw">TYPE BIGINT</span>;
 
-<span class="kw">ALTER SCHEMA</span> <span class="tbl">dp750_demo.m03</span> <span class="kw">SET TAGS</span> (<span class="str">'domain'</span> = <span class="str">'mobilita'</span>, <span class="str">'environment'</span> = <span class="str">'demo'</span>);
-<span class="kw">ALTER TABLE</span> <span class="tbl">dp750_demo.m03.rides</span> <span class="kw">SET TAGS</span> (<span class="str">'data_owner'</span> = <span class="str">'provoz'</span>);
+<span class="kw">ALTER SCHEMA</span> <span class="tbl">dp750.m03</span> <span class="kw">SET TAGS</span> (<span class="str">'domain'</span> = <span class="str">'mobilita'</span>, <span class="str">'environment'</span> = <span class="str">'demo'</span>);
+<span class="kw">ALTER TABLE</span> <span class="tbl">dp750.m03.rides</span> <span class="kw">SET TAGS</span> (<span class="str">'data_owner'</span> = <span class="str">'provoz'</span>);
 
 <span class="kw">SELECT</span> schema_name, tag_name, tag_value
 <span class="kw">FROM</span> <span class="tbl">system.information_schema.schema_tags</span>
-<span class="kw">WHERE</span> catalog_name = <span class="str">'dp750_demo'</span> <span class="kw">AND</span> schema_name = <span class="str">'m03'</span>;</pre>
+<span class="kw">WHERE</span> catalog_name = <span class="str">'dp750'</span> <span class="kw">AND</span> schema_name = <span class="str">'m03'</span>;</pre>
   </div>
   <ol start="3">
     <li>Obnova smazané managed tabulky (na kopii, ať nerozbijete view a MV):</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750_demo.m03.tmp_rides_copy</span> <span class="kw">AS SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m03.rides</span>;
-<span class="kw">DROP TABLE</span> <span class="tbl">dp750_demo.m03.tmp_rides_copy</span>;
-<span class="kw">SHOW TABLES DROPPED IN</span> <span class="tbl">dp750_demo.m03</span>;
-<span class="kw">UNDROP TABLE</span> <span class="tbl">dp750_demo.m03.tmp_rides_copy</span>;
-<span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">FROM</span> <span class="tbl">dp750_demo.m03.tmp_rides_copy</span>;</pre>
+    <pre><span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750.m03.tmp_rides_copy</span> <span class="kw">AS SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m03.rides</span>;
+<span class="kw">DROP TABLE</span> <span class="tbl">dp750.m03.tmp_rides_copy</span>;
+<span class="kw">SHOW TABLES DROPPED IN</span> <span class="tbl">dp750.m03</span>;
+<span class="kw">UNDROP TABLE</span> <span class="tbl">dp750.m03.tmp_rides_copy</span>;
+<span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">FROM</span> <span class="tbl">dp750.m03.tmp_rides_copy</span>;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> funkce i procedura jsou objekty Unity Catalogu s vlastníkem a granty (<code class="inline">EXECUTE</code>). Druhé <code class="inline">CALL</code> skončí <code class="inline">USER_RAISED_EXCEPTION … SQLSTATE: 22003</code> a nic nevloží. Tagy schématu najdete v <code class="inline">information_schema.schema_tags</code>. <code class="inline">UNDROP</code> vrátí managed tabulku i s daty; okno je podle dokumentace 7 dní.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> <code class="inline">ALTER COLUMN … TYPE BIGINT</code> bez zapnutého <code class="inline">delta.enableTypeWidening</code> skončí chybou <code class="inline">DELTA_UNSUPPORTED_ALTER_TABLE_CHANGE_COL_OP</code>. Tělo Python UDF se kontroluje až při volání: funkce s chybným odsazením se vytvoří bez chyby a spadne na <code class="inline">UDF_USER_CODE_ERROR … IndentationError</code> teprve v <code class="inline">SELECT</code>. Proto jsou podmínky výše jednořádkové.</div></div>
@@ -1018,7 +1018,7 @@ heslo = dbutils.secrets.<span class="fn">get</span>(scope=<span class="str">"dp7
     <li>Ihned po ukázce: <code class="inline">DROP CATALOG dp750_m03_sandbox CASCADE;</code></li>
     <li>Secret scope z kroku 7: <code class="inline">databricks secrets delete-scope dp750-demo -p &lt;profil&gt;</code> (smaže i oba secrety; lektor: <code class="inline">-p jirin</code>).</li>
     <li>Genie Agent smažte (menu ⋮ → <strong>Move to trash</strong>), pokud ho nechcete dál ukazovat.</li>
-    <li>Schéma <code class="inline">dp750_demo.m03</code> nechte do konce kurzu (Catalog Explorer v dalších modulech). Po kurzu: <code class="inline">DROP SCHEMA dp750_demo.m03 CASCADE;</code></li>
+    <li>Schéma <code class="inline">dp750.m03</code> nechte do konce kurzu (Catalog Explorer v dalších modulech). Po kurzu: <code class="inline">DROP SCHEMA dp750.m03 CASCADE;</code></li>
   </ol>
 </div>
 

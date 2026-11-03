@@ -538,8 +538,8 @@ df = spark.read.<span class="fn">csv</span>(<span class="str">"/Volumes/main/def
     <div class="section-num">1.R</div>
     <h2>Runbook: ukázka krok za krokem</h2>
   </div>
-  <p>Ukázka provede workspace od Azure portálu až po první Delta tabulku s historií verzí. Běží v lektorském workspace nad vlastními daty (katalog <code class="inline">dp750_demo</code>, schéma <code class="inline">m01</code>, ukázková data <code class="inline">samples.nyctaxi</code>), ne nad daty labu.</p>
-  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> běžící serverless SQL warehouse (spusťte ho před výkladem, start chvíli trvá), katalog <code class="inline">dp750_demo</code> a v Azure portálu otevřená záložka s workspace. Ve workspace musí být katalog <code class="inline">samples</code>. Celá ukázka zabere asi 10 minut.</div></div>
+  <p>Ukázka provede workspace od Azure portálu až po první Delta tabulku s historií verzí. Běží v lektorském workspace nad vlastními daty (katalog <code class="inline">dp750</code>, schéma <code class="inline">m01</code>, ukázková data <code class="inline">samples.nyctaxi</code>), ne nad daty labu.</p>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> běžící serverless SQL warehouse (spusťte ho před výkladem, start chvíli trvá), katalog <code class="inline">dp750</code> a v Azure portálu otevřená záložka s workspace. Ve workspace musí být katalog <code class="inline">samples</code>. Celá ukázka zabere asi 10 minut.</div></div>
 
   <h3>Krok 1 – Co je Azure Databricks a jak vzniká workspace</h3>
   <ol>
@@ -619,40 +619,40 @@ df = spark.<span class="fn">table</span>(<span class="str">"samples.nyctaxi.trip
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">CREATE SCHEMA IF NOT EXISTS</span> <span class="tbl">dp750_demo.m01</span> <span class="kw">COMMENT</span> <span class="str">'Demo modulu 1: prvni Delta tabulka'</span>;
+    <pre><span class="kw">CREATE SCHEMA IF NOT EXISTS</span> <span class="tbl">dp750.m01</span> <span class="kw">COMMENT</span> <span class="str">'Demo modulu 1: prvni Delta tabulka'</span>;
 
 <span class="cm">-- CTAS bez USING = Delta</span>
-<span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750_demo.m01.taxi_by_zip</span> <span class="kw">AS</span>
+<span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750.m01.taxi_by_zip</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> pickup_zip, <span class="fn">count</span>(*) <span class="kw">AS</span> trips, <span class="fn">round</span>(<span class="fn">avg</span>(fare_amount), <span class="num">2</span>) <span class="kw">AS</span> avg_fare
 <span class="kw">FROM</span> <span class="tbl">samples.nyctaxi.trips</span>
 <span class="kw">GROUP BY</span> pickup_zip;
 
-<span class="kw">DESCRIBE DETAIL</span> <span class="tbl">dp750_demo.m01.taxi_by_zip</span>;
+<span class="kw">DESCRIBE DETAIL</span> <span class="tbl">dp750.m01.taxi_by_zip</span>;
 
 <span class="cm">-- zamerna "chyba"</span>
-<span class="kw">UPDATE</span> <span class="tbl">dp750_demo.m01.taxi_by_zip</span> <span class="kw">SET</span> avg_fare = <span class="num">0</span> <span class="kw">WHERE</span> pickup_zip = <span class="str">'10001'</span>;
+<span class="kw">UPDATE</span> <span class="tbl">dp750.m01.taxi_by_zip</span> <span class="kw">SET</span> avg_fare = <span class="num">0</span> <span class="kw">WHERE</span> pickup_zip = <span class="str">'10001'</span>;
 
-<span class="kw">DESCRIBE HISTORY</span> <span class="tbl">dp750_demo.m01.taxi_by_zip</span>;
+<span class="kw">DESCRIBE HISTORY</span> <span class="tbl">dp750.m01.taxi_by_zip</span>;
 
-<span class="kw">SELECT</span> <span class="str">'verze 0'</span> <span class="kw">AS</span> stav, avg_fare <span class="kw">FROM</span> <span class="tbl">dp750_demo.m01.taxi_by_zip</span> <span class="kw">VERSION AS OF</span> <span class="num">0</span> <span class="kw">WHERE</span> pickup_zip = <span class="str">'10001'</span>
+<span class="kw">SELECT</span> <span class="str">'verze 0'</span> <span class="kw">AS</span> stav, avg_fare <span class="kw">FROM</span> <span class="tbl">dp750.m01.taxi_by_zip</span> <span class="kw">VERSION AS OF</span> <span class="num">0</span> <span class="kw">WHERE</span> pickup_zip = <span class="str">'10001'</span>
 <span class="kw">UNION ALL</span>
-<span class="kw">SELECT</span> <span class="str">'aktualni'</span>, avg_fare <span class="kw">FROM</span> <span class="tbl">dp750_demo.m01.taxi_by_zip</span> <span class="kw">WHERE</span> pickup_zip = <span class="str">'10001'</span>;
+<span class="kw">SELECT</span> <span class="str">'aktualni'</span>, avg_fare <span class="kw">FROM</span> <span class="tbl">dp750.m01.taxi_by_zip</span> <span class="kw">WHERE</span> pickup_zip = <span class="str">'10001'</span>;
 
 <span class="cm">-- navrat pred chybu</span>
-<span class="kw">RESTORE TABLE</span> <span class="tbl">dp750_demo.m01.taxi_by_zip</span> <span class="kw">TO VERSION AS OF</span> <span class="num">0</span>;</pre>
+<span class="kw">RESTORE TABLE</span> <span class="tbl">dp750.m01.taxi_by_zip</span> <span class="kw">TO VERSION AS OF</span> <span class="num">0</span>;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> <code class="inline">DESCRIBE DETAIL</code> ukáže <code class="inline">format = delta</code> a mezi vlastnostmi a table features typicky i zapnuté deletion vectors. V historii je verze 0 (CTAS) a 1 (UPDATE). Time travel vrátí původní průměr, <code class="inline">RESTORE</code> ho vrátí do tabulky jako novou verzi; historie se nemaže.</div></div>
 
   <h3>Krok 6 – Data governance: Unity Catalog a Microsoft Purview</h3>
   <ol>
-    <li>Catalog Explorer → <code class="inline">dp750_demo</code> → <code class="inline">m01</code> → <code class="inline">taxi_by_zip</code>: záložky <strong>Details</strong>, <strong>History</strong>, <strong>Lineage</strong> a <strong>Permissions</strong>.</li>
+    <li>Catalog Explorer → <code class="inline">dp750</code> → <code class="inline">m01</code> → <code class="inline">taxi_by_zip</code>: záložky <strong>Details</strong>, <strong>History</strong>, <strong>Lineage</strong> a <strong>Permissions</strong>.</li>
     <li>Totéž jako metadata v SQL:</li>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
     <pre><span class="kw">SELECT</span> table_catalog, table_schema, table_name, table_type, table_owner
 <span class="kw">FROM</span> <span class="tbl">system.information_schema.tables</span>
-<span class="kw">WHERE</span> table_catalog = <span class="str">'dp750_demo'</span> <span class="kw">AND</span> table_schema = <span class="str">'m01'</span>;</pre>
+<span class="kw">WHERE</span> table_catalog = <span class="str">'dp750'</span> <span class="kw">AND</span> table_schema = <span class="str">'m01'</span>;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> tabulka je <code class="inline">MANAGED</code> a vlastní ji ten, kdo ji vytvořil. Na stejná metadata se napojuje Microsoft Purview, když skenuje Unity Catalog; Unity Catalog řídí přístup uvnitř Databricks, Purview dává pohled přes celou firmu.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> lineage graf nové tabulky se v záložce Lineage objeví se zpožděním. Když je prázdný, vraťte se k němu na konci dne, nebo ukažte tabulku z dřívějška.</div></div>
@@ -660,7 +660,7 @@ df = spark.<span class="fn">table</span>(<span class="str">"samples.nyctaxi.trip
   <h3>Úklid</h3>
   <ol>
     <li>Notebook z kroku 4 smažte, nebo ho nechte ve vlastní složce.</li>
-    <li>Schéma <code class="inline">dp750_demo.m01</code> nechte do konce kurzu. Po kurzu: <code class="inline">DROP SCHEMA dp750_demo.m01 CASCADE;</code></li>
+    <li>Schéma <code class="inline">dp750.m01</code> nechte do konce kurzu. Po kurzu: <code class="inline">DROP SCHEMA dp750.m01 CASCADE;</code></li>
   </ol>
 </div>
 

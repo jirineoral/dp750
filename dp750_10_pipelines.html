@@ -521,8 +521,8 @@ dbutils.jobs.taskValues.<span class="fn">set</span>(key<span class="op">=</span>
     <div class="section-num">10.R</div>
     <h2>Runbook: ukázka krok za krokem</h2>
   </div>
-  <p>Ukázka staví malou pipeline nad událostmi výdejních boxů na zásilky: surová data v bronze, karanténa vadných řádků, idempotentní MERGE do silver, agregace do gold, quality gate v jobu a nakonec stejný tok deklarativně. Běží v lektorském workspace na vlastních syntetických datech ve schématu <code class="inline">dp750_demo.m10</code>, ne na datech labu.</p>
-  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> serverless SQL warehouse a serverless compute pro notebooky, joby a pipelines; katalog <code class="inline">dp750_demo</code>. Předem spusť SQL z kroků 1, 2 a 4 (vytvoří schéma, tabulky a volume), do volume <code class="inline">dp750_demo.m10.landing</code> nahraj dva JSON soubory z kroku 6 a založ tři notebooky z kroku 5 a job z kroku 3. Pipeline z kroku 6 stačí založit ve třídě. Asi 15 minut přípravy, ukázka 10 minut.</div></div>
+  <p>Ukázka staví malou pipeline nad událostmi výdejních boxů na zásilky: surová data v bronze, karanténa vadných řádků, idempotentní MERGE do silver, agregace do gold, quality gate v jobu a nakonec stejný tok deklarativně. Běží v lektorském workspace na vlastních syntetických datech ve schématu <code class="inline">dp750.m10</code>, ne na datech labu.</p>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> serverless SQL warehouse a serverless compute pro notebooky, joby a pipelines; katalog <code class="inline">dp750</code>. Předem spusť SQL z kroků 1, 2 a 4 (vytvoří schéma, tabulky a volume), do volume <code class="inline">dp750.m10.landing</code> nahraj dva JSON soubory z kroku 6 a založ tři notebooky z kroku 5 a job z kroku 3. Pipeline z kroku 6 stačí založit ve třídě. Asi 15 minut přípravy, ukázka 10 minut.</div></div>
 
   <h3>Krok 1 – Návrh pořadí operací v pipeline</h3>
   <ol>
@@ -532,14 +532,14 @@ dbutils.jobs.taskValues.<span class="fn">set</span>(key<span class="op">=</span>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">CREATE SCHEMA IF NOT EXISTS</span> <span class="tbl">dp750_demo.m10</span>;
+    <pre><span class="kw">CREATE SCHEMA IF NOT EXISTS</span> <span class="tbl">dp750.m10</span>;
 
 <span class="cm">-- bronze: surova data, vsechno jako text</span>
-<span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750_demo.m10.parcel_events_bronze</span> (
+<span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750.m10.parcel_events_bronze</span> (
   <span class="col">event_id</span> <span class="kw">STRING</span>, <span class="col">locker_id</span> <span class="kw">STRING</span>, <span class="col">event_ts</span> <span class="kw">STRING</span>,
   <span class="col">weight_kg</span> <span class="kw">STRING</span>, <span class="col">status</span> <span class="kw">STRING</span>, <span class="col">_ingested_at</span> <span class="kw">TIMESTAMP</span>);
 
-<span class="kw">INSERT INTO</span> <span class="tbl">dp750_demo.m10.parcel_events_bronze</span> <span class="kw">VALUES</span>
+<span class="kw">INSERT INTO</span> <span class="tbl">dp750.m10.parcel_events_bronze</span> <span class="kw">VALUES</span>
   (<span class="str">'e01'</span>, <span class="str">'BRNO-01'</span>,    <span class="str">'2026-11-02 08:15:00'</span>, <span class="str">'1.2'</span>, <span class="str">'DELIVERED'</span>, <span class="fn">current_timestamp</span>()),
   (<span class="str">'e02'</span>, <span class="str">'BRNO-01'</span>,    <span class="str">'2026-11-02 09:40:00'</span>, <span class="str">'0.4'</span>, <span class="str">'PICKED_UP'</span>, <span class="fn">current_timestamp</span>()),
   (<span class="str">'e03'</span>, <span class="str">'PRAHA-07'</span>,   <span class="str">'2026-11-02 10:05:00'</span>, <span class="str">'2,5'</span>, <span class="str">'DELIVERED'</span>, <span class="fn">current_timestamp</span>()),
@@ -550,7 +550,7 @@ dbutils.jobs.taskValues.<span class="fn">set</span>(key<span class="op">=</span>
   (<span class="str">'e07'</span>, <span class="kw">NULL</span>,         <span class="str">'2026-11-02 14:00:00'</span>, <span class="str">'1.0'</span>, <span class="str">'DELIVERED'</span>, <span class="fn">current_timestamp</span>());
 
 <span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">AS</span> <span class="col">total_rows</span>, <span class="fn">count</span>(<span class="kw">DISTINCT</span> <span class="col">event_id</span>) <span class="kw">AS</span> <span class="col">distinct_events</span>
-<span class="kw">FROM</span> <span class="tbl">dp750_demo.m10.parcel_events_bronze</span>;</pre>
+<span class="kw">FROM</span> <span class="tbl">dp750.m10.parcel_events_bronze</span>;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> bronze nic neopravuje. Když se za měsíc změní pravidlo (třeba začneme přijímat desetinnou čárku), přehraješ silver z bronze a nepotřebuješ zdroj znovu.</div></div>
 
@@ -562,7 +562,7 @@ dbutils.jobs.taskValues.<span class="fn">set</span>(key<span class="op">=</span>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
     <pre><span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">AS</span> <span class="col">bad_rows</span>
-<span class="kw">FROM</span> <span class="tbl">dp750_demo.m10.parcel_events_bronze</span>
+<span class="kw">FROM</span> <span class="tbl">dp750.m10.parcel_events_bronze</span>
 <span class="kw">WHERE</span> <span class="col">locker_id</span> <span class="kw">IS NULL</span>
    <span class="kw">OR</span> <span class="fn">try_cast</span>(<span class="col">event_ts</span> <span class="kw">AS TIMESTAMP</span>) <span class="kw">IS NULL</span>
    <span class="kw">OR</span> <span class="fn">try_cast</span>(<span class="col">weight_kg</span> <span class="kw">AS DECIMAL</span>(<span class="num">6</span>,<span class="num">2</span>)) <span class="kw">IS NULL</span>;</pre>
@@ -596,28 +596,28 @@ dbutils.jobs.taskValues.<span class="fn">set</span>(key<span class="op">=</span>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
     <pre><span class="cm">-- karantena (dead-letter) s duvodem odmitnuti</span>
-<span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750_demo.m10.parcel_events_quarantine</span> <span class="kw">AS</span>
+<span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750.m10.parcel_events_quarantine</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> *,
   <span class="kw">CASE WHEN</span> <span class="col">locker_id</span> <span class="kw">IS NULL THEN</span> <span class="str">'missing locker_id'</span>
        <span class="kw">WHEN</span> <span class="fn">try_cast</span>(<span class="col">event_ts</span> <span class="kw">AS TIMESTAMP</span>) <span class="kw">IS NULL THEN</span> <span class="str">'bad event_ts'</span>
        <span class="kw">ELSE</span> <span class="str">'bad weight_kg'</span> <span class="kw">END AS</span> <span class="col">reject_reason</span>,
   <span class="fn">current_timestamp</span>() <span class="kw">AS</span> <span class="col">rejected_at</span>
-<span class="kw">FROM</span> <span class="tbl">dp750_demo.m10.parcel_events_bronze</span>
+<span class="kw">FROM</span> <span class="tbl">dp750.m10.parcel_events_bronze</span>
 <span class="kw">WHERE</span> <span class="col">locker_id</span> <span class="kw">IS NULL</span>
    <span class="kw">OR</span> <span class="fn">try_cast</span>(<span class="col">event_ts</span> <span class="kw">AS TIMESTAMP</span>) <span class="kw">IS NULL</span>
    <span class="kw">OR</span> <span class="fn">try_cast</span>(<span class="col">weight_kg</span> <span class="kw">AS DECIMAL</span>(<span class="num">6</span>,<span class="num">2</span>)) <span class="kw">IS NULL</span>;
 
-<span class="kw">CREATE TABLE IF NOT EXISTS</span> <span class="tbl">dp750_demo.m10.parcel_events_silver</span> (
+<span class="kw">CREATE TABLE IF NOT EXISTS</span> <span class="tbl">dp750.m10.parcel_events_silver</span> (
   <span class="col">event_id</span> <span class="kw">STRING</span>, <span class="col">locker_id</span> <span class="kw">STRING</span>, <span class="col">event_ts</span> <span class="kw">TIMESTAMP</span>,
   <span class="col">weight_kg</span> <span class="kw">DECIMAL</span>(<span class="num">6</span>,<span class="num">2</span>), <span class="col">status</span> <span class="kw">STRING</span>);
 
 <span class="cm">-- idempotentni zapis: spust dvakrat, pocet radku v silver se nezmeni</span>
-<span class="kw">MERGE INTO</span> <span class="tbl">dp750_demo.m10.parcel_events_silver</span> <span class="kw">AS</span> t
+<span class="kw">MERGE INTO</span> <span class="tbl">dp750.m10.parcel_events_silver</span> <span class="kw">AS</span> t
 <span class="kw">USING</span> (
   <span class="kw">SELECT</span> <span class="col">event_id</span>, <span class="col">locker_id</span>,
          <span class="fn">try_cast</span>(<span class="col">event_ts</span> <span class="kw">AS TIMESTAMP</span>) <span class="kw">AS</span> <span class="col">event_ts</span>,
          <span class="fn">try_cast</span>(<span class="col">weight_kg</span> <span class="kw">AS DECIMAL</span>(<span class="num">6</span>,<span class="num">2</span>)) <span class="kw">AS</span> <span class="col">weight_kg</span>, <span class="col">status</span>
-  <span class="kw">FROM</span> <span class="tbl">dp750_demo.m10.parcel_events_bronze</span>
+  <span class="kw">FROM</span> <span class="tbl">dp750.m10.parcel_events_bronze</span>
   <span class="kw">WHERE</span> <span class="col">locker_id</span> <span class="kw">IS NOT NULL</span>
     <span class="kw">AND</span> <span class="fn">try_cast</span>(<span class="col">event_ts</span> <span class="kw">AS TIMESTAMP</span>) <span class="kw">IS NOT NULL</span>
     <span class="kw">AND</span> <span class="fn">try_cast</span>(<span class="col">weight_kg</span> <span class="kw">AS DECIMAL</span>(<span class="num">6</span>,<span class="num">2</span>)) <span class="kw">IS NOT NULL</span>
@@ -627,14 +627,14 @@ dbutils.jobs.taskValues.<span class="fn">set</span>(key<span class="op">=</span>
 <span class="kw">WHEN MATCHED THEN UPDATE SET</span> *
 <span class="kw">WHEN NOT MATCHED THEN INSERT</span> *;
 
-<span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">AS</span> <span class="col">silver_rows</span> <span class="kw">FROM</span> <span class="tbl">dp750_demo.m10.parcel_events_silver</span>;</pre>
+<span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">AS</span> <span class="col">silver_rows</span> <span class="kw">FROM</span> <span class="tbl">dp750.m10.parcel_events_silver</span>;</pre>
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
     <pre><span class="kw">from</span> pyspark.errors <span class="kw">import</span> PySparkException
 
 <span class="kw">try</span>:
-    spark.<span class="fn">table</span>(<span class="str">"dp750_demo.m10.parcel_events_missing"</span>).<span class="fn">count</span>()
+    spark.<span class="fn">table</span>(<span class="str">"dp750.m10.parcel_events_missing"</span>).<span class="fn">count</span>()
 <span class="kw">except</span> PySparkException <span class="kw">as</span> e:
     <span class="cm"># getCondition() vraci tridu chyby, napr. TABLE_OR_VIEW_NOT_FOUND</span>
     <span class="fn">print</span>(<span class="str">"error class:"</span>, e.<span class="fn">getCondition</span>())
@@ -653,7 +653,7 @@ dbutils.jobs.taskValues.<span class="fn">set</span>(key<span class="op">=</span>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
     <pre><span class="cm"># m10_check_quality</span>
-dbutils.widgets.<span class="fn">text</span>(<span class="str">"source_table"</span>, <span class="str">"dp750_demo.m10.parcel_events_bronze"</span>)
+dbutils.widgets.<span class="fn">text</span>(<span class="str">"source_table"</span>, <span class="str">"dp750.m10.parcel_events_bronze"</span>)
 source_table = dbutils.widgets.<span class="fn">get</span>(<span class="str">"source_table"</span>)
 
 bad_rows = spark.<span class="fn">sql</span>(<span class="str">f"""
@@ -666,14 +666,14 @@ bad_rows = spark.<span class="fn">sql</span>(<span class="str">f"""
 dbutils.jobs.taskValues.<span class="fn">set</span>(key=<span class="str">"bad_rows"</span>, value=bad_rows)
 
 <span class="cm"># m10_quarantine_alert</span>
-<span class="fn">print</span>(<span class="str">"Quality gate failed: see dp750_demo.m10.parcel_events_quarantine"</span>)
+<span class="fn">print</span>(<span class="str">"Quality gate failed: see dp750.m10.parcel_events_quarantine"</span>)
 
 <span class="cm"># m10_build_gold</span>
 spark.<span class="fn">sql</span>(<span class="str">"""
-    CREATE OR REPLACE TABLE dp750_demo.m10.locker_daily_gold AS
+    CREATE OR REPLACE TABLE dp750.m10.locker_daily_gold AS
     SELECT locker_id, to_date(event_ts) AS event_date, count(*) AS events,
            count_if(status = 'DELIVERED') AS delivered, round(sum(weight_kg), 2) AS total_kg
-    FROM dp750_demo.m10.parcel_events_silver
+    FROM dp750.m10.parcel_events_silver
     GROUP BY locker_id, to_date(event_ts)
 """</span>)</pre>
   </div>
@@ -682,8 +682,8 @@ spark.<span class="fn">sql</span>(<span class="str">"""
 
   <h3>Krok 6 – Deklarativní pipelines: orchestrace a inkrementální zpracování</h3>
   <ol>
-    <li>Ve volume <code class="inline">dp750_demo.m10.landing</code> leží dva soubory ve formátu JSON lines: <code class="inline">events_2026-11-03_01.json</code> (první dva řádky níže) a <code class="inline">events_2026-11-03_02.json</code> (další dva). Nejdřív je přečti dávkově v SQL editoru přes <code class="inline">read_files</code>: 4 řádky, jeden bez <code class="inline">locker_id</code>.</li>
-    <li>Jobs &amp; Pipelines → Create → ETL pipeline, výchozí katalog <code class="inline">dp750_demo</code>, schéma <code class="inline">m10</code>, serverless. Do zdrojového souboru vlož SQL deklarace níže a spusť pipeline.</li>
+    <li>Ve volume <code class="inline">dp750.m10.landing</code> leží dva soubory ve formátu JSON lines: <code class="inline">events_2026-11-03_01.json</code> (první dva řádky níže) a <code class="inline">events_2026-11-03_02.json</code> (další dva). Nejdřív je přečti dávkově v SQL editoru přes <code class="inline">read_files</code>: 4 řádky, jeden bez <code class="inline">locker_id</code>.</li>
+    <li>Jobs &amp; Pipelines → Create → ETL pipeline, výchozí katalog <code class="inline">dp750</code>, schéma <code class="inline">m10</code>, serverless. Do zdrojového souboru vlož SQL deklarace níže a spusť pipeline.</li>
     <li>V grafu pipeline ukaž, že pořadí (streaming table → materialized view) framework odvodil sám, a u <code class="inline">parcel_events_stream</code> metriku expectation (1 zahozený řádek).</li>
     <li>Nahraj do volume třetí soubor (Catalog Explorer → volume → Upload to this volume) a spusť update znovu: streaming table zpracuje jen nový soubor.</li>
   </ol>
@@ -698,14 +698,14 @@ spark.<span class="fn">sql</span>(<span class="str">"""
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
     <pre><span class="cm">-- 1) davkove v SQL editoru: co v landing zone lezi</span>
 <span class="kw">SELECT</span> <span class="col">event_id</span>, <span class="col">locker_id</span>, <span class="col">weight_kg</span>, <span class="col">_metadata</span>.<span class="col">file_name</span> <span class="kw">AS</span> <span class="col">file_name</span>
-<span class="kw">FROM</span> <span class="fn">read_files</span>(<span class="str">'/Volumes/dp750_demo/m10/landing'</span>, format <span class="op">=&gt;</span> <span class="str">'json'</span>)
+<span class="kw">FROM</span> <span class="fn">read_files</span>(<span class="str">'/Volumes/dp750/m10/landing'</span>, format <span class="op">=&gt;</span> <span class="str">'json'</span>)
 <span class="kw">ORDER BY</span> <span class="col">event_id</span>;
 
-<span class="cm">-- 2) zdrojovy soubor pipeline (vychozi katalog dp750_demo, schema m10)</span>
+<span class="cm">-- 2) zdrojovy soubor pipeline (vychozi katalog dp750, schema m10)</span>
 <span class="kw">CREATE OR REFRESH STREAMING TABLE</span> <span class="tbl">parcel_events_stream</span> (
   <span class="kw">CONSTRAINT</span> has_locker <span class="kw">EXPECT</span> (<span class="col">locker_id</span> <span class="kw">IS NOT NULL</span>) <span class="kw">ON VIOLATION DROP ROW</span>
 ) <span class="kw">AS SELECT</span> *, <span class="col">_metadata</span>.<span class="col">file_name</span> <span class="kw">AS</span> <span class="col">source_file</span>
-<span class="kw">FROM STREAM</span> <span class="fn">read_files</span>(<span class="str">'/Volumes/dp750_demo/m10/landing'</span>, format <span class="op">=&gt;</span> <span class="str">'json'</span>);
+<span class="kw">FROM STREAM</span> <span class="fn">read_files</span>(<span class="str">'/Volumes/dp750/m10/landing'</span>, format <span class="op">=&gt;</span> <span class="str">'json'</span>);
 
 <span class="kw">CREATE OR REFRESH MATERIALIZED VIEW</span> <span class="tbl">locker_daily_mv</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> <span class="col">locker_id</span>, <span class="fn">to_date</span>(<span class="col">event_ts</span>) <span class="kw">AS</span> <span class="col">event_date</span>,
@@ -719,7 +719,7 @@ spark.<span class="fn">sql</span>(<span class="str">"""
   <h3>Úklid</h3>
   <ol>
     <li>Job <code class="inline">dp750-demo-m10</code> a pipeline z kroku 6 smaž po kurzu (pipeline před případným mazáním schématu, tabulky pipeline spravuje ona).</li>
-    <li>Schéma <code class="inline">dp750_demo.m10</code> nech, ukázka se dá zopakovat. Pro čistý start znovu pusť SQL z kroku 1 (<code class="inline">CREATE OR REPLACE</code>) a <code class="inline">TRUNCATE TABLE dp750_demo.m10.parcel_events_silver</code>.</li>
+    <li>Schéma <code class="inline">dp750.m10</code> nech, ukázka se dá zopakovat. Pro čistý start znovu pusť SQL z kroku 1 (<code class="inline">CREATE OR REPLACE</code>) a <code class="inline">TRUNCATE TABLE dp750.m10.parcel_events_silver</code>.</li>
   </ol>
 </div>
 

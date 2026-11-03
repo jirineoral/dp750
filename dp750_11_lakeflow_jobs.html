@@ -575,8 +575,8 @@ processing_date = dbutils.widgets.<span class="fn">get</span>(<span class="str">
     <div class="section-num">11.R</div>
     <h2>Runbook: ukázka krok za krokem</h2>
   </div>
-  <p>Ukázka provede jeden job s denním načtením odečtů elektroměrů od založení přes parametry, triggery, plán, notifikace až po retry a repair run, a nakonec ukáže, co z toho vidí system tables. Běží v lektorském workspace na vlastních syntetických datech ve schématu <code class="inline">dp750_demo.m11</code>, ne na datech labu.</p>
-  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> serverless SQL warehouse a serverless compute pro joby; katalog <code class="inline">dp750_demo</code>. Předem spusť SQL z kroku 1, založ dva notebooky z kroku 2 a job <code class="inline">dp750-demo-m11</code> podle kroku 1 a 2 a jednou ho pusť, ať jsou v system tables záznamy (plní se se zpožděním). Asi 15 minut přípravy, ukázka 10 minut.</div></div>
+  <p>Ukázka provede jeden job s denním načtením odečtů elektroměrů od založení přes parametry, triggery, plán, notifikace až po retry a repair run, a nakonec ukáže, co z toho vidí system tables. Běží v lektorském workspace na vlastních syntetických datech ve schématu <code class="inline">dp750.m11</code>, ne na datech labu.</p>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> serverless SQL warehouse a serverless compute pro joby; katalog <code class="inline">dp750</code>. Předem spusť SQL z kroku 1, založ dva notebooky z kroku 2 a job <code class="inline">dp750-demo-m11</code> podle kroku 1 a 2 a jednou ho pusť, ať jsou v system tables záznamy (plní se se zpožděním). Asi 15 minut přípravy, ukázka 10 minut.</div></div>
 
   <h3>Krok 1 – Anatomie Lakeflow Jobu: tasky, zdroje kódu, compute</h3>
   <ol>
@@ -587,25 +587,25 @@ processing_date = dbutils.widgets.<span class="fn">get</span>(<span class="str">
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="kw">CREATE SCHEMA IF NOT EXISTS</span> <span class="tbl">dp750_demo.m11</span>;
-<span class="kw">CREATE VOLUME IF NOT EXISTS</span> <span class="tbl">dp750_demo.m11.inbox</span>;
+    <pre><span class="kw">CREATE SCHEMA IF NOT EXISTS</span> <span class="tbl">dp750.m11</span>;
+<span class="kw">CREATE VOLUME IF NOT EXISTS</span> <span class="tbl">dp750.m11.inbox</span>;
 
-<span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750_demo.m11.meter_readings</span> (
+<span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750.m11.meter_readings</span> (
   <span class="col">meter_id</span> <span class="kw">STRING</span>, <span class="col">reading_date</span> <span class="kw">DATE</span>, <span class="col">kwh</span> <span class="kw">DECIMAL</span>(<span class="num">10</span>,<span class="num">3</span>), <span class="col">loaded_at</span> <span class="kw">TIMESTAMP</span>);
 
-<span class="kw">INSERT INTO</span> <span class="tbl">dp750_demo.m11.meter_readings</span> <span class="kw">VALUES</span>
+<span class="kw">INSERT INTO</span> <span class="tbl">dp750.m11.meter_readings</span> <span class="kw">VALUES</span>
   (<span class="str">'EM-1001'</span>, <span class="kw">DATE</span><span class="str">'2026-11-04'</span>, <span class="num">12.480</span>, <span class="fn">current_timestamp</span>()),
   (<span class="str">'EM-1002'</span>, <span class="kw">DATE</span><span class="str">'2026-11-04'</span>,  <span class="num">8.115</span>, <span class="fn">current_timestamp</span>()),
   (<span class="str">'EM-1003'</span>, <span class="kw">DATE</span><span class="str">'2026-11-04'</span>, <span class="num">21.902</span>, <span class="fn">current_timestamp</span>());
 
 <span class="cm">-- ulozeny dotaz m11_daily_summary pro SQL task (parametr :load_date)</span>
 <span class="kw">SELECT</span> <span class="col">reading_date</span>, <span class="fn">count</span>(<span class="kw">DISTINCT</span> <span class="col">meter_id</span>) <span class="kw">AS</span> <span class="col">meters</span>, <span class="fn">round</span>(<span class="fn">sum</span>(<span class="col">kwh</span>), <span class="num">3</span>) <span class="kw">AS</span> <span class="col">total_kwh</span>
-<span class="kw">FROM</span> <span class="tbl">dp750_demo.m11.meter_readings</span>
+<span class="kw">FROM</span> <span class="tbl">dp750.m11.meter_readings</span>
 <span class="kw">WHERE</span> <span class="col">reading_date</span> <span class="op">=</span> <span class="fn">to_date</span>(:load_date)
 <span class="kw">GROUP BY</span> <span class="col">reading_date</span>;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> jeden job, tři typy tasků a dva druhy compute (serverless jobs pro notebooky, SQL warehouse pro SQL). V produkci by zdroj kódu byl Git, ne složka ve workspace.</div></div>
-  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> když run-as identita nemá na <code class="inline">dp750_demo.m11</code> práva, job spadne až za běhu na oprávnění, i když konfigurace prošla. Neuložený dotaz se v nabídce SQL tasku vůbec neobjeví.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> když run-as identita nemá na <code class="inline">dp750.m11</code> práva, job spadne až za běhu na oprávnění, i když konfigurace prošla. Neuložený dotaz se v nabídce SQL tasku vůbec neobjeví.</div></div>
 
   <h3>Krok 2 – Závislosti tasků a parametry jobu</h3>
   <ol>
@@ -630,11 +630,11 @@ d = datetime.date.<span class="fn">fromisoformat</span>(load_date)  <span class=
 
 <span class="cm"># idempotentni zapis jednoho dne: opakovany beh den prepise, nezdvoji</span>
 spark.<span class="fn">sql</span>(<span class="str">f"""
-    INSERT INTO dp750_demo.m11.meter_readings
+    INSERT INTO dp750.m11.meter_readings
     REPLACE WHERE reading_date = DATE'{d}'
     SELECT meter_id, DATE'{d}' AS reading_date,
            CAST(rand() * 25 AS DECIMAL(10,3)) AS kwh, current_timestamp() AS loaded_at
-    FROM (SELECT DISTINCT meter_id FROM dp750_demo.m11.meter_readings)
+    FROM (SELECT DISTINCT meter_id FROM dp750.m11.meter_readings)
 """</span>)</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> parametr na úrovni jobu vidí všechny tasky; notebook ho čte widgetem se stejným jménem. Dynamická hodnota se doplní až při spuštění, proto stejný job umí běžný den i backfill.</div></div>
@@ -642,9 +642,9 @@ spark.<span class="fn">sql</span>(<span class="str">f"""
 
   <h3>Krok 3 – Triggery: scheduled, file arrival, table update, continuous</h3>
   <ol>
-    <li>Job details → Schedules &amp; Triggers → Add trigger → File arrival, cesta <code class="inline">/Volumes/dp750_demo/m11/inbox/</code>. Ukaž volby Minimum time between triggers a Wait after last change, trigger ulož.</li>
+    <li>Job details → Schedules &amp; Triggers → Add trigger → File arrival, cesta <code class="inline">/Volumes/dp750/m11/inbox/</code>. Ukaž volby Minimum time between triggers a Wait after last change, trigger ulož.</li>
     <li>Nahraj do volume soubor s unikátním jménem (Catalog Explorer → <code class="inline">inbox</code> → Upload to this volume). Do zhruba minuty se objeví nový běh s typem triggeru file arrival.</li>
-    <li>Otevři znovu Add trigger a ukaž typ Table update s tabulkou <code class="inline">dp750_demo.m11.meter_readings</code> a volbou Any / All tables. Neukládej, job má mít jeden trigger.</li>
+    <li>Otevři znovu Add trigger a ukaž typ Table update s tabulkou <code class="inline">dp750.m11.meter_readings</code> a volbou Any / All tables. Neukládej, job má mít jeden trigger.</li>
     <li>Trigger pauzni (Pause).</li>
   </ol>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> event-based trigger reaguje na data, ne na hodiny. Pauza zachová konfiguraci, jen přestanou vznikat nové běhy.</div></div>
@@ -701,7 +701,7 @@ spark.<span class="fn">sql</span>(<span class="str">f"""
   <h3>Úklid</h3>
   <ol>
     <li>Ověř, že scheduled trigger je Paused. Job <code class="inline">dp750-demo-m11</code> nech, ukázka modulu 13 čte jeho běhy (repair, selhání); smaž ho po kurzu.</li>
-    <li>Schéma <code class="inline">dp750_demo.m11</code> nech. Pro čistý start znovu pusť SQL z kroku 1 a smaž soubory z volume <code class="inline">inbox</code>.</li>
+    <li>Schéma <code class="inline">dp750.m11</code> nech. Pro čistý start znovu pusť SQL z kroku 1 a smaž soubory z volume <code class="inline">inbox</code>.</li>
   </ol>
 </div>
 

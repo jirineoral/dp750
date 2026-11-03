@@ -676,8 +676,8 @@ UNPIVOT (
     <div class="section-num">8.R</div>
     <h2>Runbook: ukázka krok za krokem</h2>
   </div>
-  <p>Ukázka prožene šest syrových objednávek e-shopu s cyklodoplňky celou cestou z bronze do silver a gold: profiling, typy, duplicity a NULL, agregace, joiny, pivot a nakonec load přes <code class="inline">MERGE</code> a <code class="inline">REPLACE WHERE</code>. Běží v lektorském workspace nad syntetickými daty ve schématu <code class="inline">dp750_demo.m08</code>, ne nad daty labu.</p>
-  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> SQL editor na serverless SQL warehouse, existující katalog <code class="inline">dp750_demo</code>. Všechno ostatní založí krok 1. Kroky jdou za sebou, každý stojí na tabulce z předchozího. Asi 10 minut. Data profiling v Catalog Exploreru (záložka <strong>Quality</strong>) jen ukaž, jeho metriky se plní minuty.</div></div>
+  <p>Ukázka prožene šest syrových objednávek e-shopu s cyklodoplňky celou cestou z bronze do silver a gold: profiling, typy, duplicity a NULL, agregace, joiny, pivot a nakonec load přes <code class="inline">MERGE</code> a <code class="inline">REPLACE WHERE</code>. Běží v lektorském workspace nad syntetickými daty ve schématu <code class="inline">dp750.m08</code>, ne nad daty labu.</p>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> SQL editor na serverless SQL warehouse, existující katalog <code class="inline">dp750</code>. Všechno ostatní založí krok 1. Kroky jdou za sebou, každý stojí na tabulce z předchozího. Asi 10 minut. Data profiling v Catalog Exploreru (záložka <strong>Quality</strong>) jen ukaž, jeho metriky se plní minuty.</div></div>
 
   <h3>Krok 1 – Profiling dat (8.1)</h3>
   <ol>
@@ -688,9 +688,9 @@ UNPIVOT (
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="kw">CREATE</span> <span class="kw">SCHEMA</span> <span class="kw">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> <span class="tbl">dp750_demo.m08</span>;
+<pre><span class="kw">CREATE</span> <span class="kw">SCHEMA</span> <span class="kw">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> <span class="tbl">dp750.m08</span>;
 
-<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m08.raw_orders</span> <span class="kw">AS</span>
+<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m08.raw_orders</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">VALUES</span>
   (<span class="str">'A-1'</span>, <span class="str">'C01'</span>, <span class="str">'helma'</span>,  <span class="str">'1299.00'</span>, <span class="str">'2026-11-02 08:10:00'</span>),
   (<span class="str">'A-1'</span>, <span class="str">'C01'</span>, <span class="str">'helma'</span>,  <span class="str">'1299.00'</span>, <span class="str">'2026-11-02 08:10:00'</span>),
@@ -707,10 +707,10 @@ UNPIVOT (
        <span class="fn">count_if</span>(customer_id <span class="kw">IS</span> <span class="kw">NULL</span>) <span class="kw">AS</span> customer_nulls,
        <span class="fn">min</span>(updated_str) <span class="kw">AS</span> first_update,
        <span class="fn">max</span>(updated_str) <span class="kw">AS</span> last_update
-<span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.raw_orders</span>;
+<span class="kw">FROM</span> <span class="tbl">dp750.m08.raw_orders</span>;
 
-<span class="kw">ANALYZE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m08.raw_orders</span> <span class="kw">COMPUTE</span> <span class="kw">STATISTICS</span> <span class="kw">FOR</span> <span class="kw">ALL</span> <span class="kw">COLUMNS</span>;
-<span class="kw">DESC</span> <span class="kw">EXTENDED</span> <span class="tbl">dp750_demo.m08.raw_orders</span> price_str;</pre>
+<span class="kw">ANALYZE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m08.raw_orders</span> <span class="kw">COMPUTE</span> <span class="kw">STATISTICS</span> <span class="kw">FOR</span> <span class="kw">ALL</span> <span class="kw">COLUMNS</span>;
+<span class="kw">DESC</span> <span class="kw">EXTENDED</span> <span class="tbl">dp750.m08.raw_orders</span> price_str;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> rozdíl 6 řádků proti 4 objednávkám je první varování před duplicitami; bez profilu bys čistil naslepo. Tytéž statistiky z <code class="inline">ANALYZE TABLE</code> používá optimizer.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> u řetězcového sloupce vrátí <code class="inline">DESC EXTENDED</code> <code class="inline">min</code> a <code class="inline">max</code> jako NULL; rozsahy cen uvidíš až po přetypování v kroku 2. Rozsah dat <code class="inline">min(updated_str)</code> funguje jen proto, že řetězce mají formát ISO.</div></div>
@@ -729,15 +729,15 @@ UNPIVOT (
        CAST(<span class="str">'2026-11-04 10:00:00'</span> <span class="kw">AS</span> <span class="kw">TIMESTAMP_NTZ</span>) <span class="kw">AS</span> ts_ntz,
        <span class="fn">current_timezone</span>() <span class="kw">AS</span> session_tz;
 
-<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m08.orders_typed</span> <span class="kw">AS</span>
+<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m08.orders_typed</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> order_id, customer_id, product,
        CAST(price_str <span class="kw">AS</span> <span class="kw">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>)) <span class="kw">AS</span> price,
        CAST(updated_str <span class="kw">AS</span> <span class="kw">TIMESTAMP</span>) <span class="kw">AS</span> updated_at,
        <span class="fn">array</span>(<span class="str">'cyklo'</span>, product) <span class="kw">AS</span> tags,
        <span class="fn">named_struct</span>(<span class="str">'channel'</span>, <span class="str">'web'</span>, <span class="str">'country'</span>, <span class="str">'CZ'</span>) <span class="kw">AS</span> origin
-<span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.raw_orders</span>;
+<span class="kw">FROM</span> <span class="tbl">dp750.m08.raw_orders</span>;
 
-<span class="kw">DESCRIBE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m08.orders_typed</span>;</pre>
+<span class="kw">DESCRIBE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m08.orders_typed</span>;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> explicitní <code class="inline">CAST</code> hned při přechodu do silver je zároveň dokumentace záměru: kdo čte DDL, ví, že cena je exaktní číslo se dvěma desetinnými místy. <code class="inline">TIMESTAMP</code> se zobrazuje podle session timezone, <code class="inline">TIMESTAMP_NTZ</code> zůstane, jak byl zadán.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> rozdíl mezi <code class="inline">TIMESTAMP</code> a <code class="inline">TIMESTAMP_NTZ</code> je při UTC session na výstupu skoro neviditelný (liší se jen příponou <code class="inline">Z</code>). Na serverless a SQL warehouse je zapnutý ANSI mode: kdyby v ceně byl text, <code class="inline">CAST</code> spadne na <code class="inline">CAST_INVALID_INPUT</code>; tady projde, protože data mají jen NULL, ne nesmysly (na to je kapitola 9).</div></div>
@@ -751,21 +751,21 @@ UNPIVOT (
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
 <pre><span class="cm">-- every row of an order that appears more than once</span>
-<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.orders_typed</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m08.orders_typed</span>
 <span class="kw">QUALIFY</span> <span class="fn">count</span>(*) <span class="kw">OVER</span> (<span class="kw">PARTITION</span> <span class="kw">BY</span> order_id) &gt; <span class="num">1</span>
 <span class="kw">ORDER</span> <span class="kw">BY</span> order_id, updated_at;
 
 <span class="cm">-- keep the newest version per order, fill missing values</span>
-<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m08.orders_clean</span> <span class="kw">AS</span>
+<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m08.orders_clean</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> order_id,
        <span class="fn">coalesce</span>(customer_id, <span class="str">'UNKNOWN'</span>) <span class="kw">AS</span> customer_id,
        product,
        <span class="fn">coalesce</span>(price, <span class="num">0</span>) <span class="kw">AS</span> price,
        updated_at
-<span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.orders_typed</span>
+<span class="kw">FROM</span> <span class="tbl">dp750.m08.orders_typed</span>
 <span class="kw">QUALIFY</span> <span class="fn">row_number</span>() <span class="kw">OVER</span> (<span class="kw">PARTITION</span> <span class="kw">BY</span> order_id <span class="kw">ORDER</span> <span class="kw">BY</span> updated_at <span class="kw">DESC</span>) = <span class="num">1</span>;
 
-<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.orders_clean</span> <span class="kw">ORDER</span> <span class="kw">BY</span> order_id;</pre>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m08.orders_clean</span> <span class="kw">ORDER</span> <span class="kw">BY</span> order_id;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> <code class="inline">ORDER BY updated_at DESC</code> rozhoduje, která verze přežije; <code class="inline">dropDuplicates()</code> v PySparku nechá jeden z výskytů, ale který, není garantované. U A-1 jsou oba řádky totožné, takže na pořadí nezáleží, u A-2 ano.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> doplnit chybějící cenu nulou je byznysové rozhodnutí, ne technické: průměrná cena teď vyjde nižší a A-3 vypadá jako zboží zdarma. V kroku 4 se proto nulové ceny filtrují. Kdo v Pythonu filtruje NULL přes <code class="inline">!= None</code>, dostane prázdný výsledek; správně <code class="inline">isNull()</code> a <code class="inline">IS NULL</code>.</div></div>
@@ -779,7 +779,7 @@ UNPIVOT (
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
 <pre><span class="cm">-- WHERE filters rows, HAVING filters groups</span>
 <span class="kw">SELECT</span> product, <span class="fn">count</span>(*) <span class="kw">AS</span> orders, <span class="fn">sum</span>(price) <span class="kw">AS</span> revenue
-<span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.orders_clean</span>
+<span class="kw">FROM</span> <span class="tbl">dp750.m08.orders_clean</span>
 <span class="kw">WHERE</span> price &gt; <span class="num">0</span>
 <span class="kw">GROUP</span> <span class="kw">BY</span> product
 <span class="kw">HAVING</span> <span class="fn">sum</span>(price) &gt; <span class="num">400</span>
@@ -797,29 +797,29 @@ UNPIVOT (
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m08.customers</span> <span class="kw">AS</span>
+<pre><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m08.customers</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">VALUES</span> (<span class="str">'C01'</span>, <span class="str">'Jana'</span>, <span class="str">'Brno'</span>), (<span class="str">'C02'</span>, <span class="str">'Petr'</span>, <span class="str">'Praha'</span>), (<span class="str">'C09'</span>, <span class="str">'Eva'</span>, <span class="str">'Olomouc'</span>)
 <span class="kw">AS</span> t(customer_id, name, city);
 
 <span class="kw">SELECT</span> o.order_id, o.customer_id, c.name
-<span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.orders_clean</span> o
-<span class="kw">LEFT</span> <span class="kw">JOIN</span> <span class="tbl">dp750_demo.m08.customers</span> c <span class="kw">ON</span> o.customer_id = c.customer_id
+<span class="kw">FROM</span> <span class="tbl">dp750.m08.orders_clean</span> o
+<span class="kw">LEFT</span> <span class="kw">JOIN</span> <span class="tbl">dp750.m08.customers</span> c <span class="kw">ON</span> o.customer_id = c.customer_id
 <span class="kw">ORDER</span> <span class="kw">BY</span> o.order_id;
 
 <span class="cm">-- customers who never ordered</span>
-<span class="kw">SELECT</span> c.* <span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.customers</span> c
-<span class="kw">LEFT</span> <span class="kw">ANTI</span> <span class="kw">JOIN</span> <span class="tbl">dp750_demo.m08.orders_clean</span> o <span class="kw">ON</span> o.customer_id = c.customer_id;
+<span class="kw">SELECT</span> c.* <span class="kw">FROM</span> <span class="tbl">dp750.m08.customers</span> c
+<span class="kw">LEFT</span> <span class="kw">ANTI</span> <span class="kw">JOIN</span> <span class="tbl">dp750.m08.orders_clean</span> o <span class="kw">ON</span> o.customer_id = c.customer_id;
 
 <span class="kw">SELECT</span>
-  (<span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">FROM</span> (<span class="kw">SELECT</span> order_id <span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.raw_orders</span>
-                         <span class="kw">UNION</span> <span class="kw">SELECT</span> order_id <span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.orders_clean</span>)) <span class="kw">AS</span> union_rows,
-  (<span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">FROM</span> (<span class="kw">SELECT</span> order_id <span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.raw_orders</span>
-                         <span class="kw">UNION</span> <span class="kw">ALL</span> <span class="kw">SELECT</span> order_id <span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.orders_clean</span>)) <span class="kw">AS</span> union_all_rows;
+  (<span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">FROM</span> (<span class="kw">SELECT</span> order_id <span class="kw">FROM</span> <span class="tbl">dp750.m08.raw_orders</span>
+                         <span class="kw">UNION</span> <span class="kw">SELECT</span> order_id <span class="kw">FROM</span> <span class="tbl">dp750.m08.orders_clean</span>)) <span class="kw">AS</span> union_rows,
+  (<span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">FROM</span> (<span class="kw">SELECT</span> order_id <span class="kw">FROM</span> <span class="tbl">dp750.m08.raw_orders</span>
+                         <span class="kw">UNION</span> <span class="kw">ALL</span> <span class="kw">SELECT</span> order_id <span class="kw">FROM</span> <span class="tbl">dp750.m08.orders_clean</span>)) <span class="kw">AS</span> union_all_rows;
 
 <span class="cm">-- did cleansing lose any order? (empty = no)</span>
-<span class="kw">SELECT</span> order_id <span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.raw_orders</span>
+<span class="kw">SELECT</span> order_id <span class="kw">FROM</span> <span class="tbl">dp750.m08.raw_orders</span>
 <span class="kw">EXCEPT</span>
-<span class="kw">SELECT</span> order_id <span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.orders_clean</span>;</pre>
+<span class="kw">SELECT</span> order_id <span class="kw">FROM</span> <span class="tbl">dp750.m08.orders_clean</span>;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> anti join je nejlevnější data quality kontrola na sirotky a <code class="inline">EXCEPT</code> rychlá kontrola, že čištění neztratilo klíče. Joiny přidávají sloupce, set operátory řádky.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> <code class="inline">UNION</code> deduplikuje, <code class="inline">UNION ALL</code> ne; PySpark <code class="inline">union()</code> se chová jako <code class="inline">UNION ALL</code>. Objednávka zákazníka C03 by v <code class="inline">INNER JOIN</code> zmizela, protože C03 v číselníku není.</div></div>
@@ -833,13 +833,13 @@ UNPIVOT (
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
 <pre><span class="cm">-- gold: dimension attributes copied into the fact rows</span>
-<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m08.gold_orders_wide</span> <span class="kw">AS</span>
+<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m08.gold_orders_wide</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> o.order_id, o.product, o.price, o.updated_at, c.name <span class="kw">AS</span> customer_name, c.city
-<span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.orders_clean</span> o
-<span class="kw">LEFT</span> <span class="kw">JOIN</span> <span class="tbl">dp750_demo.m08.customers</span> c <span class="kw">USING</span> (customer_id);
+<span class="kw">FROM</span> <span class="tbl">dp750.m08.orders_clean</span> o
+<span class="kw">LEFT</span> <span class="kw">JOIN</span> <span class="tbl">dp750.m08.customers</span> c <span class="kw">USING</span> (customer_id);
 
 <span class="cm">-- long to wide</span>
-<span class="kw">SELECT</span> * <span class="kw">FROM</span> (<span class="kw">SELECT</span> product, <span class="fn">to_date</span>(updated_at) <span class="kw">AS</span> day, price <span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.orders_clean</span>)
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> (<span class="kw">SELECT</span> product, <span class="fn">to_date</span>(updated_at) <span class="kw">AS</span> day, price <span class="kw">FROM</span> <span class="tbl">dp750.m08.orders_clean</span>)
 <span class="kw">PIVOT</span> (<span class="fn">sum</span>(price) <span class="kw">FOR</span> day <span class="kw">IN</span> (<span class="kw">DATE</span><span class="str">'2026-11-02'</span> <span class="kw">AS</span> d02, <span class="kw">DATE</span><span class="str">'2026-11-03'</span> <span class="kw">AS</span> d03, <span class="kw">DATE</span><span class="str">'2026-11-04'</span> <span class="kw">AS</span> d04))
 <span class="kw">ORDER</span> <span class="kw">BY</span> product;
 
@@ -859,43 +859,43 @@ UNPIVOT (
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m08.silver_orders</span> (
+<pre><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m08.silver_orders</span> (
   order_id <span class="kw">STRING</span>, customer_id <span class="kw">STRING</span>, product <span class="kw">STRING</span>, price <span class="kw">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>), updated_at <span class="kw">TIMESTAMP</span>);
-<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m08.silver_orders</span> <span class="kw">VALUES</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750.m08.silver_orders</span> <span class="kw">VALUES</span>
   (<span class="str">'A-1'</span>, <span class="str">'C01'</span>, <span class="str">'helma'</span>, <span class="num">1199.00</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-10-30 08:00:00'</span>),
   (<span class="str">'A-2'</span>, <span class="str">'C02'</span>, <span class="str">'svetlo'</span>, <span class="num">349.50</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-10-30 09:00:00'</span>);
 
 <span class="cm">-- expected to fail: the source has two rows for A-1 and for A-2</span>
-<span class="kw">MERGE</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m08.silver_orders</span> <span class="kw">AS</span> t
-<span class="kw">USING</span> <span class="tbl">dp750_demo.m08.orders_typed</span> <span class="kw">AS</span> s
+<span class="kw">MERGE</span> <span class="kw">INTO</span> <span class="tbl">dp750.m08.silver_orders</span> <span class="kw">AS</span> t
+<span class="kw">USING</span> <span class="tbl">dp750.m08.orders_typed</span> <span class="kw">AS</span> s
 <span class="kw">ON</span> t.order_id = s.order_id
 <span class="kw">WHEN</span> <span class="kw">MATCHED</span> <span class="kw">THEN</span> <span class="kw">UPDATE</span> <span class="kw">SET</span> t.price = s.price, t.updated_at = s.updated_at
 <span class="kw">WHEN</span> <span class="kw">NOT</span> <span class="kw">MATCHED</span> <span class="kw">THEN</span> <span class="kw">INSERT</span> (order_id, customer_id, product, price, updated_at)
   <span class="kw">VALUES</span> (s.order_id, s.customer_id, s.product, s.price, s.updated_at);
 
 <span class="cm">-- deduplicated source: upsert works</span>
-<span class="kw">MERGE</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m08.silver_orders</span> <span class="kw">AS</span> t
-<span class="kw">USING</span> <span class="tbl">dp750_demo.m08.orders_clean</span> <span class="kw">AS</span> s
+<span class="kw">MERGE</span> <span class="kw">INTO</span> <span class="tbl">dp750.m08.silver_orders</span> <span class="kw">AS</span> t
+<span class="kw">USING</span> <span class="tbl">dp750.m08.orders_clean</span> <span class="kw">AS</span> s
 <span class="kw">ON</span> t.order_id = s.order_id
 <span class="kw">WHEN</span> <span class="kw">MATCHED</span> <span class="kw">AND</span> s.updated_at &gt; t.updated_at <span class="kw">THEN</span>
   <span class="kw">UPDATE</span> <span class="kw">SET</span> t.price = s.price, t.updated_at = s.updated_at
 <span class="kw">WHEN</span> <span class="kw">NOT</span> <span class="kw">MATCHED</span> <span class="kw">THEN</span> <span class="kw">INSERT</span> (order_id, customer_id, product, price, updated_at)
   <span class="kw">VALUES</span> (s.order_id, s.customer_id, s.product, s.price, s.updated_at);
-<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.silver_orders</span> <span class="kw">ORDER</span> <span class="kw">BY</span> order_id;
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m08.silver_orders</span> <span class="kw">ORDER</span> <span class="kw">BY</span> order_id;
 
 <span class="cm">-- selective overwrite of one day</span>
-<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m08.silver_orders</span> <span class="kw">REPLACE</span> <span class="kw">WHERE</span> <span class="fn">to_date</span>(updated_at) = <span class="kw">DATE</span><span class="str">'2026-11-03'</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750.m08.silver_orders</span> <span class="kw">REPLACE</span> <span class="kw">WHERE</span> <span class="fn">to_date</span>(updated_at) = <span class="kw">DATE</span><span class="str">'2026-11-03'</span>
 <span class="kw">SELECT</span> order_id, customer_id, product, price * <span class="num">0.9</span>, updated_at
-<span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.orders_clean</span> <span class="kw">WHERE</span> <span class="fn">to_date</span>(updated_at) = <span class="kw">DATE</span><span class="str">'2026-11-03'</span>;
-<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m08.silver_orders</span> <span class="kw">ORDER</span> <span class="kw">BY</span> order_id;</pre>
+<span class="kw">FROM</span> <span class="tbl">dp750.m08.orders_clean</span> <span class="kw">WHERE</span> <span class="fn">to_date</span>(updated_at) = <span class="kw">DATE</span><span class="str">'2026-11-03'</span>;
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m08.silver_orders</span> <span class="kw">ORDER</span> <span class="kw">BY</span> order_id;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> append pro nové záznamy, overwrite pro full refresh, <code class="inline">MERGE</code> pro upsert a <code class="inline">REPLACE WHERE</code> pro chirurgickou opravu okna. Všechny čtyři jsou atomické transakce nad Delta tabulkou.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> první <code class="inline">MERGE</code> skončí <code class="inline">DELTA_MULTIPLE_SOURCE_ROW_MATCHING_TARGET_ROW_IN_MERGE</code>, protože na jeden cílový řádek míří víc zdrojových; to je přesně důvod kroku 3. Kdyby cílová tabulka A-1 a A-2 neobsahovala, chyba by nenastala (oba zdrojové řádky by šly do <code class="inline">INSERT</code> a vznikly by duplicity).</div></div>
 
   <h3>Úklid</h3>
   <ol>
-    <li>Nic nemaž; všechny tabulky v <code class="inline">dp750_demo.m08</code> se při dalším průchodu přepíšou přes <code class="inline">CREATE OR REPLACE</code>.</li>
-    <li>Pokud jsi v kroku 1 zapnul data profiling, vypni ho v záložce <strong>Quality</strong>, ať se dál neúčtuje. Po kurzu <code class="inline">DROP SCHEMA dp750_demo.m08 CASCADE;</code>.</li>
+    <li>Nic nemaž; všechny tabulky v <code class="inline">dp750.m08</code> se při dalším průchodu přepíšou přes <code class="inline">CREATE OR REPLACE</code>.</li>
+    <li>Pokud jsi v kroku 1 zapnul data profiling, vypni ho v záložce <strong>Quality</strong>, ať se dál neúčtuje. Po kurzu <code class="inline">DROP SCHEMA dp750.m08 CASCADE;</code>.</li>
   </ol>
 </div>
 

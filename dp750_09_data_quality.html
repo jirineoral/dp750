@@ -524,8 +524,8 @@ html.mode-custom [data-view="orig"]{display:none}
     <div class="section-num">9.R</div>
     <h2>Runbook: ukázka krok za krokem</h2>
   </div>
-  <p>Ukázka hlídá kvalitu dat přepravce zásilek ve všech vrstvách obrany: schema enforcement, constraints, <code class="inline">try_cast</code> s karanténou, schema drift a nakonec expectations v pipeline. Běží v lektorském workspace nad syntetickými daty ve schématu <code class="inline">dp750_demo.m09</code>, ne nad daty labu.</p>
-  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> SQL editor na serverless SQL warehouse pro kroky 1 až 4, Python notebook <code class="inline">m09_drift</code> na <strong>Serverless</strong> pro Auto Loader v kroku 4 a pro krok 5 Lakeflow pipeline s jedním zdrojovým souborem (výchozí katalog <code class="inline">dp750_demo</code>, schéma <code class="inline">m09</code>, serverless), založená a jednou spuštěná den předem, ať ve třídě nečekáš na první start. Pipeline čte tabulku <code class="inline">shipments_raw</code> z kroku 3; čísla v kroku 5 platí pro stav po kroku 4 (před krokem 4 vyjdou 3 řádky místo 4). Asi 12 minut. Kroky 1 a 2 záměrně končí chybami; v SQL editoru spouštěj příkazy po jednom (označ a Ctrl+Enter), jinak se běh zastaví na první chybě.</div></div>
+  <p>Ukázka hlídá kvalitu dat přepravce zásilek ve všech vrstvách obrany: schema enforcement, constraints, <code class="inline">try_cast</code> s karanténou, schema drift a nakonec expectations v pipeline. Běží v lektorském workspace nad syntetickými daty ve schématu <code class="inline">dp750.m09</code>, ne nad daty labu.</p>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> SQL editor na serverless SQL warehouse pro kroky 1 až 4, Python notebook <code class="inline">m09_drift</code> na <strong>Serverless</strong> pro Auto Loader v kroku 4 a pro krok 5 Lakeflow pipeline s jedním zdrojovým souborem (výchozí katalog <code class="inline">dp750</code>, schéma <code class="inline">m09</code>, serverless), založená a jednou spuštěná den předem, ať ve třídě nečekáš na první start. Pipeline čte tabulku <code class="inline">shipments_raw</code> z kroku 3; čísla v kroku 5 platí pro stav po kroku 4 (před krokem 4 vyjdou 3 řádky místo 4). Asi 12 minut. Kroky 1 a 2 záměrně končí chybami; v SQL editoru spouštěj příkazy po jednom (označ a Ctrl+Enter), jinak se běh zastaví na první chybě.</div></div>
 
   <h3>Krok 1 – Vrstvy obrany: schema enforcement (9.1)</h3>
   <ol>
@@ -535,18 +535,18 @@ html.mode-custom [data-view="orig"]{display:none}
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="kw">CREATE</span> <span class="kw">SCHEMA</span> <span class="kw">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> <span class="tbl">dp750_demo.m09</span>;
+<pre><span class="kw">CREATE</span> <span class="kw">SCHEMA</span> <span class="kw">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> <span class="tbl">dp750.m09</span>;
 
-<span class="kw">DROP</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">EXISTS</span> <span class="tbl">dp750_demo.m09.shipments</span>;
-<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m09.shipments</span> (
+<span class="kw">DROP</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">EXISTS</span> <span class="tbl">dp750.m09.shipments</span>;
+<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m09.shipments</span> (
   shipment_id <span class="kw">INT</span> <span class="kw">NOT</span> <span class="kw">NULL</span>, ship_date <span class="kw">DATE</span>, weight_kg <span class="kw">DECIMAL</span>(<span class="num">8</span>,<span class="num">2</span>), carrier <span class="kw">STRING</span>);
-<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m09.shipments</span> <span class="kw">VALUES</span> (<span class="num">1</span>, <span class="kw">DATE</span><span class="str">'2026-11-02'</span>, <span class="num">2.50</span>, <span class="str">'PPL'</span>);
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750.m09.shipments</span> <span class="kw">VALUES</span> (<span class="num">1</span>, <span class="kw">DATE</span><span class="str">'2026-11-02'</span>, <span class="num">2.50</span>, <span class="str">'PPL'</span>);
 
 <span class="cm">-- expected error: wrong type</span>
-<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m09.shipments</span> <span class="kw">VALUES</span> (<span class="str">'dva'</span>, <span class="kw">DATE</span><span class="str">'2026-11-02'</span>, <span class="num">1.00</span>, <span class="str">'PPL'</span>);
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750.m09.shipments</span> <span class="kw">VALUES</span> (<span class="str">'dva'</span>, <span class="kw">DATE</span><span class="str">'2026-11-02'</span>, <span class="num">1.00</span>, <span class="str">'PPL'</span>);
 
 <span class="cm">-- expected error: unknown column</span>
-<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m09.shipments</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750.m09.shipments</span>
 <span class="kw">SELECT</span> <span class="num">2</span> <span class="kw">AS</span> shipment_id, <span class="kw">DATE</span><span class="str">'2026-11-02'</span> <span class="kw">AS</span> ship_date, <span class="num">1.00</span> <span class="kw">AS</span> weight_kg, <span class="str">'PPL'</span> <span class="kw">AS</span> carrier, <span class="str">'express'</span> <span class="kw">AS</span> service;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> schema enforcement je první vrstva a je zapnutá vždy, nic nenastavuješ. Další vrstvy (constraints, expectations, monitoring) chytají to, co strukturou projde, ale obsahově je to špatně.</div></div>
@@ -562,26 +562,26 @@ html.mode-custom [data-view="orig"]{display:none}
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
 <pre><span class="cm">-- expected error: NOT NULL</span>
-<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m09.shipments</span> <span class="kw">VALUES</span> (<span class="kw">NULL</span>, <span class="kw">DATE</span><span class="str">'2026-11-02'</span>, <span class="num">1.00</span>, <span class="str">'PPL'</span>);
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750.m09.shipments</span> <span class="kw">VALUES</span> (<span class="kw">NULL</span>, <span class="kw">DATE</span><span class="str">'2026-11-02'</span>, <span class="num">1.00</span>, <span class="str">'PPL'</span>);
 
-<span class="kw">ALTER</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m09.shipments</span> <span class="kw">ADD</span> <span class="kw">CONSTRAINT</span> positive_weight <span class="kw">CHECK</span> (weight_kg &gt; <span class="num">0</span>);
+<span class="kw">ALTER</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m09.shipments</span> <span class="kw">ADD</span> <span class="kw">CONSTRAINT</span> positive_weight <span class="kw">CHECK</span> (weight_kg &gt; <span class="num">0</span>);
 
 <span class="cm">-- expected error: one bad row fails the whole batch</span>
-<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m09.shipments</span> <span class="kw">VALUES</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750.m09.shipments</span> <span class="kw">VALUES</span>
   (<span class="num">2</span>, <span class="kw">DATE</span><span class="str">'2026-11-03'</span>, <span class="num">4.00</span>, <span class="str">'GLS'</span>),
   (<span class="num">3</span>, <span class="kw">DATE</span><span class="str">'2026-11-03'</span>, -<span class="num">1.00</span>, <span class="str">'GLS'</span>);
-<span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">AS</span> rows_now <span class="kw">FROM</span> <span class="tbl">dp750_demo.m09.shipments</span>;
+<span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">AS</span> rows_now <span class="kw">FROM</span> <span class="tbl">dp750.m09.shipments</span>;
 
 <span class="cm">-- new constraint is checked against existing data</span>
-<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m09.shipments</span> <span class="kw">VALUES</span> (<span class="num">5</span>, <span class="kw">DATE</span><span class="str">'2026-11-04'</span>, <span class="num">3.00</span>, <span class="str">'Kuryr'</span>);
-<span class="kw">ALTER</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m09.shipments</span> <span class="kw">ADD</span> <span class="kw">CONSTRAINT</span> known_carrier <span class="kw">CHECK</span> (carrier <span class="kw">IN</span> (<span class="str">'PPL'</span>, <span class="str">'GLS'</span>, <span class="str">'DPD'</span>));
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750.m09.shipments</span> <span class="kw">VALUES</span> (<span class="num">5</span>, <span class="kw">DATE</span><span class="str">'2026-11-04'</span>, <span class="num">3.00</span>, <span class="str">'Kuryr'</span>);
+<span class="kw">ALTER</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m09.shipments</span> <span class="kw">ADD</span> <span class="kw">CONSTRAINT</span> known_carrier <span class="kw">CHECK</span> (carrier <span class="kw">IN</span> (<span class="str">'PPL'</span>, <span class="str">'GLS'</span>, <span class="str">'DPD'</span>));
 
 <span class="cm">-- primary key is informational: duplicates are accepted</span>
-<span class="kw">DROP</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">EXISTS</span> <span class="tbl">dp750_demo.m09.carriers</span>;
-<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m09.carriers</span> (
+<span class="kw">DROP</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">EXISTS</span> <span class="tbl">dp750.m09.carriers</span>;
+<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m09.carriers</span> (
   carrier <span class="kw">STRING</span> <span class="kw">NOT</span> <span class="kw">NULL</span>, name <span class="kw">STRING</span>, <span class="kw">CONSTRAINT</span> carriers_pk <span class="kw">PRIMARY</span> <span class="kw">KEY</span> (carrier));
-<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m09.carriers</span> <span class="kw">VALUES</span> (<span class="str">'PPL'</span>, <span class="str">'PPL CZ'</span>), (<span class="str">'PPL'</span>, <span class="str">'PPL duplicita'</span>);
-<span class="kw">SELECT</span> carrier, <span class="fn">count</span>(*) <span class="kw">AS</span> n <span class="kw">FROM</span> <span class="tbl">dp750_demo.m09.carriers</span> <span class="kw">GROUP</span> <span class="kw">BY</span> carrier;</pre>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750.m09.carriers</span> <span class="kw">VALUES</span> (<span class="str">'PPL'</span>, <span class="str">'PPL CZ'</span>), (<span class="str">'PPL'</span>, <span class="str">'PPL duplicita'</span>);
+<span class="kw">SELECT</span> carrier, <span class="fn">count</span>(*) <span class="kw">AS</span> n <span class="kw">FROM</span> <span class="tbl">dp750.m09.carriers</span> <span class="kw">GROUP</span> <span class="kw">BY</span> carrier;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> constraint chrání tabulku před každým zapisovatelem, i mimo pipeline. Je to tvrdá pojistka: jeden špatný řádek shodí celou transakci, proto se špatné řádky filtrují dřív (krok 3 a 5).</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> kdo přichází z klasické databáze, čeká, že se odmítne jen špatný řádek a dobrý projde. Tady nevznikne ani zásilka 2. A <code class="inline">PRIMARY KEY</code> unikátnost nevynutí: v číselníku je PPL dvakrát. Hlídat se musí deduplikací nebo expectation.</div></div>
@@ -596,7 +596,7 @@ html.mode-custom [data-view="orig"]{display:none}
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m09.shipments_raw</span> <span class="kw">AS</span>
+<pre><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m09.shipments_raw</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">VALUES</span>
   (<span class="str">'S-1'</span>, <span class="str">'2026-11-02'</span>, <span class="str">'2.50'</span>),
   (<span class="str">'S-2'</span>, <span class="str">'02.11.2026'</span>, <span class="str">'1.20'</span>),
@@ -608,39 +608,39 @@ html.mode-custom [data-view="orig"]{display:none}
 <span class="kw">SELECT</span> shipment_ref,
        <span class="fn">try_cast</span>(ship_date_str <span class="kw">AS</span> <span class="kw">DATE</span>) <span class="kw">AS</span> ship_date,
        <span class="fn">try_cast</span>(weight_str <span class="kw">AS</span> <span class="kw">DECIMAL</span>(<span class="num">8</span>,<span class="num">2</span>)) <span class="kw">AS</span> weight_kg
-<span class="kw">FROM</span> <span class="tbl">dp750_demo.m09.shipments_raw</span>;
+<span class="kw">FROM</span> <span class="tbl">dp750.m09.shipments_raw</span>;
 
 <span class="cm">-- expected error: hard validation</span>
-<span class="kw">SELECT</span> <span class="fn">cast</span>(weight_str <span class="kw">AS</span> <span class="kw">DECIMAL</span>(<span class="num">8</span>,<span class="num">2</span>)) <span class="kw">FROM</span> <span class="tbl">dp750_demo.m09.shipments_raw</span>;
+<span class="kw">SELECT</span> <span class="fn">cast</span>(weight_str <span class="kw">AS</span> <span class="kw">DECIMAL</span>(<span class="num">8</span>,<span class="num">2</span>)) <span class="kw">FROM</span> <span class="tbl">dp750.m09.shipments_raw</span>;
 
 <span class="kw">SELECT</span> <span class="fn">to_date</span>(<span class="str">'02.11.2026'</span>, <span class="str">'dd.MM.yyyy'</span>) <span class="kw">AS</span> parsed;
 
 <span class="cm">-- quarantine pattern</span>
-<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m09.shipments_clean</span> (
+<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m09.shipments_clean</span> (
   shipment_ref <span class="kw">STRING</span> <span class="kw">NOT</span> <span class="kw">NULL</span>, ship_date <span class="kw">DATE</span> <span class="kw">NOT</span> <span class="kw">NULL</span>, weight_kg <span class="kw">DECIMAL</span>(<span class="num">8</span>,<span class="num">2</span>) <span class="kw">NOT</span> <span class="kw">NULL</span>);
-<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m09.shipments_quarantine</span> (
+<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m09.shipments_quarantine</span> (
   shipment_ref <span class="kw">STRING</span>, ship_date_str <span class="kw">STRING</span>, weight_str <span class="kw">STRING</span>, reason <span class="kw">STRING</span>, quarantined_at <span class="kw">TIMESTAMP</span>);
 
-<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m09.shipments_clean</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750.m09.shipments_clean</span>
 <span class="kw">SELECT</span> shipment_ref, <span class="fn">try_cast</span>(ship_date_str <span class="kw">AS</span> <span class="kw">DATE</span>), <span class="fn">try_cast</span>(weight_str <span class="kw">AS</span> <span class="kw">DECIMAL</span>(<span class="num">8</span>,<span class="num">2</span>))
-<span class="kw">FROM</span> <span class="tbl">dp750_demo.m09.shipments_raw</span>
+<span class="kw">FROM</span> <span class="tbl">dp750.m09.shipments_raw</span>
 <span class="kw">WHERE</span> <span class="fn">try_cast</span>(ship_date_str <span class="kw">AS</span> <span class="kw">DATE</span>) <span class="kw">IS</span> <span class="kw">NOT</span> <span class="kw">NULL</span>
   <span class="kw">AND</span> <span class="fn">try_cast</span>(weight_str <span class="kw">AS</span> <span class="kw">DECIMAL</span>(<span class="num">8</span>,<span class="num">2</span>)) <span class="kw">IS</span> <span class="kw">NOT</span> <span class="kw">NULL</span>;
 
-<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m09.shipments_quarantine</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750.m09.shipments_quarantine</span>
 <span class="kw">SELECT</span> shipment_ref, ship_date_str, weight_str,
        <span class="kw">CASE</span> <span class="kw">WHEN</span> <span class="fn">try_cast</span>(ship_date_str <span class="kw">AS</span> <span class="kw">DATE</span>) <span class="kw">IS</span> <span class="kw">NULL</span> <span class="kw">THEN</span> <span class="str">'invalid date'</span> <span class="kw">ELSE</span> <span class="str">'invalid weight'</span> <span class="kw">END</span>,
        <span class="fn">current_timestamp</span>()
-<span class="kw">FROM</span> <span class="tbl">dp750_demo.m09.shipments_raw</span>
+<span class="kw">FROM</span> <span class="tbl">dp750.m09.shipments_raw</span>
 <span class="kw">WHERE</span> <span class="fn">try_cast</span>(ship_date_str <span class="kw">AS</span> <span class="kw">DATE</span>) <span class="kw">IS</span> <span class="kw">NULL</span>
    <span class="kw">OR</span> <span class="fn">try_cast</span>(weight_str <span class="kw">AS</span> <span class="kw">DECIMAL</span>(<span class="num">8</span>,<span class="num">2</span>)) <span class="kw">IS</span> <span class="kw">NULL</span>;
 
-<span class="kw">SELECT</span> <span class="str">'clean'</span> <span class="kw">AS</span> target, <span class="fn">count</span>(*) <span class="kw">AS</span> n <span class="kw">FROM</span> <span class="tbl">dp750_demo.m09.shipments_clean</span>
+<span class="kw">SELECT</span> <span class="str">'clean'</span> <span class="kw">AS</span> target, <span class="fn">count</span>(*) <span class="kw">AS</span> n <span class="kw">FROM</span> <span class="tbl">dp750.m09.shipments_clean</span>
 <span class="kw">UNION</span> <span class="kw">ALL</span>
-<span class="kw">SELECT</span> <span class="str">'quarantine'</span>, <span class="fn">count</span>(*) <span class="kw">FROM</span> <span class="tbl">dp750_demo.m09.shipments_quarantine</span>;
+<span class="kw">SELECT</span> <span class="str">'quarantine'</span>, <span class="fn">count</span>(*) <span class="kw">FROM</span> <span class="tbl">dp750.m09.shipments_quarantine</span>;
 
 <span class="cm">-- expected error: S-2 already violates the rule</span>
-<span class="kw">ALTER</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m09.shipments_raw</span>
+<span class="kw">ALTER</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m09.shipments_raw</span>
   <span class="kw">ADD</span> <span class="kw">CONSTRAINT</span> date_parsable <span class="kw">CHECK</span> (<span class="fn">try_cast</span>(ship_date_str <span class="kw">AS</span> <span class="kw">DATE</span>) <span class="kw">IS</span> <span class="kw">NOT</span> <span class="kw">NULL</span>);</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> <code class="inline">cast</code> je tvrdá validace (chci o problému vědět hned), <code class="inline">try_cast</code> měkká (chci špatné řádky odklonit). Karanténa znamená, že se nic neztratí a je co reklamovat u zdroje.</div></div>
@@ -655,34 +655,34 @@ html.mode-custom [data-view="orig"]{display:none}
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m09.shipments_changes</span> <span class="kw">AS</span>
+<pre><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m09.shipments_changes</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">VALUES</span>
   (<span class="str">'S-1'</span>, <span class="str">'2026-11-02'</span>, <span class="str">'2.60'</span>, <span class="str">'fragile'</span>),
   (<span class="str">'S-9'</span>, <span class="str">'2026-11-05'</span>, <span class="str">'5.00'</span>, <span class="kw">NULL</span>)
 <span class="kw">AS</span> t(shipment_ref, ship_date_str, weight_str, handling);
 
 <span class="cm">-- passes, but the new column handling is silently ignored</span>
-<span class="kw">MERGE</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m09.shipments_raw</span> <span class="kw">AS</span> t
-<span class="kw">USING</span> <span class="tbl">dp750_demo.m09.shipments_changes</span> <span class="kw">AS</span> s <span class="kw">ON</span> t.shipment_ref = s.shipment_ref
+<span class="kw">MERGE</span> <span class="kw">INTO</span> <span class="tbl">dp750.m09.shipments_raw</span> <span class="kw">AS</span> t
+<span class="kw">USING</span> <span class="tbl">dp750.m09.shipments_changes</span> <span class="kw">AS</span> s <span class="kw">ON</span> t.shipment_ref = s.shipment_ref
 <span class="kw">WHEN</span> <span class="kw">MATCHED</span> <span class="kw">THEN</span> <span class="kw">UPDATE</span> <span class="kw">SET</span> *
 <span class="kw">WHEN</span> <span class="kw">NOT</span> <span class="kw">MATCHED</span> <span class="kw">THEN</span> <span class="kw">INSERT</span> *;
 
 <span class="cm">-- adds handling to the target table</span>
-<span class="kw">MERGE</span> <span class="kw">WITH</span> <span class="kw">SCHEMA</span> <span class="kw">EVOLUTION</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m09.shipments_raw</span> <span class="kw">AS</span> t
-<span class="kw">USING</span> <span class="tbl">dp750_demo.m09.shipments_changes</span> <span class="kw">AS</span> s <span class="kw">ON</span> t.shipment_ref = s.shipment_ref
+<span class="kw">MERGE</span> <span class="kw">WITH</span> <span class="kw">SCHEMA</span> <span class="kw">EVOLUTION</span> <span class="kw">INTO</span> <span class="tbl">dp750.m09.shipments_raw</span> <span class="kw">AS</span> t
+<span class="kw">USING</span> <span class="tbl">dp750.m09.shipments_changes</span> <span class="kw">AS</span> s <span class="kw">ON</span> t.shipment_ref = s.shipment_ref
 <span class="kw">WHEN</span> <span class="kw">MATCHED</span> <span class="kw">THEN</span> <span class="kw">UPDATE</span> <span class="kw">SET</span> *
 <span class="kw">WHEN</span> <span class="kw">NOT</span> <span class="kw">MATCHED</span> <span class="kw">THEN</span> <span class="kw">INSERT</span> *;
 
-<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m09.shipments_raw</span> <span class="kw">ORDER</span> <span class="kw">BY</span> shipment_ref;</pre>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m09.shipments_raw</span> <span class="kw">ORDER</span> <span class="kw">BY</span> shipment_ref;</pre>
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
 <pre><span class="cm"># cell 1: bronze ingest in rescue mode</span>
-spark.<span class="fn">sql</span>(<span class="str">"CREATE VOLUME IF NOT EXISTS dp750_demo.m09.landing"</span>)
-base = <span class="str">"/Volumes/dp750_demo/m09/landing"</span>
+spark.<span class="fn">sql</span>(<span class="str">"CREATE VOLUME IF NOT EXISTS dp750.m09.landing"</span>)
+base = <span class="str">"/Volumes/dp750/m09/landing"</span>
 
 <span class="cm"># reset before a repeated run</span>
-spark.<span class="fn">sql</span>(<span class="str">"DROP TABLE IF EXISTS dp750_demo.m09.shipments_bronze"</span>)
+spark.<span class="fn">sql</span>(<span class="str">"DROP TABLE IF EXISTS dp750.m09.shipments_bronze"</span>)
 <span class="kw">for</span> p <span class="kw">in</span> [<span class="str">"events"</span>, <span class="str">"_checkpoints"</span>, <span class="str">"_schemas"</span>]:
     dbutils.fs.<span class="fn">rm</span>(<span class="str">f"{base}/{p}"</span>, <span class="kw">True</span>)
 
@@ -701,7 +701,7 @@ dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/events/day1.js
          .writeStream
          .<span class="fn">option</span>(<span class="str">"checkpointLocation"</span>, <span class="str">f"{base}/_checkpoints/shipments"</span>)
          .<span class="fn">trigger</span>(availableNow=<span class="kw">True</span>)
-         .<span class="fn">toTable</span>(<span class="str">"dp750_demo.m09.shipments_bronze"</span>))
+         .<span class="fn">toTable</span>(<span class="str">"dp750.m09.shipments_bronze"</span>))
     q.<span class="fn">awaitTermination</span>()
 
 <span class="fn">load_bronze</span>()</pre>
@@ -714,7 +714,7 @@ dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/events/day2.js
     <span class="str">'{"shipment_ref": "S-13", "weight_kg": "1.10", "handling": "fragile"}\n'</span>, <span class="kw">True</span>)
 <span class="fn">load_bronze</span>()
 <span class="fn">display</span>(spark.<span class="fn">sql</span>(<span class="str">""</span>"SELECT shipment_ref, weight_kg, _rescued_data
-                     FROM dp750_demo.m09.shipments_bronze ORDER BY shipment_ref<span class="str">""</span>"))</pre>
+                     FROM dp750.m09.shipments_bronze ORDER BY shipment_ref<span class="str">""</span>"))</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> <code class="inline">rescue</code> je produkční kompromis: pipeline kvůli struktuře nespadne a nic se neztratí. Neprázdný <code class="inline">_rescued_data</code> je signál k alertu a k rozhovoru se zdrojovým týmem. Pro <code class="inline">MERGE</code> je protějškem <code class="inline">WITH SCHEMA EVOLUTION</code>.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> první <code class="inline">MERGE</code> bez evoluce nehlásí žádnou chybu ani varování a sloupec <code class="inline">handling</code> prostě chybí; to je nejzrádnější podoba driftu. Checkpoint a schema location patří do volume, ne do <code class="inline">/tmp</code> (DBFS root je vypnutý). Když druhá buňka nic nenačte, zbyl checkpoint ze zkoušky a reset v buňce 1 se nepustil.</div></div>
@@ -736,7 +736,7 @@ dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/events/day2.js
 <span class="fn">@dp.expect</span>(<span class="str">"weight_present"</span>, <span class="str">"weight_kg IS NOT NULL"</span>)
 <span class="fn">@dp.expect_or_drop</span>(<span class="str">"valid_date"</span>, <span class="str">"ship_date IS NOT NULL"</span>)
 <span class="kw">def</span> <span class="fn">shipments_validated</span>():
-    <span class="kw">return</span> (spark.read.<span class="fn">table</span>(<span class="str">"dp750_demo.m09.shipments_raw"</span>)
+    <span class="kw">return</span> (spark.read.<span class="fn">table</span>(<span class="str">"dp750.m09.shipments_raw"</span>)
             .<span class="fn">select</span>(<span class="str">"shipment_ref"</span>,
                     <span class="fn">expr</span>(<span class="str">"try_cast(ship_date_str AS DATE)"</span>).<span class="fn">alias</span>(<span class="str">"ship_date"</span>),
                     <span class="fn">expr</span>(<span class="str">"try_cast(weight_str AS DECIMAL(8,2))"</span>).<span class="fn">alias</span>(<span class="str">"weight_kg"</span>)))</pre>
@@ -757,8 +757,8 @@ dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/events/day2.js
 
   <h3>Úklid</h3>
   <ol>
-    <li>Tabulky a volume v <code class="inline">dp750_demo.m09</code> nech; kroky 1 až 4 se dají pustit znovu (začínají <code class="inline">DROP</code> nebo <code class="inline">CREATE OR REPLACE</code>, notebook má reset).</li>
-    <li>Pipeline z kroku 5 smaž po kurzu v <strong>Jobs &amp; Pipelines</strong>; její tabulky zmizí s <code class="inline">DROP SCHEMA dp750_demo.m09 CASCADE;</code> nebo s celkovým úklidem katalogu.</li>
+    <li>Tabulky a volume v <code class="inline">dp750.m09</code> nech; kroky 1 až 4 se dají pustit znovu (začínají <code class="inline">DROP</code> nebo <code class="inline">CREATE OR REPLACE</code>, notebook má reset).</li>
+    <li>Pipeline z kroku 5 smaž po kurzu v <strong>Jobs &amp; Pipelines</strong>; její tabulky zmizí s <code class="inline">DROP SCHEMA dp750.m09 CASCADE;</code> nebo s celkovým úklidem katalogu.</li>
   </ol>
 </div>
 

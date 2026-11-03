@@ -810,8 +810,8 @@ html.mode-custom [data-view="orig"]{display:none}
     <div class="section-num">6.R</div>
     <h2>Runbook: ukázka krok za krokem</h2>
   </div>
-  <p>Ukázka staví malý model prodejní sítě: dimenzi prodejen se SCD Type 2 historií, faktovou tabulku účtenek s liquid clusteringem a kolem nich watermark, partitioning, Change Data Feed a time travel. Běží v lektorském workspace nad vlastními syntetickými daty ve schématu <code class="inline">dp750_demo.m06</code>, ne nad daty labu.</p>
-  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> SQL editor připojený na serverless SQL warehouse, existující katalog <code class="inline">dp750_demo</code> (bez vlastní storage v metastoru musel vzniknout s <code class="inline">MANAGED LOCATION</code>, jinak <code class="inline">CREATE CATALOG</code> padá na „Metastore storage root URL does not exist“). Nic dalšího předem zakládat netřeba. Celý průchod zabere asi 12 minut; kroky 4 a 5 musí jít za sebou, protože čísla verzí v kroku 5 počítají s tím, že krok 4 začal <code class="inline">DROP TABLE</code>.</div></div>
+  <p>Ukázka staví malý model prodejní sítě: dimenzi prodejen se SCD Type 2 historií, faktovou tabulku účtenek s liquid clusteringem a kolem nich watermark, partitioning, Change Data Feed a time travel. Běží v lektorském workspace nad vlastními syntetickými daty ve schématu <code class="inline">dp750.m06</code>, ne nad daty labu.</p>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> SQL editor připojený na serverless SQL warehouse, existující katalog <code class="inline">dp750</code> (bez vlastní storage v metastoru musel vzniknout s <code class="inline">MANAGED LOCATION</code>, jinak <code class="inline">CREATE CATALOG</code> padá na „Metastore storage root URL does not exist“). Nic dalšího předem zakládat netřeba. Celý průchod zabere asi 12 minut; kroky 4 a 5 musí jít za sebou, protože čísla verzí v kroku 5 počítají s tím, že krok 4 začal <code class="inline">DROP TABLE</code>.</div></div>
 
   <h3>Krok 1 – Návrh ingesční logiky a volba nástroje (6.1 a 6.2)</h3>
   <ol>
@@ -822,9 +822,9 @@ html.mode-custom [data-view="orig"]{display:none}
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="kw">CREATE</span> <span class="kw">SCHEMA</span> <span class="kw">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> <span class="tbl">dp750_demo.m06</span>;
+<pre><span class="kw">CREATE</span> <span class="kw">SCHEMA</span> <span class="kw">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> <span class="tbl">dp750.m06</span>;
 
-<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.src_receipts</span> <span class="kw">AS</span>
+<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m06.src_receipts</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">VALUES</span>
   (<span class="num">101</span>, <span class="str">'S01'</span>, <span class="num">450.00</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-11-01 08:00:00'</span>),
   (<span class="num">102</span>, <span class="str">'S02'</span>, <span class="num">120.50</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-11-01 09:30:00'</span>),
@@ -832,19 +832,19 @@ html.mode-custom [data-view="orig"]{display:none}
 <span class="kw">AS</span> t(receipt_id, store_id, amount, modified_at);
 
 <span class="cm">-- control table: last successfully loaded change</span>
-<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.etl_watermark</span> (source <span class="kw">STRING</span>, last_modified <span class="kw">TIMESTAMP</span>);
-<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m06.etl_watermark</span> <span class="kw">VALUES</span> (<span class="str">'src_receipts'</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-11-01 23:59:59'</span>);
+<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m06.etl_watermark</span> (source <span class="kw">STRING</span>, last_modified <span class="kw">TIMESTAMP</span>);
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750.m06.etl_watermark</span> <span class="kw">VALUES</span> (<span class="str">'src_receipts'</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-11-01 23:59:59'</span>);
 
 <span class="cm">-- incremental extraction: only rows newer than the watermark</span>
-<span class="kw">SELECT</span> r.* <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.src_receipts</span> r
-<span class="kw">WHERE</span> r.modified_at &gt; (<span class="kw">SELECT</span> last_modified <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.etl_watermark</span> <span class="kw">WHERE</span> source = <span class="str">'src_receipts'</span>);
+<span class="kw">SELECT</span> r.* <span class="kw">FROM</span> <span class="tbl">dp750.m06.src_receipts</span> r
+<span class="kw">WHERE</span> r.modified_at &gt; (<span class="kw">SELECT</span> last_modified <span class="kw">FROM</span> <span class="tbl">dp750.m06.etl_watermark</span> <span class="kw">WHERE</span> source = <span class="str">'src_receipts'</span>);
 
 <span class="cm">-- after a successful load move the watermark</span>
-<span class="kw">UPDATE</span> <span class="tbl">dp750_demo.m06.etl_watermark</span>
-<span class="kw">SET</span> last_modified = (<span class="kw">SELECT</span> <span class="fn">max</span>(modified_at) <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.src_receipts</span>)
+<span class="kw">UPDATE</span> <span class="tbl">dp750.m06.etl_watermark</span>
+<span class="kw">SET</span> last_modified = (<span class="kw">SELECT</span> <span class="fn">max</span>(modified_at) <span class="kw">FROM</span> <span class="tbl">dp750.m06.src_receipts</span>)
 <span class="kw">WHERE</span> source = <span class="str">'src_receipts'</span>;
 
-<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.etl_watermark</span>;</pre>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m06.etl_watermark</span>;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> inkrementální extrakce vidí jen nový stav řádku. Kdyby zdroj účtenku smazal, watermark se o tom nedozví; to umí až CDC, které nese typ operace. Tohle je moment říct, proč volba extraction type předchází volbě nástroje.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> CTAS z literálů odvodí typ podle dat. Sloupec <code class="inline">amount</code> v <code class="inline">src_receipts</code> dostal <code class="inline">decimal(5,2)</code> (je vidět v <code class="inline">DESCRIBE EXTENDED</code> v kroku 2, kopie typ převzala), takže pozdější účtenka nad 999,99 by při vložení selhala na přetečení. U zdrojových tabulek typy deklaruj explicitně.</div></div>
@@ -857,14 +857,14 @@ html.mode-custom [data-view="orig"]{display:none}
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
 <pre><span class="cm">-- default table format: Delta</span>
-<span class="kw">DESCRIBE</span> <span class="kw">DETAIL</span> <span class="tbl">dp750_demo.m06.src_receipts</span>;
+<span class="kw">DESCRIBE</span> <span class="kw">DETAIL</span> <span class="tbl">dp750.m06.src_receipts</span>;
 
 <span class="cm">-- managed Iceberg table for engines outside Databricks</span>
-<span class="kw">DROP</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">EXISTS</span> <span class="tbl">dp750_demo.m06.receipts_iceberg</span>;
-<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.receipts_iceberg</span> <span class="kw">USING</span> <span class="kw">ICEBERG</span>
-<span class="kw">AS</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.src_receipts</span>;
+<span class="kw">DROP</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">EXISTS</span> <span class="tbl">dp750.m06.receipts_iceberg</span>;
+<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m06.receipts_iceberg</span> <span class="kw">USING</span> <span class="kw">ICEBERG</span>
+<span class="kw">AS</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m06.src_receipts</span>;
 
-<span class="kw">DESCRIBE</span> <span class="kw">EXTENDED</span> <span class="tbl">dp750_demo.m06.receipts_iceberg</span>;</pre>
+<span class="kw">DESCRIBE</span> <span class="kw">EXTENDED</span> <span class="tbl">dp750.m06.receipts_iceberg</span>;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> pod oběma formáty leží Parquet, liší se metadatová vrstva. Iceberg volíš kvůli enginům mimo Databricks (aktuální stav managed Iceberg tabulek a jejich omezení ověř v dokumentaci); jinak zůstáváš u Delta, která je výchozí a má Change Data Feed nad vlastním transakčním logem.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> v <code class="inline">DESCRIBE DETAIL</code> uvidí účastníci i <code class="inline">clusterByAuto = true</code> a vlastnosti jako <code class="inline">delta.enableRowTracking</code>, přestože je nikdo nezapínal. V lektorském workspace je takhle nová managed tabulka dostala automaticky; neříkej, že to tak bude v každém workspace.</div></div>
@@ -877,8 +877,8 @@ html.mode-custom [data-view="orig"]{display:none}
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="kw">DROP</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">EXISTS</span> <span class="tbl">dp750_demo.m06.sales_by_day</span>;
-<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.sales_by_day</span> (
+<pre><span class="kw">DROP</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">EXISTS</span> <span class="tbl">dp750.m06.sales_by_day</span>;
+<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m06.sales_by_day</span> (
   receipt_id <span class="kw">INT</span>,
   store_id <span class="kw">STRING</span>,
   amount <span class="kw">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>),
@@ -887,15 +887,15 @@ html.mode-custom [data-view="orig"]{display:none}
 )
 <span class="kw">PARTITIONED</span> <span class="kw">BY</span> (sold_date);
 
-<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m06.sales_by_day</span> (receipt_id, store_id, amount, sold_at) <span class="kw">VALUES</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750.m06.sales_by_day</span> (receipt_id, store_id, amount, sold_at) <span class="kw">VALUES</span>
   (<span class="num">1</span>, <span class="str">'S01'</span>, <span class="num">450.00</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-11-01 08:00:00'</span>),
   (<span class="num">2</span>, <span class="str">'S02'</span>, <span class="num">120.50</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-11-01 09:30:00'</span>),
   (<span class="num">3</span>, <span class="str">'S01'</span>, <span class="num">999.90</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-11-02 10:15:00'</span>);
 
-<span class="kw">SHOW</span> <span class="kw">PARTITIONS</span> <span class="tbl">dp750_demo.m06.sales_by_day</span>;
+<span class="kw">SHOW</span> <span class="kw">PARTITIONS</span> <span class="tbl">dp750.m06.sales_by_day</span>;
 
 <span class="cm">-- filter only on sold_at; the plan still prunes partitions of sold_date</span>
-<span class="kw">EXPLAIN</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.sales_by_day</span>
+<span class="kw">EXPLAIN</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m06.sales_by_day</span>
 <span class="kw">WHERE</span> sold_at &gt;= <span class="kw">TIMESTAMP</span><span class="str">'2026-11-02 00:00:00'</span>;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> analytik filtruje na timestamp a o partitioningu nemusí vědět; Delta si partition filtr odvodí z generated column. Hned dodej, že tahle tabulka má pár řádků a pod 1 TB by se v praxi partitionovat neměla. Je tu jen kvůli mechanismu.</div></div>
@@ -912,8 +912,8 @@ html.mode-custom [data-view="orig"]{display:none}
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
 <pre><span class="cm">-- DROP, not CREATE OR REPLACE: a fresh history keeps version numbers in step 5 stable</span>
-<span class="kw">DROP</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">EXISTS</span> <span class="tbl">dp750_demo.m06.dim_store</span>;
-<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.dim_store</span> (
+<span class="kw">DROP</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">EXISTS</span> <span class="tbl">dp750.m06.dim_store</span>;
+<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m06.dim_store</span> (
   store_sk <span class="kw">BIGINT</span> <span class="kw">GENERATED</span> <span class="kw">ALWAYS</span> <span class="kw">AS</span> <span class="kw">IDENTITY</span>,
   store_id <span class="kw">STRING</span> <span class="kw">NOT</span> <span class="kw">NULL</span>,
   store_name <span class="kw">STRING</span>,
@@ -924,11 +924,11 @@ html.mode-custom [data-view="orig"]{display:none}
 )
 <span class="kw">TBLPROPERTIES</span> (delta.enableChangeDataFeed = true);
 
-<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m06.dim_store</span> (store_id, store_name, region, valid_from, valid_to, is_current) <span class="kw">VALUES</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750.m06.dim_store</span> (store_id, store_name, region, valid_from, valid_to, is_current) <span class="kw">VALUES</span>
   (<span class="str">'S01'</span>, <span class="str">'Brno Centrum'</span>, <span class="str">'Morava'</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-01-01'</span>, <span class="kw">TIMESTAMP</span><span class="str">'9999-12-31'</span>, true),
   (<span class="str">'S02'</span>, <span class="str">'Praha Smichov'</span>, <span class="str">'Cechy'</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-01-01'</span>, <span class="kw">TIMESTAMP</span><span class="str">'9999-12-31'</span>, true);
 
-<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.stg_store</span> <span class="kw">AS</span>
+<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m06.stg_store</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">VALUES</span>
   (<span class="str">'S01'</span>, <span class="str">'Brno Centrum'</span>, <span class="str">'Jizni Morava'</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-10-01 00:00:00'</span>),
   (<span class="str">'S02'</span>, <span class="str">'Praha Smichov'</span>, <span class="str">'Cechy'</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-10-01 00:00:00'</span>),
@@ -936,8 +936,8 @@ html.mode-custom [data-view="orig"]{display:none}
 <span class="kw">AS</span> t(store_id, store_name, region, changed_at);
 
 <span class="cm">-- phase 1: close changed current versions, insert brand new stores</span>
-<span class="kw">MERGE</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m06.dim_store</span> <span class="kw">AS</span> t
-<span class="kw">USING</span> <span class="tbl">dp750_demo.m06.stg_store</span> <span class="kw">AS</span> s
+<span class="kw">MERGE</span> <span class="kw">INTO</span> <span class="tbl">dp750.m06.dim_store</span> <span class="kw">AS</span> t
+<span class="kw">USING</span> <span class="tbl">dp750.m06.stg_store</span> <span class="kw">AS</span> s
 <span class="kw">ON</span> t.store_id = s.store_id <span class="kw">AND</span> t.is_current
 <span class="kw">WHEN</span> <span class="kw">MATCHED</span> <span class="kw">AND</span> (t.region &lt;&gt; s.region <span class="kw">OR</span> t.store_name &lt;&gt; s.store_name) <span class="kw">THEN</span>
   <span class="kw">UPDATE</span> <span class="kw">SET</span> t.valid_to = s.changed_at, t.is_current = false
@@ -946,19 +946,19 @@ html.mode-custom [data-view="orig"]{display:none}
   <span class="kw">VALUES</span> (s.store_id, s.store_name, s.region, s.changed_at, <span class="kw">TIMESTAMP</span><span class="str">'9999-12-31'</span>, true);
 
 <span class="cm">-- phase 2: new version for every key that has no current row now</span>
-<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m06.dim_store</span> (store_id, store_name, region, valid_from, valid_to, is_current)
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750.m06.dim_store</span> (store_id, store_name, region, valid_from, valid_to, is_current)
 <span class="kw">SELECT</span> s.store_id, s.store_name, s.region, s.changed_at, <span class="kw">TIMESTAMP</span><span class="str">'9999-12-31'</span>, true
-<span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.stg_store</span> <span class="kw">AS</span> s
+<span class="kw">FROM</span> <span class="tbl">dp750.m06.stg_store</span> <span class="kw">AS</span> s
 <span class="kw">WHERE</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> (
-  <span class="kw">SELECT</span> <span class="num">1</span> <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.dim_store</span> <span class="kw">AS</span> t
+  <span class="kw">SELECT</span> <span class="num">1</span> <span class="kw">FROM</span> <span class="tbl">dp750.m06.dim_store</span> <span class="kw">AS</span> t
   <span class="kw">WHERE</span> t.store_id = s.store_id <span class="kw">AND</span> t.is_current
 );
 
 <span class="kw">SELECT</span> store_sk, store_id, region, valid_from, valid_to, is_current
-<span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.dim_store</span> <span class="kw">ORDER</span> <span class="kw">BY</span> store_id, valid_from;
+<span class="kw">FROM</span> <span class="tbl">dp750.m06.dim_store</span> <span class="kw">ORDER</span> <span class="kw">BY</span> store_id, valid_from;
 
 <span class="cm">-- point-in-time: state of the dimension on 15 June 2026</span>
-<span class="kw">SELECT</span> store_id, region <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.dim_store</span>
+<span class="kw">SELECT</span> store_id, region <span class="kw">FROM</span> <span class="tbl">dp750.m06.dim_store</span>
 <span class="kw">WHERE</span> valid_from &lt;= <span class="kw">TIMESTAMP</span><span class="str">'2026-06-15 12:00:00'</span> <span class="kw">AND</span> valid_to &gt; <span class="kw">TIMESTAMP</span><span class="str">'2026-06-15 12:00:00'</span>
 <span class="kw">ORDER</span> <span class="kw">BY</span> store_id;</pre>
   </div>
@@ -976,25 +976,25 @@ html.mode-custom [data-view="orig"]{display:none}
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
 <pre><span class="cm">-- row level changes since version 2 (the MERGE)</span>
 <span class="kw">SELECT</span> store_id, region, is_current, _change_type, _commit_version
-<span class="kw">FROM</span> <span class="fn">table_changes</span>(<span class="str">'dp750_demo.m06.dim_store'</span>, <span class="num">2</span>)
+<span class="kw">FROM</span> <span class="fn">table_changes</span>(<span class="str">'dp750.m06.dim_store'</span>, <span class="num">2</span>)
 <span class="kw">ORDER</span> <span class="kw">BY</span> _commit_version, store_id, _change_type;
 
 <span class="cm">-- accident: update without WHERE</span>
-<span class="kw">UPDATE</span> <span class="tbl">dp750_demo.m06.dim_store</span> <span class="kw">SET</span> region = <span class="str">'NEZNAMY'</span>;
+<span class="kw">UPDATE</span> <span class="tbl">dp750.m06.dim_store</span> <span class="kw">SET</span> region = <span class="str">'NEZNAMY'</span>;
 
-<span class="kw">SELECT</span> version, operation <span class="kw">FROM</span> (<span class="kw">DESCRIBE</span> <span class="kw">HISTORY</span> <span class="tbl">dp750_demo.m06.dim_store</span>) <span class="kw">ORDER</span> <span class="kw">BY</span> version;
+<span class="kw">SELECT</span> version, operation <span class="kw">FROM</span> (<span class="kw">DESCRIBE</span> <span class="kw">HISTORY</span> <span class="tbl">dp750.m06.dim_store</span>) <span class="kw">ORDER</span> <span class="kw">BY</span> version;
 
 <span class="cm">-- look at the last good version, then roll back to it</span>
-<span class="kw">SELECT</span> store_id, region <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.dim_store</span> <span class="kw">VERSION</span> <span class="kw">AS</span> <span class="kw">OF</span> <span class="num">3</span> <span class="kw">ORDER</span> <span class="kw">BY</span> store_id;
-<span class="kw">RESTORE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.dim_store</span> <span class="kw">TO</span> <span class="kw">VERSION</span> <span class="kw">AS</span> <span class="kw">OF</span> <span class="num">3</span>;
-<span class="kw">SELECT</span> store_id, region, is_current <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.dim_store</span> <span class="kw">ORDER</span> <span class="kw">BY</span> store_id, valid_from;
+<span class="kw">SELECT</span> store_id, region <span class="kw">FROM</span> <span class="tbl">dp750.m06.dim_store</span> <span class="kw">VERSION</span> <span class="kw">AS</span> <span class="kw">OF</span> <span class="num">3</span> <span class="kw">ORDER</span> <span class="kw">BY</span> store_id;
+<span class="kw">RESTORE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m06.dim_store</span> <span class="kw">TO</span> <span class="kw">VERSION</span> <span class="kw">AS</span> <span class="kw">OF</span> <span class="num">3</span>;
+<span class="kw">SELECT</span> store_id, region, is_current <span class="kw">FROM</span> <span class="tbl">dp750.m06.dim_store</span> <span class="kw">ORDER</span> <span class="kw">BY</span> store_id, valid_from;
 
 <span class="cm">-- longer history for audit: set both properties together</span>
-<span class="kw">ALTER</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.dim_store</span> <span class="kw">SET</span> <span class="kw">TBLPROPERTIES</span> (
+<span class="kw">ALTER</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m06.dim_store</span> <span class="kw">SET</span> <span class="kw">TBLPROPERTIES</span> (
   <span class="str">'delta.logRetentionDuration'</span> = <span class="str">'interval 90 days'</span>,
   <span class="str">'delta.deletedFileRetentionDuration'</span> = <span class="str">'interval 90 days'</span>
 );
-<span class="kw">SHOW</span> <span class="kw">TBLPROPERTIES</span> <span class="tbl">dp750_demo.m06.dim_store</span>;</pre>
+<span class="kw">SHOW</span> <span class="kw">TBLPROPERTIES</span> <span class="tbl">dp750.m06.dim_store</span>;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> SCD Type 2 z kroku 4 je byznysová historie (kde prodejna ležela), CDF a time travel jsou technická historie (kdo a kdy tabulku změnil). <code class="inline">RESTORE</code> je sám nová verze; v historii zůstane i chybný <code class="inline">UPDATE</code>, takže audit nic neztratí.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> číslo verze záleží na tom, kolikrát se buňky pustily. Kdo po kroku 4 znovu pustí jen <code class="inline">MERGE</code> a <code class="inline">INSERT</code> (bez úvodního <code class="inline">DROP</code>) nebo zopakuje <code class="inline">UPDATE</code>, vrátí <code class="inline">RESTORE … VERSION AS OF 3</code> na špatný stav. Vždy nejdřív <code class="inline">DESCRIBE HISTORY</code>. Verze mimo dostupnou historii skončí v <code class="inline">table_changes</code> chybou; CDF navíc zachytí jen změny po svém zapnutí.</div></div>
@@ -1007,8 +1007,8 @@ html.mode-custom [data-view="orig"]{display:none}
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
 <pre><span class="cm">-- grain: one row per receipt line</span>
-<span class="kw">DROP</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">EXISTS</span> <span class="tbl">dp750_demo.m06.fact_sales_line</span>;
-<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.fact_sales_line</span> (
+<span class="kw">DROP</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">EXISTS</span> <span class="tbl">dp750.m06.fact_sales_line</span>;
+<span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m06.fact_sales_line</span> (
   receipt_id <span class="kw">INT</span>,
   line_no <span class="kw">INT</span>,
   store_sk <span class="kw">BIGINT</span>,
@@ -1019,7 +1019,7 @@ html.mode-custom [data-view="orig"]{display:none}
 )
 <span class="kw">CLUSTER</span> <span class="kw">BY</span> (sale_date, store_sk);
 
-<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750_demo.m06.fact_sales_line</span>
+<span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750.m06.fact_sales_line</span>
 <span class="kw">SELECT</span> <span class="num">1000</span> + id <span class="kw">DIV</span> <span class="num">3</span> <span class="kw">AS</span> receipt_id,
        id % <span class="num">3</span> + <span class="num">1</span> <span class="kw">AS</span> line_no,
        <span class="kw">CASE</span> <span class="kw">WHEN</span> id % <span class="num">2</span> = <span class="num">0</span> <span class="kw">THEN</span> <span class="num">4</span> <span class="kw">ELSE</span> <span class="num">2</span> <span class="kw">END</span> <span class="kw">AS</span> store_sk,
@@ -1030,13 +1030,13 @@ html.mode-custom [data-view="orig"]{display:none}
 <span class="kw">FROM</span> <span class="fn">range</span>(<span class="num">0</span>, <span class="num">3000</span>) <span class="kw">AS</span> r(id);
 
 <span class="cm">-- aggregate grain: store and day</span>
-<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">VIEW</span> <span class="tbl">dp750_demo.m06.v_sales_store_day</span> <span class="kw">AS</span>
+<span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">VIEW</span> <span class="tbl">dp750.m06.v_sales_store_day</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> store_sk, sale_date, <span class="fn">count</span>(*) <span class="kw">AS</span> lines, <span class="fn">sum</span>(amount) <span class="kw">AS</span> revenue
-<span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.fact_sales_line</span>
+<span class="kw">FROM</span> <span class="tbl">dp750.m06.fact_sales_line</span>
 <span class="kw">GROUP</span> <span class="kw">BY</span> store_sk, sale_date;
 
-<span class="kw">SELECT</span> (<span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.fact_sales_line</span>) <span class="kw">AS</span> atomic_rows,
-       (<span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.v_sales_store_day</span>) <span class="kw">AS</span> aggregate_rows;</pre>
+<span class="kw">SELECT</span> (<span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">FROM</span> <span class="tbl">dp750.m06.fact_sales_line</span>) <span class="kw">AS</span> atomic_rows,
+       (<span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">FROM</span> <span class="tbl">dp750.m06.v_sales_store_day</span>) <span class="kw">AS</span> aggregate_rows;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> z atomických řádků agregát kdykoli dopočítáš, opačně to nejde: z view už nezjistíš, kolik helem se prodalo. V produkci by agregát byl spíš materialized view; v ukázce stačí obyčejné view, aby nevznikala pipeline na pozadí.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> hodnoty <code class="inline">store_sk</code> 2 a 4 odpovídají klíčům z kroku 4 jen při čistém průchodu. Grain dimenze musí sedět ke grainu faktů: řádek faktu ukazuje na konkrétní verzi prodejny, ne na prodejnu obecně.</div></div>
@@ -1049,13 +1049,13 @@ html.mode-custom [data-view="orig"]{display:none}
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.tmp_scratch</span> <span class="kw">AS</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.src_receipts</span>;
-<span class="kw">DESCRIBE</span> <span class="kw">EXTENDED</span> <span class="tbl">dp750_demo.m06.tmp_scratch</span>;
+<pre><span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m06.tmp_scratch</span> <span class="kw">AS</span> <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m06.src_receipts</span>;
+<span class="kw">DESCRIBE</span> <span class="kw">EXTENDED</span> <span class="tbl">dp750.m06.tmp_scratch</span>;
 
-<span class="kw">DROP</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.tmp_scratch</span>;
-<span class="kw">SHOW</span> <span class="kw">TABLES</span> <span class="kw">DROPPED</span> <span class="kw">IN</span> <span class="tbl">dp750_demo.m06</span>;
-<span class="kw">UNDROP</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.tmp_scratch</span>;
-<span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">FROM</span> <span class="tbl">dp750_demo.m06.tmp_scratch</span>;
+<span class="kw">DROP</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m06.tmp_scratch</span>;
+<span class="kw">SHOW</span> <span class="kw">TABLES</span> <span class="kw">DROPPED</span> <span class="kw">IN</span> <span class="tbl">dp750.m06</span>;
+<span class="kw">UNDROP</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m06.tmp_scratch</span>;
+<span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">FROM</span> <span class="tbl">dp750.m06.tmp_scratch</span>;
 
 <span class="kw">SHOW</span> <span class="kw">EXTERNAL</span> <span class="kw">LOCATIONS</span>;</pre>
   </div>
@@ -1070,24 +1070,24 @@ html.mode-custom [data-view="orig"]{display:none}
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="kw">OPTIMIZE</span> <span class="tbl">dp750_demo.m06.fact_sales_line</span>;
-<span class="kw">DESCRIBE</span> <span class="kw">DETAIL</span> <span class="tbl">dp750_demo.m06.fact_sales_line</span>;
+<pre><span class="kw">OPTIMIZE</span> <span class="tbl">dp750.m06.fact_sales_line</span>;
+<span class="kw">DESCRIBE</span> <span class="kw">DETAIL</span> <span class="tbl">dp750.m06.fact_sales_line</span>;
 
 <span class="cm">-- change the keys without rewriting data</span>
-<span class="kw">ALTER</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.fact_sales_line</span> <span class="kw">CLUSTER</span> <span class="kw">BY</span> (store_sk);
-<span class="kw">ALTER</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.fact_sales_line</span> <span class="kw">CLUSTER</span> <span class="kw">BY</span> <span class="kw">AUTO</span>;
-<span class="kw">DESCRIBE</span> <span class="kw">DETAIL</span> <span class="tbl">dp750_demo.m06.fact_sales_line</span>;
+<span class="kw">ALTER</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m06.fact_sales_line</span> <span class="kw">CLUSTER</span> <span class="kw">BY</span> (store_sk);
+<span class="kw">ALTER</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m06.fact_sales_line</span> <span class="kw">CLUSTER</span> <span class="kw">BY</span> <span class="kw">AUTO</span>;
+<span class="kw">DESCRIBE</span> <span class="kw">DETAIL</span> <span class="tbl">dp750.m06.fact_sales_line</span>;
 
 <span class="cm">-- expected error: clustering cannot be added to a partitioned table this way</span>
-<span class="kw">ALTER</span> <span class="kw">TABLE</span> <span class="tbl">dp750_demo.m06.sales_by_day</span> <span class="kw">CLUSTER</span> <span class="kw">BY</span> (store_id);</pre>
+<span class="kw">ALTER</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m06.sales_by_day</span> <span class="kw">CLUSTER</span> <span class="kw">BY</span> (store_id);</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> u partitioningu je klíč součástí struktury tabulky, u liquid clusteringu je to jen metadata a <code class="inline">OPTIMIZE</code> data přeskupuje inkrementálně. Z-ORDER tu neukazuj na nové tabulce; je to předchůdce, kterého potkáš u zděděných tabulek.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> poslední příkaz skončí <code class="inline">DELTA_ALTER_TABLE_CLUSTER_BY_ON_PARTITIONED_TABLE_NOT_ALLOWED</code>; hláška sama radí převod přes <code class="inline">ALTER TABLE … REPLACE PARTITIONED BY WITH CLUSTER BY</code>. Ten převod (GA od Databricks Runtime 18.1) v ukázce nespouštěj: tabulka z kroku 3 má při dalším průchodu zůstat partitionovaná. <code class="inline">OPTIMIZE</code> nad pár tisíci řádků nic nepřepíše; o výkonu na tak malých datech nic netvrď.</div></div>
 
   <h3>Úklid</h3>
   <ol>
-    <li>Nic nemaž, objekty ve schématu <code class="inline">dp750_demo.m06</code> slouží k opakování ukázky. Krok 4 a krok 6 začínají <code class="inline">DROP TABLE</code>, takže druhý průchod začne z čistého stavu.</li>
-    <li>Po kurzu: <code class="inline">DROP SCHEMA dp750_demo.m06 CASCADE;</code> (nebo celkový úklid katalogu <code class="inline">dp750_demo</code>).</li>
+    <li>Nic nemaž, objekty ve schématu <code class="inline">dp750.m06</code> slouží k opakování ukázky. Krok 4 a krok 6 začínají <code class="inline">DROP TABLE</code>, takže druhý průchod začne z čistého stavu.</li>
+    <li>Po kurzu: <code class="inline">DROP SCHEMA dp750.m06 CASCADE;</code> (nebo celkový úklid katalogu <code class="inline">dp750</code>).</li>
   </ol>
 </div>
 
