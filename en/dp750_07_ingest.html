@@ -304,6 +304,21 @@ resources:
 
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Caution:</strong> with <code class="inline">include_columns</code>, newly added columns in the source do not reach the target automatically. With <code class="inline">exclude_columns</code> it is the other way round — new columns are added automatically. Choose according to whether you want to govern the schema or let it evolve. The connector offering is expanding quickly — verify the current list and status (preview/GA) in the documentation.</div></div>
 
+  <div class="collapsible">
+    <div class="collapsible-header">On-premises sources: what replaces the Power BI gateway<span class="chevron">▼</span></div>
+    <div class="collapsible-body">
+      <p>Databricks has no direct equivalent of the Power BI gateway. You don't install an agent in the customer's network. Compute in Azure opens the connection and targets the source's private address, so a network path must exist: ExpressRoute or a site-to-site VPN between the on-premises network and an Azure VNet. Credentials live in a Unity Catalog connection.</p>
+      <table>
+        <tr><th>Compute</th><th>Path to on-premises</th><th>Status</th></tr>
+        <tr><td><strong>Classic</strong></td><td><a href="https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/on-prem-network" target="_blank" rel="noopener">VNet injection, a transit VNet, peering, and user-defined routes</a></td><td>Standard path</td></tr>
+        <tr><td><strong>Serverless</strong></td><td><a href="https://learn.microsoft.com/en-us/azure/databricks/security/network/serverless-network-security/private-network-gateway" target="_blank" rel="noopener">Private network gateway</a>: a delegated subnet in your VNet</td><td>Public Preview (as of November 2026), billed from December 1, 2026</td></tr>
+        <tr><td><strong>Serverless</strong></td><td><a href="https://learn.microsoft.com/en-us/azure/databricks/security/network/serverless-network-security/pl-to-internal-network" target="_blank" rel="noopener">NCC and Private Link through a load balancer</a>, with a <a href="https://learn.microsoft.com/en-us/azure/databricks/repos/connect-on-prem-git-server" target="_blank" rel="noopener">proxy VM</a> behind it</td><td>You manage the proxy</td></tr>
+      </table>
+      <p>The closest match to the gateway principle is an <a href="https://learn.microsoft.com/en-us/azure/databricks/security/network/serverless-network-security/ssh-reverse-tunnel" target="_blank" rel="noopener">SSH reverse tunnel</a>: a host in the on-premises network opens the connection outbound, so no inbound port is needed. According to the documentation it still requires ExpressRoute or a VPN, and you manage the proxy VMs yourself. Without a network path, the remaining option is to land data in ADLS through a <a href="https://learn.microsoft.com/en-us/azure/data-factory/create-self-hosted-integration-runtime" target="_blank" rel="noopener">self-hosted integration runtime</a> (installed in the private network) from Azure Data Factory and read it from there.</p>
+      <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Caution:</strong> the ingestion gateway in Lakeflow Connect is not an agent at the customer's site. It <a href="https://learn.microsoft.com/en-us/azure/databricks/ingestion/lakeflow-connect/sql-server-limits" target="_blank" rel="noopener">runs on classic compute</a> continuously, even when the ingestion pipeline runs on serverless. An on-premises SQL Server therefore needs a network path from classic compute. Lakehouse Federation also needs a network path from the compute that runs the query, even though it doesn't copy data.</div></div>
+    </div>
+  </div>
+
   <div class="learn-more"><span class="lm-label">📚 Go deeper on Learn:</span> <span><a href="https://learn.microsoft.com/en-us/training/modules/ingest-data-into-unity-catalog/2-ingest-data-lakeflow-connect#control-data-extraction-behavior" target="_blank" rel="noopener">Control data extraction behavior</a> · <a href="https://learn.microsoft.com/en-us/training/modules/ingest-data-into-unity-catalog/2-ingest-data-lakeflow-connect#optimize-column-selection-and-refresh-strategies" target="_blank" rel="noopener">Optimize column selection and refresh strategies</a></span></div>
 </div>
 

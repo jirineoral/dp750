@@ -305,6 +305,21 @@ resources:
 
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Pozor:</strong> s <code class="inline">include_columns</code> se nově přidané sloupce ve zdroji do cíle automaticky nedostanou. S <code class="inline">exclude_columns</code> je to naopak — nové sloupce se přidávají automaticky. Vyberte podle toho, jestli chcete schéma řídit, nebo nechat evolvovat. Nabídka konektorů se rychle rozšiřuje — aktuální seznam a stav (preview/GA) ověřte v dokumentaci.</div></div>
 
+  <div class="collapsible">
+    <div class="collapsible-header">On-premises zdroje: co místo Power BI Gateway<span class="chevron">▼</span></div>
+    <div class="collapsible-body">
+      <p>Databricks nemá přímý ekvivalent Power BI Gateway. Agent v síti zákazníka se neinstaluje, spojení otevírá compute v Azure a míří na privátní adresu zdroje. Proto musí existovat síťová cesta: ExpressRoute nebo site-to-site VPN mezi on-premises sítí a Azure VNet. Přihlašovací údaje drží connection v Unity Catalogu.</p>
+      <table>
+        <tr><th>Compute</th><th>Cesta na on-premises</th><th>Stav</th></tr>
+        <tr><td><strong>Classic</strong></td><td><a href="https://learn.microsoft.com/en-us/azure/databricks/security/network/classic/on-prem-network" target="_blank" rel="noopener">VNet injection, transit VNet, peering a user-defined routes</a></td><td>Standardní cesta</td></tr>
+        <tr><td><strong>Serverless</strong></td><td><a href="https://learn.microsoft.com/en-us/azure/databricks/security/network/serverless-network-security/private-network-gateway" target="_blank" rel="noopener">Private network gateway</a>: delegovaný subnet ve vaší VNet</td><td>Public Preview (stav k listopadu 2026), účtuje se od 1. 12. 2026</td></tr>
+        <tr><td><strong>Serverless</strong></td><td><a href="https://learn.microsoft.com/en-us/azure/databricks/security/network/serverless-network-security/pl-to-internal-network" target="_blank" rel="noopener">NCC a Private Link přes load balancer</a>, za ním <a href="https://learn.microsoft.com/en-us/azure/databricks/repos/connect-on-prem-git-server" target="_blank" rel="noopener">proxy VM</a></td><td>Proxy spravujete sami</td></tr>
+      </table>
+      <p>Nejblíž principu gateway je <a href="https://learn.microsoft.com/en-us/azure/databricks/security/network/serverless-network-security/ssh-reverse-tunnel" target="_blank" rel="noopener">SSH reverse tunnel</a>: hostitel v on-premises síti otevírá spojení ven, takže nepotřebujete příchozí port. I ten ale podle dokumentace vyžaduje ExpressRoute nebo VPN a proxy VM si spravujete sami. Bez síťové cesty zbývá přenášet data přes <a href="https://learn.microsoft.com/en-us/azure/data-factory/create-self-hosted-integration-runtime" target="_blank" rel="noopener">self-hosted integration runtime</a> (instaluje se v privátní síti) z Azure Data Factory do ADLS a číst je odtamtud.</p>
+      <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Pozor:</strong> ingestion gateway v Lakeflow Connect není agent u zákazníka. <a href="https://learn.microsoft.com/en-us/azure/databricks/ingestion/lakeflow-connect/sql-server-limits" target="_blank" rel="noopener">Běží na classic compute</a> a nepřetržitě, i když ingesční pipeline běží na serverless. Pro on-premises SQL Server proto potřebujete síťovou cestu z classic compute. Síťovou cestu z compute, na kterém dotaz běží, potřebuje i Lakehouse Federation, přestože data nekopíruje.</div></div>
+    </div>
+  </div>
+
   <div class="learn-more"><span class="lm-label">📚 Do hloubky na Learn:</span> <span><a href="https://learn.microsoft.com/en-us/training/modules/ingest-data-into-unity-catalog/2-ingest-data-lakeflow-connect#control-data-extraction-behavior" target="_blank" rel="noopener">Control data extraction behavior</a> · <a href="https://learn.microsoft.com/en-us/training/modules/ingest-data-into-unity-catalog/2-ingest-data-lakeflow-connect#optimize-column-selection-and-refresh-strategies" target="_blank" rel="noopener">Optimize column selection and refresh strategies</a> (EN)</span></div>
 </div>
 
