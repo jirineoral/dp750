@@ -574,7 +574,7 @@ az databricks workspace show \
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 1. top pickup zips by number of trips</span>
+    <pre><span class="cm">-- 1. nejcastejsi pickup zip kody podle poctu jizd</span>
 <span class="kw">SELECT</span> pickup_zip,
        <span class="fn">count</span>(*) <span class="kw">AS</span> trips,
        <span class="fn">round</span>(<span class="fn">avg</span>(fare_amount), <span class="num">2</span>) <span class="kw">AS</span> avg_fare
@@ -594,7 +594,7 @@ az databricks workspace show \
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 1. who runs the query and where</span>
+    <pre><span class="cm">-- 1. kdo dotaz spousti a kde</span>
 <span class="kw">SELECT</span> <span class="fn">current_metastore</span>(), <span class="fn">current_catalog</span>(), <span class="fn">current_user</span>(), <span class="fn">current_version</span>();</pre>
   </div>
   <ol start="2">
@@ -626,7 +626,7 @@ df = spark.<span class="fn">table</span>(<span class="str">"samples.nyctaxi.trip
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 1. schema and Delta table: CTAS without USING = Delta</span>
+    <pre><span class="cm">-- 1. schema a Delta tabulka: CTAS bez USING = Delta</span>
 <span class="kw">CREATE SCHEMA IF NOT EXISTS</span> <span class="tbl">dp750.m01</span> <span class="kw">COMMENT</span> <span class="str">'Demo modulu 1: prvni Delta tabulka'</span>;
 
 <span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750.m01.taxi_by_zip</span> <span class="kw">AS</span>
@@ -658,7 +658,7 @@ df = spark.<span class="fn">table</span>(<span class="str">"samples.nyctaxi.trip
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 2. the same metadata via information_schema</span>
+    <pre><span class="cm">-- 2. stejna metadata pres information_schema</span>
 <span class="kw">SELECT</span> table_catalog, table_schema, table_name, table_type, table_owner
 <span class="kw">FROM</span> <span class="tbl">system.information_schema.tables</span>
 <span class="kw">WHERE</span> table_catalog = <span class="str">'dp750'</span> <span class="kw">AND</span> table_schema = <span class="str">'m01'</span>;</pre>

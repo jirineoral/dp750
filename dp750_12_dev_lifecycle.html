@@ -583,7 +583,7 @@ databricks bundle deploy -t prod --auto-approve</pre>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
     <pre><span class="cm"># src/parcel_rules.py</span>
-<span class="cm"># 1. pure function without Spark: text weight to number, None when invalid</span>
+<span class="cm"># 1. cista funkce bez Sparku: textova vaha na cislo, None pri neplatne hodnote</span>
 MAX_WEIGHT_KG = <span class="num">30.0</span>
 
 <span class="kw">def</span> <span class="fn">parse_weight_kg</span>(raw):
@@ -604,7 +604,7 @@ MAX_WEIGHT_KG = <span class="num">30.0</span>
 sys.path.<span class="fn">insert</span>(<span class="num">0</span>, os.path.<span class="fn">join</span>(os.path.<span class="fn">dirname</span>(__file__), <span class="str">".."</span>, <span class="str">"src"</span>))
 
 <span class="cm"># tests/test_parcel_rules.py</span>
-<span class="cm"># 2. parametrized tests, run them with the pytest command below</span>
+<span class="cm"># 2. parametrizovane testy, spust je prikazem pytest nize</span>
 <span class="kw">import</span> pytest
 <span class="kw">from</span> parcel_rules <span class="kw">import</span> parse_weight_kg
 
@@ -620,7 +620,7 @@ sys.path.<span class="fn">insert</span>(<span class="num">0</span>, os.path.<spa
     <div class="code-header"><span class="code-lang">POWERSHELL</span><button class="copy-btn">Kopírovat</button></div>
     <pre><span class="cm"># 2. lokalne v koreni projektu</span>
 python -m pytest tests -v -p no:cacheprovider
-<span class="cm"># 3. now delete .replace(",", ".") in src/parcel_rules.py and run the line above again; test_valid_weights[2,5-2.5] fails, then revert</span></pre>
+<span class="cm"># 3. ted smaz .replace(",", ".") v src/parcel_rules.py a spust radek vyse znovu; test_valid_weights[2,5-2.5] selze, pak vrat zpet</span></pre>
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
@@ -645,7 +645,7 @@ retcode = pytest.<span class="fn">main</span>([<span class="str">"tests"</span>,
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">YAML</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># 1. databricks.yml in the project root</span>
+    <pre><span class="cm"># 1. databricks.yml v koreni projektu</span>
 <span class="kw">bundle</span>:
   <span class="kw">name</span>: dp750_m12_parcels
 
@@ -685,7 +685,7 @@ retcode = pytest.<span class="fn">main</span>([<span class="str">"tests"</span>,
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
     <pre><span class="cm"># Databricks notebook source</span>
-<span class="cm"># 2. src/build_report.py: both job parameters are read as widgets</span>
+<span class="cm"># 2. src/build_report.py: oba parametry jobu se ctou jako widgety</span>
 catalog = dbutils.widgets.<span class="fn">get</span>(<span class="str">"catalog"</span>)
 report_date = dbutils.widgets.<span class="fn">get</span>(<span class="str">"report_date"</span>)
 <span class="fn">print</span>(<span class="str">f"catalog = {catalog}, report_date = {report_date}"</span>)
@@ -694,14 +694,14 @@ rows = spark.<span class="fn">table</span>(<span class="str">f"{catalog}.m10.loc
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">POWERSHELL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># &lt;profil&gt; = name of your CLI profile (lecturer: demo)</span>
+    <pre><span class="cm"># &lt;profil&gt; = nazev tveho CLI profilu (lektor: demo)</span>
 <span class="cm"># 2. notebook bez BOM, jinak deploy hlasi "is not a notebook"</span>
 [System.IO.File]::WriteAllLines(<span class="str">"$PWD\src\build_report.py"</span>, (Get-Content <span class="str">"$PWD\src\build_report.py"</span>))
 
-<span class="cm"># 3. validate; the json shows the config after development mode (name prefix, PAUSED schedule)</span>
+<span class="cm"># 3. validate; json ukazuje konfiguraci po development modu (prefix nazvu, PAUSED schedule)</span>
 databricks bundle validate -t dev -p <span class="str">&lt;profil&gt;</span>
 databricks bundle validate -t dev -p <span class="str">&lt;profil&gt;</span> -o json
-<span class="cm"># 4. override the variable catalog at validate time</span>
+<span class="cm"># 4. prepsat promennou catalog pri validate</span>
 databricks bundle validate -t dev -p <span class="str">&lt;profil&gt;</span> --var=<span class="str">"catalog=dp750_test"</span> -o json</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> proměnná se vyhodnotí při deployi a zapíše se do definice jobu; job parametr se dá přepsat až při běhu. Development mód dělá z dev nasazení osobní pískoviště: prefix v názvu a pozastavené plány.</div></div>
@@ -718,16 +718,16 @@ databricks bundle validate -t dev -p <span class="str">&lt;profil&gt;</span> --v
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">POWERSHELL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># 1. nothing changed yet: plan lists create jobs.locker_report</span>
+    <pre><span class="cm"># 1. zatim se nic nezmenilo: plan vypise create jobs.locker_report</span>
 databricks bundle plan -t dev -p <span class="str">&lt;profil&gt;</span>
-<span class="cm"># 2. deploy to dev, then show what was deployed</span>
+<span class="cm"># 2. deploy do dev, pak ukaz, co se nasadilo</span>
 databricks bundle deploy -t dev -p <span class="str">&lt;profil&gt;</span>
 databricks bundle summary -t dev -p <span class="str">&lt;profil&gt;</span>
-<span class="cm"># 4. run the job with an overridden parameter</span>
+<span class="cm"># 4. spust job s prepsanym parametrem</span>
 databricks bundle run -t dev -p <span class="str">&lt;profil&gt;</span> locker_report -- --report_date=2026-11-05
-<span class="cm"># 5. after changing the cron in databricks.yml: plan now reports an update</span>
+<span class="cm"># 5. po zmene cronu v databricks.yml: plan ted hlasi update</span>
 databricks bundle plan -t dev -p <span class="str">&lt;profil&gt;</span>
-<span class="cm"># 6. remove the deployed job</span>
+<span class="cm"># 6. odstranit nasazeny job</span>
 databricks bundle destroy -t dev -p <span class="str">&lt;profil&gt;</span> --auto-approve</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> <code class="inline">plan</code> je pojistka před produkcí: ukáže i <em>delete</em>, kdyby z YAML zmizel zdroj, který v cílovém prostředí existuje. Do <code class="inline">prod</code> nasazuje CI/CD pod service principalem, ne člověk z notebooku.</div></div>

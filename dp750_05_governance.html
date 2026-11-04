@@ -612,7 +612,7 @@ spark.readStream.<span class="fn">option</span>(<span class="str">'skipChangeCom
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 1. schema, table and sample rows</span>
+    <pre><span class="cm">-- 1. schema, tabulka a ukazkove radky</span>
 <span class="kw">CREATE SCHEMA IF NOT EXISTS</span> <span class="tbl">dp750.m05</span> <span class="kw">COMMENT</span> <span class="str">'Demo modulu 5: governance fitness klubu'</span>;
 
 <span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750.m05.members</span> (
@@ -634,7 +634,7 @@ spark.readStream.<span class="fn">option</span>(<span class="str">'skipChangeCom
 <span class="kw">ALTER TABLE</span> <span class="tbl">dp750.m05.members</span> <span class="kw">ALTER COLUMN</span> city <span class="kw">COMMENT</span> <span class="str">'Mesto domovske pobocky klubu'</span>;
 <span class="kw">ALTER TABLE</span> <span class="tbl">dp750.m05.members</span> <span class="kw">SET TAGS</span> (<span class="str">'domain'</span> = <span class="str">'fitness'</span>, <span class="str">'data_owner'</span> = <span class="str">'recepce'</span>);
 
-<span class="cm">-- 3. tags via information_schema</span>
+<span class="cm">-- 3. tagy pres information_schema</span>
 <span class="kw">SELECT</span> table_name, tag_name, tag_value
 <span class="kw">FROM</span> <span class="tbl">system.information_schema.table_tags</span>
 <span class="kw">WHERE</span> catalog_name = <span class="str">'dp750'</span> <span class="kw">AND</span> schema_name = <span class="str">'m05'</span>;</pre>
@@ -651,7 +651,7 @@ spark.readStream.<span class="fn">option</span>(<span class="str">'skipChangeCom
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 1. governed tags: list them, tag two columns</span>
+    <pre><span class="cm">-- 1. governed tags: vypsat je, otagovat dva sloupce</span>
 <span class="kw">SHOW GOVERNED TAGS</span>;
 
 <span class="kw">ALTER TABLE</span> <span class="tbl">dp750.m05.members</span> <span class="kw">ALTER COLUMN</span> email <span class="kw">SET TAGS</span> (<span class="str">'pii'</span> = <span class="str">'email'</span>);
@@ -686,13 +686,13 @@ spark.readStream.<span class="fn">option</span>(<span class="str">'skipChangeCom
 <span class="kw">MATCH COLUMNS</span> <span class="fn">has_tag_value</span>(<span class="str">'pii'</span>, <span class="str">'phone'</span>) <span class="kw">AS</span> c
 <span class="kw">ON COLUMN</span> c;
 
-<span class="cm">-- 4. result and effective policies</span>
+<span class="cm">-- 4. vysledek a platne policies</span>
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m05.members</span> <span class="kw">ORDER BY</span> member_id;
 <span class="kw">SHOW EFFECTIVE POLICIES ON TABLE</span> <span class="tbl">dp750.m05.members</span>;</pre>
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 5. a new table: readable until it gets the pii tag</span>
+    <pre><span class="cm">-- 5. nova tabulka: citelna, dokud nedostane tag pii</span>
 <span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750.m05.newsletter_signups</span> (signup_id <span class="kw">INT</span>, email <span class="kw">STRING</span>, signed_at <span class="kw">TIMESTAMP</span>);
 <span class="kw">INSERT INTO</span> <span class="tbl">dp750.m05.newsletter_signups</span> <span class="kw">VALUES</span> (<span class="num">501</span>, <span class="str">'jan.kral@example.net'</span>, <span class="kw">TIMESTAMP</span><span class="str">'2026-10-20 18:00:00'</span>);
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m05.newsletter_signups</span>;   <span class="cm">-- e-mail citelny</span>
@@ -712,7 +712,7 @@ spark.readStream.<span class="fn">option</span>(<span class="str">'skipChangeCom
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 1. table with retention properties and sample rows</span>
+    <pre><span class="cm">-- 1. tabulka s retention vlastnostmi a ukazkovymi radky</span>
 <span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750.m05.checkins</span> (member_id <span class="kw">INT</span>, club <span class="kw">STRING</span>, checked_in_at <span class="kw">TIMESTAMP</span>)
 <span class="kw">TBLPROPERTIES</span> (<span class="str">'delta.logRetentionDuration'</span> = <span class="str">'interval 30 days'</span>,
                <span class="str">'delta.deletedFileRetentionDuration'</span> = <span class="str">'interval 14 days'</span>);
@@ -725,12 +725,12 @@ spark.readStream.<span class="fn">option</span>(<span class="str">'skipChangeCom
 <span class="kw">DELETE FROM</span> <span class="tbl">dp750.m05.checkins</span> <span class="kw">WHERE</span> member_id = <span class="num">2</span>;
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m05.checkins</span> <span class="kw">VERSION AS OF</span> <span class="num">1</span> <span class="kw">WHERE</span> member_id = <span class="num">2</span>;   <span class="cm">-- porad videt</span>
 
-<span class="cm">-- 3. physical purge and vacuum</span>
+<span class="cm">-- 3. fyzicke vymazani a vacuum</span>
 <span class="kw">REORG TABLE</span> <span class="tbl">dp750.m05.checkins</span> <span class="kw">APPLY</span> (PURGE);
 <span class="kw">VACUUM</span> <span class="tbl">dp750.m05.checkins</span> <span class="kw">DRY RUN</span>;
 <span class="kw">VACUUM</span> <span class="tbl">dp750.m05.checkins</span> <span class="kw">RETAIN</span> <span class="num">0</span> <span class="kw">HOURS</span>;   <span class="cm">-- zamerna chyba</span>
 
-<span class="cm">-- 4. predictive optimization: enable, inspect, operations history</span>
+<span class="cm">-- 4. predictive optimization: zapnout, zkontrolovat, historie operaci</span>
 <span class="kw">ALTER SCHEMA</span> <span class="tbl">dp750.m05</span> <span class="kw">ENABLE PREDICTIVE OPTIMIZATION</span>;
 <span class="kw">DESCRIBE SCHEMA EXTENDED</span> <span class="tbl">dp750.m05</span>;
 <span class="kw">DESCRIBE CATALOG EXTENDED</span> <span class="tbl">dp750</span>;
@@ -751,14 +751,14 @@ spark.readStream.<span class="fn">option</span>(<span class="str">'skipChangeCom
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 1. aggregate built from two tables</span>
+    <pre><span class="cm">-- 1. agregat slozeny ze dvou tabulek</span>
 <span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750.m05.checkins_by_city</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> m.city, <span class="fn">count</span>(*) <span class="kw">AS</span> checkins
 <span class="kw">FROM</span> <span class="tbl">dp750.m05.checkins</span> c
 <span class="kw">JOIN</span> <span class="tbl">dp750.m05.members</span> m <span class="kw">ON</span> c.member_id = m.member_id
 <span class="kw">GROUP BY</span> m.city;
 
-<span class="cm">-- 2. lineage from system tables</span>
+<span class="cm">-- 2. lineage ze system tables</span>
 <span class="kw">SELECT</span> source_table_full_name, target_table_full_name, entity_type, event_time
 <span class="kw">FROM</span> <span class="tbl">system.access.table_lineage</span>
 <span class="kw">WHERE</span> target_table_full_name <span class="kw">LIKE</span> <span class="str">'dp750.%'</span>
@@ -808,7 +808,7 @@ spark.readStream.<span class="fn">option</span>(<span class="str">'skipChangeCom
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 1. create the share</span>
+    <pre><span class="cm">-- 1. vytvorit share</span>
 <span class="kw">CREATE SHARE IF NOT EXISTS</span> dp750_m05_partner_share <span class="kw">COMMENT</span> <span class="str">'Demo modulu 5: agregace pro partnera'</span>;
 
 <span class="cm">-- 2. sdilime agregat, ne zdrojova data</span>
@@ -817,7 +817,7 @@ spark.readStream.<span class="fn">option</span>(<span class="str">'skipChangeCom
 <span class="cm">-- 3. zamerna chyba: tabulka pod ABAC policy, ktera se tyka i vlastnika share</span>
 <span class="kw">ALTER SHARE</span> dp750_m05_partner_share <span class="kw">ADD TABLE</span> <span class="tbl">dp750.m05.members</span>;
 
-<span class="cm">-- 4. inspect the share and recipients</span>
+<span class="cm">-- 4. kontrola share a recipients</span>
 <span class="kw">SHOW ALL IN SHARE</span> dp750_m05_partner_share;
 <span class="kw">SHOW RECIPIENTS</span>;
 
@@ -836,19 +836,19 @@ spark.readStream.<span class="fn">option</span>(<span class="str">'skipChangeCom
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 1. right after the demo: drop the share</span>
+    <pre><span class="cm">-- 1. hned po demu: smazat share</span>
 <span class="kw">DROP SHARE</span> dp750_m05_partner_share;</pre>
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 2. after the course: policies first, then the schema</span>
+    <pre><span class="cm">-- 2. po kurzu: nejdriv policies, pak schema</span>
 <span class="kw">DROP POLICY</span> m05_mask_email <span class="kw">ON SCHEMA</span> <span class="tbl">dp750.m05</span>;
 <span class="kw">DROP POLICY</span> m05_mask_phone <span class="kw">ON SCHEMA</span> <span class="tbl">dp750.m05</span>;
 <span class="kw">DROP SCHEMA</span> <span class="tbl">dp750.m05</span> <span class="kw">CASCADE</span>;</pre>
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 3. only when no policy and no other demo uses the tag</span>
+    <pre><span class="cm">-- 3. jen kdyz tag nepouziva zadna policy ani jine demo</span>
 <span class="kw">DROP GOVERNED TAG</span> pii;</pre>
   </div>
 </div>

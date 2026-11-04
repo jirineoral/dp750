@@ -751,7 +751,7 @@ df_stream = (spark.readStream
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="cm"># 1. schema, volume, reset of demo state, first csv file</span>
+<pre><span class="cm"># 1. schema, volume, reset stavu dema, prvni csv soubor</span>
 spark.<span class="fn">sql</span>(<span class="str">"CREATE SCHEMA IF NOT EXISTS dp750.m07"</span>)
 spark.<span class="fn">sql</span>(<span class="str">"CREATE VOLUME IF NOT EXISTS dp750.m07.landing"</span>)
 base = <span class="str">"/Volumes/dp750/m07/landing"</span>
@@ -767,14 +767,14 @@ dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/orders/orders_
     <span class="str">"1,ACME,1250.50,2026-11-03 08:15:00\n"</span>
     <span class="str">"2,Bikeshop,89.90,2026-11-03 09:00:00\n"</span>, <span class="kw">True</span>)
 
-<span class="cm"># 2. read the csv; schema inferred</span>
+<span class="cm"># 2. nacteni csv; schema se odvodi automaticky</span>
 df = (spark.read
       .<span class="fn">format</span>(<span class="str">"csv"</span>)
       .<span class="fn">option</span>(<span class="str">"header"</span>, <span class="str">"true"</span>)
       .<span class="fn">option</span>(<span class="str">"inferSchema"</span>, <span class="str">"true"</span>)
       .<span class="fn">load</span>(<span class="str">f"{base}/orders/orders_001.csv"</span>))
 df.<span class="fn">printSchema</span>()
-<span class="cm"># 3. write to a Delta table and show it</span>
+<span class="cm"># 3. zapis do Delta tabulky a zobrazeni</span>
 df.write.<span class="fn">mode</span>(<span class="str">"overwrite"</span>).<span class="fn">saveAsTable</span>(<span class="str">"dp750.m07.orders_nb"</span>)
 <span class="fn">display</span>(spark.<span class="fn">table</span>(<span class="str">"dp750.m07.orders_nb"</span>))</pre>
   </div>
@@ -790,7 +790,7 @@ df.write.<span class="fn">mode</span>(<span class="str">"overwrite"</span>).<spa
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
 <pre><span class="kw">%sql</span>
-<span class="cm">-- 1. cell A: run twice, then again after cell B</span>
+<span class="cm">-- 1. bunka A: spust dvakrat, pak znovu po bunce B</span>
 <span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> <span class="tbl">dp750.m07.orders_copy</span> (
   order_id <span class="kw">INT</span>, customer <span class="kw">STRING</span>, amount <span class="kw">DECIMAL</span>(<span class="num">10</span>,<span class="num">2</span>), order_ts <span class="kw">TIMESTAMP</span>);
 
@@ -806,7 +806,7 @@ df.write.<span class="fn">mode</span>(<span class="str">"overwrite"</span>).<spa
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="cm"># 2. cell B: a new file lands in the folder</span>
+<pre><span class="cm"># 2. bunka B: do slozky dorazi novy soubor</span>
 dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/orders/orders_002.csv"</span>,
     <span class="str">"order_id,customer,amount,order_ts\n"</span>
     <span class="str">"3,Velo,455.00,2026-11-04 10:30:00\n"</span>, <span class="kw">True</span>)</pre>
@@ -814,7 +814,7 @@ dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/orders/orders_
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
 <pre><span class="kw">%sql</span>
-<span class="cm">-- 3. cell C: history of COPY INTO, CTAS, CREATE OR REPLACE</span>
+<span class="cm">-- 3. bunka C: historie COPY INTO, CTAS, CREATE OR REPLACE</span>
 <span class="kw">SELECT</span> version, operation, operationMetrics
 <span class="kw">FROM</span> (<span class="kw">DESCRIBE</span> <span class="kw">HISTORY</span> <span class="tbl">dp750.m07.orders_copy</span>) <span class="kw">ORDER</span> <span class="kw">BY</span> version;
 
@@ -823,10 +823,10 @@ dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/orders/orders_
   format =&gt; <span class="str">'csv'</span>, header =&gt; true, schemaHints =&gt; <span class="str">'amount DECIMAL(10,2)'</span>);
 <span class="kw">DESCRIBE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m07.orders_ctas</span>;
 
-<span class="cm">-- table exists: the whole statement is skipped</span>
+<span class="cm">-- tabulka existuje: cely prikaz se preskoci</span>
 <span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> <span class="tbl">dp750.m07.orders_ctas</span> <span class="kw">AS</span> <span class="kw">SELECT</span> <span class="num">1</span> <span class="kw">AS</span> x;
 
-<span class="cm">-- full refresh that keeps history and grants</span>
+<span class="cm">-- plny refresh, ktery zachova historii a granty</span>
 <span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m07.orders_ctas</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> customer, <span class="fn">sum</span>(amount) <span class="kw">AS</span> total <span class="kw">FROM</span> <span class="tbl">dp750.m07.orders_copy</span> <span class="kw">GROUP</span> <span class="kw">BY</span> customer;
 
@@ -844,7 +844,7 @@ dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/orders/orders_
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
 <pre><span class="kw">%sql</span>
-<span class="cm">-- 1. change feed with operation type and sequence number</span>
+<span class="cm">-- 1. change feed s typem operace a poradovym cislem</span>
 <span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m07.customer_changes</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">VALUES</span>
   (<span class="num">1</span>, <span class="str">'ACME'</span>, <span class="str">'Brno'</span>,    <span class="str">'INSERT'</span>, <span class="num">1</span>),
@@ -854,13 +854,13 @@ dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/orders/orders_
   (<span class="num">2</span>, <span class="kw">NULL</span>,   <span class="kw">NULL</span>,      <span class="str">'DELETE'</span>, <span class="num">5</span>)
 <span class="kw">AS</span> t(customer_id, name, city, operation, seq);
 
-<span class="cm">-- 2. correct state = last event per key by sequence, not by arrival</span>
+<span class="cm">-- 2. spravny stav = posledni udalost na klic podle poradi, ne podle prichodu</span>
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m07.customer_changes</span>
 <span class="kw">QUALIFY</span> <span class="fn">row_number</span>() <span class="kw">OVER</span> (<span class="kw">PARTITION</span> <span class="kw">BY</span> customer_id <span class="kw">ORDER</span> <span class="kw">BY</span> seq <span class="kw">DESC</span>) = <span class="num">1</span>;</pre>
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="cm">-- pipeline source file only (not for SQL editor)</span>
+<pre><span class="cm">-- jen zdrojovy soubor pipeline (ne pro SQL editor)</span>
 <span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REFRESH</span> <span class="kw">STREAMING</span> <span class="kw">TABLE</span> customers_history;
 
 <span class="kw">CREATE</span> <span class="kw">FLOW</span> customers_history_cdc
@@ -883,7 +883,7 @@ dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/orders/orders_
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="cm"># 1. stream the delta table to orders_stream, availableNow, checkpoint in the volume</span>
+<pre><span class="cm"># 1. stream z delta tabulky do orders_stream, availableNow, checkpoint ve volume</span>
 q = (spark.readStream
      .<span class="fn">table</span>(<span class="str">"dp750.m07.orders_copy"</span>)
      .writeStream
@@ -891,7 +891,7 @@ q = (spark.readStream
      .<span class="fn">trigger</span>(availableNow=<span class="kw">True</span>)
      .<span class="fn">toTable</span>(<span class="str">"dp750.m07.orders_stream"</span>))
 q.<span class="fn">awaitTermination</span>()
-<span class="cm"># 2. rows per micro-batch and row count in the target</span>
+<span class="cm"># 2. radky na micro-batch a pocet radku v cili</span>
 <span class="fn">print</span>([p[<span class="str">"numInputRows"</span>] <span class="kw">for</span> p <span class="kw">in</span> q.recentProgress])
 <span class="fn">print</span>(spark.<span class="fn">table</span>(<span class="str">"dp750.m07.orders_stream"</span>).<span class="fn">count</span>())</pre>
   </div>
@@ -906,7 +906,7 @@ q.<span class="fn">awaitTermination</span>()
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="cm"># 1. auto loader as a function: cloudFiles, schema location and checkpoint in the volume</span>
+<pre><span class="cm"># 1. auto loader jako funkce: cloudFiles, schema location a checkpoint ve volume</span>
 <span class="kw">from</span> pyspark.sql.functions <span class="kw">import</span> col
 
 <span class="kw">def</span> <span class="fn">run_autoloader</span>():
@@ -924,7 +924,7 @@ q.<span class="fn">awaitTermination</span>()
          .<span class="fn">toTable</span>(<span class="str">"dp750.m07.orders_autoloader"</span>))
     q.<span class="fn">awaitTermination</span>()
 
-<span class="cm"># 2. run it twice: 3 rows after the first run, still 3 after the second</span>
+<span class="cm"># 2. spust dvakrat: 3 radky po prvnim behu, po druhem porad 3</span>
 <span class="fn">run_autoloader</span>()
 <span class="fn">print</span>(spark.<span class="fn">table</span>(<span class="str">"dp750.m07.orders_autoloader"</span>).<span class="fn">count</span>())
 <span class="fn">run_autoloader</span>()
@@ -933,7 +933,7 @@ q.<span class="fn">awaitTermination</span>()
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
 <pre><span class="kw">%sql</span>
-<span class="cm">-- 3. processed files and the table with source_file</span>
+<span class="cm">-- 3. zpracovane soubory a tabulka se source_file</span>
 <span class="kw">SELECT</span> path <span class="kw">FROM</span> <span class="fn">cloud_files_state</span>(<span class="str">'/Volumes/dp750/m07/landing/_checkpoints/orders_al'</span>);
 
 <span class="kw">SELECT</span> order_id, amount, source_file, _rescued_data
@@ -952,7 +952,7 @@ q.<span class="fn">awaitTermination</span>()
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
 <pre><span class="kw">from</span> pyspark <span class="kw">import</span> pipelines <span class="kw">as</span> dp
 
-<span class="cm"># pipeline source file only (not for a notebook cell): streaming table, checkpoint and schema location are managed by the pipeline</span>
+<span class="cm"># jen zdrojovy soubor pipeline (ne pro bunku notebooku): streaming table, checkpoint a schema location spravuje pipeline</span>
 <span class="fn">@dp.table</span>(name=<span class="str">"orders_bronze_pl"</span>)
 <span class="kw">def</span> <span class="fn">orders_bronze_pl</span>():
     <span class="kw">return</span> (spark.readStream
@@ -974,7 +974,7 @@ q.<span class="fn">awaitTermination</span>()
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
     <pre><span class="kw">%sql</span>
-<span class="cm">-- 3. after the course: drop the schema with everything in it</span>
+<span class="cm">-- 3. po kurzu: smaz schema se vsim, co obsahuje</span>
 <span class="kw">DROP SCHEMA</span> <span class="tbl">dp750.m07</span> <span class="kw">CASCADE</span>;</pre>
   </div>
 </div>

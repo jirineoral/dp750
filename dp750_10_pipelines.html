@@ -551,7 +551,7 @@ dbutils.jobs.taskValues.<span class="fn">set</span>(key<span class="op">=</span>
   (<span class="str">'e06'</span>, <span class="str">'OSTRAVA-03'</span>, <span class="str">'2026-11-02 13:20:00'</span>, <span class="str">'5.0'</span>, <span class="str">'RETURNED'</span>,  <span class="fn">current_timestamp</span>()),
   (<span class="str">'e07'</span>, <span class="kw">NULL</span>,         <span class="str">'2026-11-02 14:00:00'</span>, <span class="str">'1.0'</span>, <span class="str">'DELIVERED'</span>, <span class="fn">current_timestamp</span>());
 
-<span class="cm">-- 3. result: 8 rows, 7 distinct events</span>
+<span class="cm">-- 3. vysledek: 8 radku, 7 ruznych udalosti</span>
 <span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">AS</span> <span class="col">total_rows</span>, <span class="fn">count</span>(<span class="kw">DISTINCT</span> <span class="col">event_id</span>) <span class="kw">AS</span> <span class="col">distinct_events</span>
 <span class="kw">FROM</span> <span class="tbl">dp750.m10.parcel_events_bronze</span>;</pre>
   </div>
@@ -564,7 +564,7 @@ dbutils.jobs.taskValues.<span class="fn">set</span>(key<span class="op">=</span>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 1. count the bad rows (try_cast gives NULL, not an error)</span>
+    <pre><span class="cm">-- 1. spocitat spatne radky (try_cast vraci NULL, ne chybu)</span>
 <span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">AS</span> <span class="col">bad_rows</span>
 <span class="kw">FROM</span> <span class="tbl">dp750.m10.parcel_events_bronze</span>
 <span class="kw">WHERE</span> <span class="col">locker_id</span> <span class="kw">IS NULL</span>
@@ -635,7 +635,7 @@ dbutils.jobs.taskValues.<span class="fn">set</span>(key<span class="op">=</span>
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># 3. error class handling in a serverless notebook cell</span>
+    <pre><span class="cm"># 3. obsluha tridy chyby v bunce serverless notebooku</span>
 <span class="kw">from</span> pyspark.errors <span class="kw">import</span> PySparkException
 
 <span class="kw">try</span>:
@@ -657,9 +657,9 @@ dbutils.jobs.taskValues.<span class="fn">set</span>(key<span class="op">=</span>
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># 1. three notebooks of the job from step 3, one cell each</span>
+    <pre><span class="cm"># 1. tri notebooky jobu z kroku 3, v kazdem jedna bunka</span>
 <span class="cm"># m10_check_quality</span>
-<span class="cm"># 2. run interactively: prints bad_rows, the task value is stored only inside a job</span>
+<span class="cm"># 2. interaktivni beh: vypise bad_rows, task value se uklada jen uvnitr jobu</span>
 dbutils.widgets.<span class="fn">text</span>(<span class="str">"source_table"</span>, <span class="str">"dp750.m10.parcel_events_bronze"</span>)
 source_table = dbutils.widgets.<span class="fn">get</span>(<span class="str">"source_table"</span>)
 
@@ -676,7 +676,7 @@ dbutils.jobs.taskValues.<span class="fn">set</span>(key=<span class="str">"bad_r
 <span class="fn">print</span>(<span class="str">"Quality gate failed: see dp750.m10.parcel_events_quarantine"</span>)
 
 <span class="cm"># m10_build_gold</span>
-<span class="cm"># 3. gold rebuild is CREATE OR REPLACE, so it is idempotent</span>
+<span class="cm"># 3. prebudovani gold je CREATE OR REPLACE, takze je idempotentni</span>
 spark.<span class="fn">sql</span>(<span class="str">"""
     CREATE OR REPLACE TABLE dp750.m10.locker_daily_gold AS
     SELECT locker_id, to_date(event_ts) AS event_date, count(*) AS events,
@@ -698,7 +698,7 @@ spark.<span class="fn">sql</span>(<span class="str">"""
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># 1. create the volume and write the first two landing files (JSON lines)</span>
+    <pre><span class="cm"># 1. vytvorit volume a zapsat prvni dva landing soubory (JSON lines)</span>
 spark.<span class="fn">sql</span>(<span class="str">"CREATE VOLUME IF NOT EXISTS dp750.m10.landing"</span>)
 base = <span class="str">"/Volumes/dp750/m10/landing"</span>
 
@@ -730,7 +730,7 @@ dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/events_2026-11
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># 5. third file with a new name (run it before the second pipeline update)</span>
+    <pre><span class="cm"># 5. treti soubor s novym nazvem (spust pred druhym updatem pipeline)</span>
 base = <span class="str">"/Volumes/dp750/m10/landing"</span>
 dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/events_2026-11-03_03.json"</span>,
     <span class="str">'{"event_id":"e14","locker_id":"BRNO-01","event_ts":"2026-11-03 10:20:00","weight_kg":0.5,"status":"DELIVERED"}\n'</span>

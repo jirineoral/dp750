@@ -537,7 +537,7 @@ html.mode-custom [data-view="orig"]{display:none}
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="cm">-- 1. schema, table with NOT NULL key, one valid row</span>
+<pre><span class="cm">-- 1. schema, tabulka s NOT NULL klicem, jeden platny radek</span>
 <span class="kw">CREATE</span> <span class="kw">SCHEMA</span> <span class="kw">IF</span> <span class="kw">NOT</span> <span class="kw">EXISTS</span> <span class="tbl">dp750.m09</span>;
 
 <span class="kw">DROP</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">EXISTS</span> <span class="tbl">dp750.m09.shipments</span>;
@@ -545,10 +545,10 @@ html.mode-custom [data-view="orig"]{display:none}
   shipment_id <span class="kw">INT</span> <span class="kw">NOT</span> <span class="kw">NULL</span>, ship_date <span class="kw">DATE</span>, weight_kg <span class="kw">DECIMAL</span>(<span class="num">8</span>,<span class="num">2</span>), carrier <span class="kw">STRING</span>);
 <span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750.m09.shipments</span> <span class="kw">VALUES</span> (<span class="num">1</span>, <span class="kw">DATE</span><span class="str">'2026-11-02'</span>, <span class="num">2.50</span>, <span class="str">'PPL'</span>);
 
-<span class="cm">-- 2. expected error: wrong type</span>
+<span class="cm">-- 2. ocekavana chyba: spatny typ</span>
 <span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750.m09.shipments</span> <span class="kw">VALUES</span> (<span class="str">'dva'</span>, <span class="kw">DATE</span><span class="str">'2026-11-02'</span>, <span class="num">1.00</span>, <span class="str">'PPL'</span>);
 
-<span class="cm">-- 3. expected error: unknown column</span>
+<span class="cm">-- 3. ocekavana chyba: neznamy sloupec</span>
 <span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750.m09.shipments</span>
 <span class="kw">SELECT</span> <span class="num">2</span> <span class="kw">AS</span> shipment_id, <span class="kw">DATE</span><span class="str">'2026-11-02'</span> <span class="kw">AS</span> ship_date, <span class="num">1.00</span> <span class="kw">AS</span> weight_kg, <span class="str">'PPL'</span> <span class="kw">AS</span> carrier, <span class="str">'express'</span> <span class="kw">AS</span> service;</pre>
   </div>
@@ -564,23 +564,23 @@ html.mode-custom [data-view="orig"]{display:none}
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="cm">-- 1. expected error: NOT NULL</span>
+<pre><span class="cm">-- 1. ocekavana chyba: NOT NULL</span>
 <span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750.m09.shipments</span> <span class="kw">VALUES</span> (<span class="kw">NULL</span>, <span class="kw">DATE</span><span class="str">'2026-11-02'</span>, <span class="num">1.00</span>, <span class="str">'PPL'</span>);
 
-<span class="cm">-- 2. add a CHECK constraint</span>
+<span class="cm">-- 2. pridat CHECK constraint</span>
 <span class="kw">ALTER</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m09.shipments</span> <span class="kw">ADD</span> <span class="kw">CONSTRAINT</span> positive_weight <span class="kw">CHECK</span> (weight_kg &gt; <span class="num">0</span>);
 
-<span class="cm">-- 2. expected error: one bad row fails the whole batch</span>
+<span class="cm">-- 2. ocekavana chyba: jeden spatny radek shodi celou davku</span>
 <span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750.m09.shipments</span> <span class="kw">VALUES</span>
   (<span class="num">2</span>, <span class="kw">DATE</span><span class="str">'2026-11-03'</span>, <span class="num">4.00</span>, <span class="str">'GLS'</span>),
   (<span class="num">3</span>, <span class="kw">DATE</span><span class="str">'2026-11-03'</span>, -<span class="num">1.00</span>, <span class="str">'GLS'</span>);
 <span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">AS</span> rows_now <span class="kw">FROM</span> <span class="tbl">dp750.m09.shipments</span>;
 
-<span class="cm">-- 3. new constraint is checked against existing data (expected error)</span>
+<span class="cm">-- 3. novy constraint se kontroluje proti existujicim datum (ocekavana chyba)</span>
 <span class="kw">INSERT</span> <span class="kw">INTO</span> <span class="tbl">dp750.m09.shipments</span> <span class="kw">VALUES</span> (<span class="num">5</span>, <span class="kw">DATE</span><span class="str">'2026-11-04'</span>, <span class="num">3.00</span>, <span class="str">'Kuryr'</span>);
 <span class="kw">ALTER</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m09.shipments</span> <span class="kw">ADD</span> <span class="kw">CONSTRAINT</span> known_carrier <span class="kw">CHECK</span> (carrier <span class="kw">IN</span> (<span class="str">'PPL'</span>, <span class="str">'GLS'</span>, <span class="str">'DPD'</span>));
 
-<span class="cm">-- 4. primary key is informational: duplicates are accepted</span>
+<span class="cm">-- 4. primary key je jen informativni: duplicity se prijmou</span>
 <span class="kw">DROP</span> <span class="kw">TABLE</span> <span class="kw">IF</span> <span class="kw">EXISTS</span> <span class="tbl">dp750.m09.carriers</span>;
 <span class="kw">CREATE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m09.carriers</span> (
   carrier <span class="kw">STRING</span> <span class="kw">NOT</span> <span class="kw">NULL</span>, name <span class="kw">STRING</span>, <span class="kw">CONSTRAINT</span> carriers_pk <span class="kw">PRIMARY</span> <span class="kw">KEY</span> (carrier));
@@ -600,7 +600,7 @@ html.mode-custom [data-view="orig"]{display:none}
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="cm">-- 1. bronze table with strings</span>
+<pre><span class="cm">-- 1. bronze tabulka s retezci</span>
 <span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m09.shipments_raw</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">VALUES</span>
   (<span class="str">'S-1'</span>, <span class="str">'2026-11-02'</span>, <span class="str">'2.50'</span>),
@@ -609,19 +609,19 @@ html.mode-custom [data-view="orig"]{display:none}
   (<span class="str">'S-4'</span>, <span class="str">'2026-11-04'</span>, <span class="str">'0.80'</span>)
 <span class="kw">AS</span> t(shipment_ref, ship_date_str, weight_str);
 
-<span class="cm">-- 2. soft validation: failed conversion = NULL</span>
+<span class="cm">-- 2. mekka validace: neuspesna konverze = NULL</span>
 <span class="kw">SELECT</span> shipment_ref,
        <span class="fn">try_cast</span>(ship_date_str <span class="kw">AS</span> <span class="kw">DATE</span>) <span class="kw">AS</span> ship_date,
        <span class="fn">try_cast</span>(weight_str <span class="kw">AS</span> <span class="kw">DECIMAL</span>(<span class="num">8</span>,<span class="num">2</span>)) <span class="kw">AS</span> weight_kg
 <span class="kw">FROM</span> <span class="tbl">dp750.m09.shipments_raw</span>;
 
-<span class="cm">-- 2. expected error: hard validation with cast</span>
+<span class="cm">-- 2. ocekavana chyba: tvrda validace pres cast</span>
 <span class="kw">SELECT</span> <span class="fn">cast</span>(weight_str <span class="kw">AS</span> <span class="kw">DECIMAL</span>(<span class="num">8</span>,<span class="num">2</span>)) <span class="kw">FROM</span> <span class="tbl">dp750.m09.shipments_raw</span>;
 
-<span class="cm">-- 3. rescue a different date format with a mask</span>
+<span class="cm">-- 3. zachrana jineho formatu data pomoci masky</span>
 <span class="kw">SELECT</span> <span class="fn">to_date</span>(<span class="str">'02.11.2026'</span>, <span class="str">'dd.MM.yyyy'</span>) <span class="kw">AS</span> parsed;
 
-<span class="cm">-- 4. quarantine pattern</span>
+<span class="cm">-- 4. vzor karanteny</span>
 <span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m09.shipments_clean</span> (
   shipment_ref <span class="kw">STRING</span> <span class="kw">NOT</span> <span class="kw">NULL</span>, ship_date <span class="kw">DATE</span> <span class="kw">NOT</span> <span class="kw">NULL</span>, weight_kg <span class="kw">DECIMAL</span>(<span class="num">8</span>,<span class="num">2</span>) <span class="kw">NOT</span> <span class="kw">NULL</span>);
 <span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m09.shipments_quarantine</span> (
@@ -645,7 +645,7 @@ html.mode-custom [data-view="orig"]{display:none}
 <span class="kw">UNION</span> <span class="kw">ALL</span>
 <span class="kw">SELECT</span> <span class="str">'quarantine'</span>, <span class="fn">count</span>(*) <span class="kw">FROM</span> <span class="tbl">dp750.m09.shipments_quarantine</span>;
 
-<span class="cm">-- 5. expected error: S-2 already violates the rule</span>
+<span class="cm">-- 5. ocekavana chyba: S-2 uz pravidlo porusuje</span>
 <span class="kw">ALTER</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m09.shipments_raw</span>
   <span class="kw">ADD</span> <span class="kw">CONSTRAINT</span> date_parsable <span class="kw">CHECK</span> (<span class="fn">try_cast</span>(ship_date_str <span class="kw">AS</span> <span class="kw">DATE</span>) <span class="kw">IS</span> <span class="kw">NOT</span> <span class="kw">NULL</span>);</pre>
   </div>
@@ -661,20 +661,20 @@ html.mode-custom [data-view="orig"]{display:none}
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="cm">-- 1. change batch with a new column handling</span>
+<pre><span class="cm">-- 1. davka zmen s obsluhou noveho sloupce</span>
 <span class="kw">CREATE</span> <span class="kw">OR</span> <span class="kw">REPLACE</span> <span class="kw">TABLE</span> <span class="tbl">dp750.m09.shipments_changes</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="kw">VALUES</span>
   (<span class="str">'S-1'</span>, <span class="str">'2026-11-02'</span>, <span class="str">'2.60'</span>, <span class="str">'fragile'</span>),
   (<span class="str">'S-9'</span>, <span class="str">'2026-11-05'</span>, <span class="str">'5.00'</span>, <span class="kw">NULL</span>)
 <span class="kw">AS</span> t(shipment_ref, ship_date_str, weight_str, handling);
 
-<span class="cm">-- 1. plain MERGE passes, but the new column handling is silently ignored</span>
+<span class="cm">-- 1. obycejny MERGE projde, ale obsluha noveho sloupce se tise ignoruje</span>
 <span class="kw">MERGE</span> <span class="kw">INTO</span> <span class="tbl">dp750.m09.shipments_raw</span> <span class="kw">AS</span> t
 <span class="kw">USING</span> <span class="tbl">dp750.m09.shipments_changes</span> <span class="kw">AS</span> s <span class="kw">ON</span> t.shipment_ref = s.shipment_ref
 <span class="kw">WHEN</span> <span class="kw">MATCHED</span> <span class="kw">THEN</span> <span class="kw">UPDATE</span> <span class="kw">SET</span> *
 <span class="kw">WHEN</span> <span class="kw">NOT</span> <span class="kw">MATCHED</span> <span class="kw">THEN</span> <span class="kw">INSERT</span> *;
 
-<span class="cm">-- 2. MERGE WITH SCHEMA EVOLUTION adds handling to the target table</span>
+<span class="cm">-- 2. MERGE WITH SCHEMA EVOLUTION prida obsluhu do cilove tabulky</span>
 <span class="kw">MERGE</span> <span class="kw">WITH</span> <span class="kw">SCHEMA</span> <span class="kw">EVOLUTION</span> <span class="kw">INTO</span> <span class="tbl">dp750.m09.shipments_raw</span> <span class="kw">AS</span> t
 <span class="kw">USING</span> <span class="tbl">dp750.m09.shipments_changes</span> <span class="kw">AS</span> s <span class="kw">ON</span> t.shipment_ref = s.shipment_ref
 <span class="kw">WHEN</span> <span class="kw">MATCHED</span> <span class="kw">THEN</span> <span class="kw">UPDATE</span> <span class="kw">SET</span> *
@@ -684,11 +684,11 @@ html.mode-custom [data-view="orig"]{display:none}
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="cm"># 3. cell 1: bronze ingest in rescue mode</span>
+<pre><span class="cm"># 3. bunka 1: bronze ingest v rescue modu</span>
 spark.<span class="fn">sql</span>(<span class="str">"CREATE VOLUME IF NOT EXISTS dp750.m09.landing"</span>)
 base = <span class="str">"/Volumes/dp750/m09/landing"</span>
 
-<span class="cm"># reset before a repeated run</span>
+<span class="cm"># reset pred opakovanym behem</span>
 spark.<span class="fn">sql</span>(<span class="str">"DROP TABLE IF EXISTS dp750.m09.shipments_bronze"</span>)
 <span class="kw">for</span> p <span class="kw">in</span> [<span class="str">"events"</span>, <span class="str">"_checkpoints"</span>, <span class="str">"_schemas"</span>]:
     dbutils.fs.<span class="fn">rm</span>(<span class="str">f"{base}/{p}"</span>, <span class="kw">True</span>)
@@ -715,7 +715,7 @@ dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/events/day1.js
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="cm"># 4. cell 2: drifted file arrives (bad type + new field)</span>
+<pre><span class="cm"># 4. bunka 2: dorazi soubor s driftem (spatny typ + nove pole)</span>
 dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/events/day2.json"</span>,
     <span class="str">'{"shipment_ref": "S-12", "weight_kg": "heavy"}\n'</span>
     <span class="str">'{"shipment_ref": "S-13", "weight_kg": "1.10", "handling": "fragile"}\n'</span>, <span class="kw">True</span>)
@@ -736,7 +736,7 @@ dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/events/day2.js
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="cm"># 1. pipeline source file: try_cast converts types, expect only counts, expect_or_drop drops</span>
+<pre><span class="cm"># 1. zdrojovy soubor pipeline: try_cast prevadi typy, expect jen pocita, expect_or_drop zahazuje</span>
 <span class="kw">from</span> pyspark <span class="kw">import</span> pipelines <span class="kw">as</span> dp
 <span class="kw">from</span> pyspark.sql.functions <span class="kw">import</span> expr
 
@@ -751,7 +751,7 @@ dbutils.fs.<span class="fn">put</span>(<span class="str">f"{base}/events/day2.js
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-<pre><span class="cm">-- 4. expectation metrics from the event log; replace the placeholder with the pipeline ID</span>
+<pre><span class="cm">-- 4. metriky expectation z event logu; nahrad placeholder ID pipeline</span>
 <span class="kw">SELECT</span> timestamp,
        <span class="fn">explode</span>(<span class="fn">from_json</span>(details:flow_progress.data_quality.expectations,
          <span class="str">'array&lt;struct&lt;name:string, dataset:string, passed_records:bigint, failed_records:bigint&gt;&gt;'</span>)) <span class="kw">AS</span> expectation

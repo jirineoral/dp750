@@ -612,7 +612,7 @@ df <span class="op">=</span> spark.read.<span class="fn">parquet</span>(<span cl
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 1. schema, table and sample rows</span>
+    <pre><span class="cm">-- 1. schema, tabulka a ukazkove radky</span>
 <span class="kw">CREATE SCHEMA IF NOT EXISTS</span> <span class="tbl">dp750.m04</span> <span class="kw">COMMENT</span> <span class="str">'Demo modulu 4: zabezpeceni'</span>;
 
 <span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750.m04.employees</span> (
@@ -630,7 +630,7 @@ df <span class="op">=</span> spark.read.<span class="fn">parquet</span>(<span cl
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 2. audit log: temporary credentials issued for the query</span>
+    <pre><span class="cm">-- 2. audit log: docasne credentials vydane pro dotaz</span>
 <span class="kw">SELECT</span> event_time, action_name, request_params.full_name_arg <span class="kw">AS</span> object, response.status_code <span class="kw">AS</span> status
 <span class="kw">FROM</span> <span class="tbl">system.access.audit</span>
 <span class="kw">WHERE</span> service_name = <span class="str">'unityCatalog'</span>
@@ -673,7 +673,7 @@ df <span class="op">=</span> spark.read.<span class="fn">parquet</span>(<span cl
 <span class="kw">GRANT USE SCHEMA ON SCHEMA</span> <span class="tbl">dp750.m04</span> <span class="kw">TO</span> `dp750_demo_analysts`;
 <span class="kw">GRANT SELECT ON SCHEMA</span> <span class="tbl">dp750.m04</span> <span class="kw">TO</span> `dp750_demo_analysts`;
 
-<span class="cm">-- 2. grants on every level</span>
+<span class="cm">-- 2. granty na kazde urovni</span>
 <span class="kw">SHOW GRANTS ON CATALOG</span> <span class="tbl">dp750</span>;
 <span class="kw">SHOW GRANTS ON SCHEMA</span> <span class="tbl">dp750.m04</span>;
 <span class="kw">SHOW GRANTS ON TABLE</span> <span class="tbl">dp750.m04.employees</span>;</pre>
@@ -695,7 +695,7 @@ df <span class="op">=</span> spark.read.<span class="fn">parquet</span>(<span cl
             <span class="kw">ELSE</span> <span class="str">'skryto'</span> <span class="kw">END AS</span> personal_phone
 <span class="kw">FROM</span> <span class="tbl">dp750.m04.employees</span>;
 
-<span class="cm">-- 2. read through the view</span>
+<span class="cm">-- 2. cteni pres view</span>
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m04.vw_employees_directory</span>;</pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> view vrátí všechny čtyři řádky a u telefonu <code class="inline">skryto</code>, protože v <code class="inline">dp750_demo_admins</code> nejste. Pravidlo ale platí jen pro toho, kdo čte přes view; kdo má <code class="inline">SELECT</code> na tabulku, vidí vše. To řeší až krok 4.</div></div>
@@ -723,12 +723,12 @@ df <span class="op">=</span> spark.read.<span class="fn">parquet</span>(<span cl
 <span class="kw">RETURN CASE WHEN</span> <span class="fn">is_account_group_member</span>(<span class="str">'dp750_demo_admins'</span>) <span class="kw">THEN</span> phone
             <span class="kw">ELSE</span> <span class="fn">concat</span>(<span class="str">'*** *** '</span>, <span class="fn">right</span>(phone, <span class="num">3</span>)) <span class="kw">END</span>;
 
-<span class="cm">-- 2. attach filter and masks to the table</span>
+<span class="cm">-- 2. pripojit filter a masky k tabulce</span>
 <span class="kw">ALTER TABLE</span> <span class="tbl">dp750.m04.employees</span> <span class="kw">SET ROW FILTER</span> <span class="tbl">dp750.m04.rf_office</span> <span class="kw">ON</span> (office);
 <span class="kw">ALTER TABLE</span> <span class="tbl">dp750.m04.employees</span> <span class="kw">ALTER COLUMN</span> salary_czk <span class="kw">SET MASK</span> <span class="tbl">dp750.m04.mask_salary</span>;
 <span class="kw">ALTER TABLE</span> <span class="tbl">dp750.m04.employees</span> <span class="kw">ALTER COLUMN</span> personal_phone <span class="kw">SET MASK</span> <span class="tbl">dp750.m04.mask_phone</span>;
 
-<span class="cm">-- 3. result: filtered rows, view, table metadata</span>
+<span class="cm">-- 3. vysledek: filtrovane radky, view, metadata tabulky</span>
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m04.employees</span> <span class="kw">ORDER BY</span> emp_id;
 <span class="kw">SELECT</span> <span class="fn">count</span>(*) <span class="kw">FROM</span> <span class="tbl">dp750.m04.vw_employees_directory</span>;
 <span class="kw">DESCRIBE TABLE EXTENDED</span> <span class="tbl">dp750.m04.employees</span>;
@@ -753,18 +753,18 @@ df <span class="op">=</span> spark.read.<span class="fn">parquet</span>(<span cl
       </ol>
       <div class="code-block">
         <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-        <pre><span class="cm">-- e. grants for the role group (as yourself, before switching)</span>
+        <pre><span class="cm">-- e. granty pro skupinu role (pod sebou, pred prepnutim)</span>
 <span class="kw">GRANT USE CATALOG ON CATALOG</span> <span class="tbl">dp750</span> <span class="kw">TO</span> `role-dp750-admin`;
 <span class="kw">GRANT USE SCHEMA, SELECT ON SCHEMA</span> <span class="tbl">dp750.m04</span> <span class="kw">TO</span> `role-dp750-admin`;</pre>
       </div>
       <p><strong>Ukázka:</strong> <em>V UI:</em> klikněte na název workspace vpravo nahoře, najeďte na aktuální workspace a v podmenu vyberte <code class="inline">role-dp750-admin</code>. Stránka se načte znovu a pod názvem workspace je teď role. V SQL editoru:</p>
       <div class="code-block">
         <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-        <pre><span class="cm">-- 1. who am I in this session</span>
+        <pre><span class="cm">-- 1. kdo jsem v teto session</span>
 <span class="kw">SELECT</span> <span class="fn">session_user</span>() <span class="kw">AS</span> kdo, <span class="fn">is_account_group_member</span>(<span class="str">'dp750_demo_admins'</span>) <span class="kw">AS</span> je_admin;
 <span class="cm">-- kdo = role-dp750-admin, je_admin = true</span>
 
-<span class="cm">-- 2. the table as the admin role</span>
+<span class="cm">-- 2. tabulka jako role admin</span>
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m04.employees</span> <span class="kw">ORDER BY</span> emp_id;
 <span class="cm">-- ctyri radky, mzdy i cele telefony</span></pre>
       </div>
@@ -807,14 +807,14 @@ az keyvault show -n $kv --query <span class="str">"{DNS:properties.vaultUri, Res
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 1. list keys, try to read a value, tolerate a missing key</span>
+    <pre><span class="cm">-- 1. vypis klicu, pokus o precteni hodnoty, chybejici klic se toleruje</span>
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="fn">list_secrets</span>(<span class="str">'dp750-kv'</span>);
 <span class="kw">SELECT</span> <span class="fn">secret</span>(<span class="str">'dp750-kv'</span>, <span class="str">'dp750-demo-secret'</span>) <span class="kw">AS</span> hodnota;
 <span class="kw">SELECT</span> <span class="fn">try_secret</span>(<span class="str">'dp750-kv'</span>, <span class="str">'neexistuje'</span>) <span class="kw">AS</span> chybi;</pre>
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># 2. list scopes and keys, read the value (output is redacted)</span>
+    <pre><span class="cm"># 2. vypis scopes a klicu, precteni hodnoty (vystup je zamaskovany)</span>
 <span class="fn">print</span>([s.name <span class="kw">for</span> s <span class="kw">in</span> dbutils.secrets.<span class="fn">listScopes</span>()])
 <span class="fn">print</span>([k.key <span class="kw">for</span> k <span class="kw">in</span> dbutils.secrets.<span class="fn">list</span>(<span class="str">"dp750-kv"</span>)])
 
@@ -824,7 +824,7 @@ value = dbutils.secrets.<span class="fn">get</span>(scope=<span class="str">"dp7
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">BASH</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># 3. read-only: ACLs of the scope</span>
+    <pre><span class="cm"># 3. jen cteni: ACL scope</span>
 databricks secrets list-acls dp750-kv --profile <span class="str">&lt;profil&gt;</span></pre>
   </div>
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> SQL i notebook vrátí místo hodnoty <code class="inline">[REDACTED]</code>, ale <code class="inline">len(value) &gt; 0</code> je <code class="inline">True</code>: hodnota v paměti je, redakce chrání jen výstup. <code class="inline">try_secret</code> vrátí pro chybějící klíč <code class="inline">NULL</code> místo chyby. ACL je na celém scope; tvůrce scope má <code class="inline">MANAGE</code>.</div></div>
@@ -838,7 +838,7 @@ databricks secrets list-acls dp750-kv --profile <span class="str">&lt;profil&gt;
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">BASH</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># 2. list service principals in the workspace</span>
+    <pre><span class="cm"># 2. vypis service principals ve workspace</span>
 databricks service-principals list --profile <span class="str">&lt;profil&gt;</span></pre>
   </div>
   <div class="code-block">
@@ -856,7 +856,7 @@ databricks service-principals list --profile <span class="str">&lt;profil&gt;</s
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 1. credentials and locations behind the catalog storage</span>
+    <pre><span class="cm">-- 1. credentials a locations za ulozistem katalogu</span>
 <span class="kw">SHOW STORAGE CREDENTIALS</span>;
 <span class="kw">SHOW EXTERNAL LOCATIONS</span>;
 <span class="kw">DESCRIBE STORAGE CREDENTIAL</span> <span class="tbl">&lt;nazev_z_predchoziho_vypisu&gt;</span>;</pre>
@@ -872,12 +872,12 @@ databricks service-principals list --profile <span class="str">&lt;profil&gt;</s
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 1. no leftover grant to account users</span>
+    <pre><span class="cm">-- 1. zadny zbytkovy grant pro account users</span>
 <span class="kw">SHOW GRANTS ON SCHEMA</span> <span class="tbl">dp750.m04</span>;</pre>
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 2. after the course: filter and masks first, then drop the schema</span>
+    <pre><span class="cm">-- 2. po kurzu: nejdriv filter a masky, pak smazat schema</span>
 <span class="kw">ALTER TABLE</span> <span class="tbl">dp750.m04.employees</span> <span class="kw">DROP ROW FILTER</span>;
 <span class="kw">ALTER TABLE</span> <span class="tbl">dp750.m04.employees</span> <span class="kw">ALTER COLUMN</span> salary_czk <span class="kw">DROP MASK</span>;
 <span class="kw">ALTER TABLE</span> <span class="tbl">dp750.m04.employees</span> <span class="kw">ALTER COLUMN</span> personal_phone <span class="kw">DROP MASK</span>;
@@ -885,7 +885,7 @@ databricks service-principals list --profile <span class="str">&lt;profil&gt;</s
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">BASH</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># 3. after the course: delete the secret scope</span>
+    <pre><span class="cm"># 3. po kurzu: smazat secret scope</span>
 databricks secrets delete-scope dp750-kv --profile <span class="str">&lt;profil&gt;</span></pre>
   </div>
 </div>

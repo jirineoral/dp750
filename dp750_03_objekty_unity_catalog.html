@@ -727,7 +727,7 @@ $$;
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 1. metastore, catalogs, schemas, then a naming check</span>
+    <pre><span class="cm">-- 1. metastore, katalogy, schemata, pak kontrola pojmenovani</span>
 <span class="kw">SELECT</span> <span class="fn">current_metastore</span>();
 <span class="kw">SHOW CATALOGS</span>;
 <span class="kw">SHOW SCHEMAS IN</span> <span class="tbl">dp750</span>;
@@ -748,7 +748,7 @@ $$;
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 1. first attempt without storage (fails in the lecturer workspace)</span>
+    <pre><span class="cm">-- 1. prvni pokus bez uloziste (v lektorskem workspace selze)</span>
 <span class="kw">CREATE CATALOG IF NOT EXISTS</span> <span class="tbl">dp750_m03_sandbox</span> <span class="kw">COMMENT</span> <span class="str">'Docasny katalog z dema modulu 3'</span>;
 
 <span class="cm">-- 2. kde lezi uloziste katalogu workspace</span>
@@ -773,7 +773,7 @@ $$;
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 1. schema and its properties (storage fallback)</span>
+    <pre><span class="cm">-- 1. schema a jeho vlastnosti (nahradni uloziste)</span>
 <span class="kw">CREATE SCHEMA IF NOT EXISTS</span> <span class="tbl">dp750.m03</span> <span class="kw">COMMENT</span> <span class="str">'Demo modulu 3: sdilena kola Brno'</span>;
 <span class="kw">DESCRIBE SCHEMA EXTENDED</span> <span class="tbl">dp750.m03</span>;</pre>
   </div>
@@ -785,7 +785,7 @@ $$;
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 1. two managed tables with PK/FK, data, duplicate key test</span>
+    <pre><span class="cm">-- 1. dve managed tabulky s PK/FK, data, test duplicitniho klice</span>
 <span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750.m03.stations</span> (
   station_id   <span class="kw">INT NOT NULL COMMENT</span> <span class="str">'ID stanice'</span>,
   station_name <span class="kw">STRING</span>,
@@ -824,7 +824,7 @@ $$;
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 2. standard view and materialized view over the same tables</span>
+    <pre><span class="cm">-- 2. standardni view a materialized view nad stejnymi tabulkami</span>
 <span class="kw">CREATE OR REPLACE VIEW</span> <span class="tbl">dp750.m03.vw_long_rides</span>
 <span class="kw">COMMENT</span> <span class="str">'Vypujcky delsi nez 30 minut'</span> <span class="kw">AS</span>
 <span class="kw">SELECT</span> r.ride_id, s.station_name, r.minutes, r.price_czk
@@ -851,7 +851,7 @@ $$;
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 1. managed volume for files</span>
+    <pre><span class="cm">-- 1. managed volume pro soubory</span>
 <span class="kw">CREATE VOLUME IF NOT EXISTS</span> <span class="tbl">dp750.m03.raw_exports</span> <span class="kw">COMMENT</span> <span class="str">'CSV exporty z terminalu stanic'</span>;</pre>
   </div>
   <ol start="2">
@@ -859,7 +859,7 @@ $$;
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">BASH</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># 2. create station_status.csv in the current folder, then upload it</span>
+    <pre><span class="cm"># 2. vytvorit station_status.csv v aktualni slozce a nahrat ho</span>
 <span class="kw">cat</span> &gt; station_status.csv &lt;&lt;<span class="str">'EOF'</span>
 station_id,checked_at,bikes_available
 1,2026-10-03T07:00:00,8
@@ -874,7 +874,7 @@ databricks fs cp station_status.csv dbfs:/Volumes/dp750/m03/raw_exports/station_
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 3. list the volume and read the file</span>
+    <pre><span class="cm">-- 3. vypis volume a precteni souboru</span>
 <span class="kw">LIST</span> <span class="str">'/Volumes/dp750/m03/raw_exports'</span>;
 
 <span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="fn">read_files</span>(<span class="str">'/Volumes/dp750/m03/raw_exports/station_status.csv'</span>,
@@ -890,7 +890,7 @@ databricks fs cp station_status.csv dbfs:/Volumes/dp750/m03/raw_exports/station_
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 1. SQL function, Python function, and a query that uses both</span>
+    <pre><span class="cm">-- 1. SQL funkce, Python funkce a dotaz, ktery pouziva obe</span>
 <span class="kw">CREATE OR REPLACE FUNCTION</span> <span class="tbl">dp750.m03.fn_tariff</span>(minutes <span class="kw">INT</span>)
 <span class="kw">RETURNS STRING</span>
 <span class="kw">COMMENT</span> <span class="str">'Tarifni pasmo podle delky vypujcky'</span>
@@ -914,7 +914,7 @@ $$;
 <span class="kw">FROM</span> <span class="tbl">dp750.m03.rides</span> r <span class="kw">JOIN</span> <span class="tbl">dp750.m03.stations</span> s <span class="kw">USING</span> (station_id)
 <span class="kw">ORDER BY</span> r.ride_id;
 
-<span class="cm">-- 2. procedure with input check, two calls (the second one fails on purpose), then refresh</span>
+<span class="cm">-- 2. procedura s kontrolou vstupu, dve volani (druhe zamerne selze), pak refresh</span>
 <span class="kw">CREATE OR REPLACE PROCEDURE</span> <span class="tbl">dp750.m03.sp_add_ride</span>(
   <span class="kw">IN</span> p_ride_id <span class="kw">BIGINT</span>, <span class="kw">IN</span> p_station_id <span class="kw">INT</span>, <span class="kw">IN</span> p_minutes <span class="kw">INT</span>)
 <span class="kw">LANGUAGE SQL SQL SECURITY INVOKER</span>
@@ -935,7 +935,7 @@ $$;
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 3. new column, type widening, schema and table tags</span>
+    <pre><span class="cm">-- 3. novy sloupec, type widening, tagy na schematu a tabulce</span>
 <span class="kw">ALTER TABLE</span> <span class="tbl">dp750.m03.rides</span> <span class="kw">ADD COLUMN</span> bike_type <span class="kw">STRING COMMENT</span> <span class="str">'mechanicke nebo elektro'</span>;
 
 <span class="cm">-- prvni pokus selze, druhy po zapnuti type widening projde</span>
@@ -955,7 +955,7 @@ $$;
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 4. drop a copy of the table and bring it back</span>
+    <pre><span class="cm">-- 4. smazat kopii tabulky a vratit ji zpet</span>
 <span class="kw">CREATE OR REPLACE TABLE</span> <span class="tbl">dp750.m03.tmp_rides_copy</span> <span class="kw">AS SELECT</span> * <span class="kw">FROM</span> <span class="tbl">dp750.m03.rides</span>;
 <span class="kw">DROP TABLE</span> <span class="tbl">dp750.m03.tmp_rides_copy</span>;
 <span class="kw">SHOW TABLES DROPPED IN</span> <span class="tbl">dp750.m03</span>;
@@ -996,7 +996,7 @@ $v = (databricks secrets get-secret <span class="str">dp750-demo</span> <span cl
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">PYTHON</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># 3. list scopes and keys, read a secret (the value is redacted in output)</span>
+    <pre><span class="cm"># 3. vypis scopes a klicu, precteni secretu (hodnota je ve vystupu zamaskovana)</span>
 <span class="fn">print</span>(dbutils.secrets.<span class="fn">listScopes</span>())
 <span class="fn">print</span>(dbutils.secrets.<span class="fn">list</span>(<span class="str">"dp750-demo"</span>))
 
@@ -1006,7 +1006,7 @@ heslo = dbutils.secrets.<span class="fn">get</span>(scope=<span class="str">"dp7
   </div>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 3. the same in SQL</span>
+    <pre><span class="cm">-- 3. totez v SQL</span>
 <span class="kw">SELECT</span> <span class="fn">secret</span>(<span class="str">'dp750-demo'</span>, <span class="str">'pg-password'</span>) <span class="kw">AS</span> <span class="col">heslo</span>,          <span class="cm">-- [REDACTED]</span>
        <span class="fn">length</span>(<span class="fn">secret</span>(<span class="str">'dp750-demo'</span>, <span class="str">'pg-password'</span>)) <span class="kw">AS</span> <span class="col">delka</span>; <span class="cm">-- 8</span></pre>
   </div>
@@ -1015,7 +1015,7 @@ heslo = dbutils.secrets.<span class="fn">get</span>(scope=<span class="str">"dp7
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 4. existing connections, then the template (needs a real test database)</span>
+    <pre><span class="cm">-- 4. existujici connections, pak sablona (potrebuje skutecnou testovaci databazi)</span>
 <span class="kw">SHOW CONNECTIONS</span>;
 
 <span class="cm">-- sablona, spoustejte jen proti vlastni testovaci databazi</span>

@@ -589,7 +589,7 @@ processing_date = dbutils.widgets.<span class="fn">get</span>(<span class="str">
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">SQL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm">-- 1. schema, volume, table and sample rows (run this part as a whole)</span>
+    <pre><span class="cm">-- 1. schema, volume, tabulka a ukazkove radky (spust tuto cast jako celek)</span>
 <span class="kw">CREATE SCHEMA IF NOT EXISTS</span> <span class="tbl">dp750.m11</span>;
 <span class="kw">CREATE VOLUME IF NOT EXISTS</span> <span class="tbl">dp750.m11.inbox</span>;
 
@@ -601,7 +601,7 @@ processing_date = dbutils.widgets.<span class="fn">get</span>(<span class="str">
   (<span class="str">'EM-1002'</span>, <span class="kw">DATE</span><span class="str">'2026-11-04'</span>,  <span class="num">8.115</span>, <span class="fn">current_timestamp</span>()),
   (<span class="str">'EM-1003'</span>, <span class="kw">DATE</span><span class="str">'2026-11-04'</span>, <span class="num">21.902</span>, <span class="fn">current_timestamp</span>());
 
-<span class="cm">-- 2. ulozeny dotaz m11_daily_summary pro SQL task (parametr :load_date); do not run, only save it</span>
+<span class="cm">-- 2. ulozeny dotaz m11_daily_summary pro SQL task (parametr :load_date); nespoustet, jen ulozit</span>
 <span class="kw">SELECT</span> <span class="col">reading_date</span>, <span class="fn">count</span>(<span class="kw">DISTINCT</span> <span class="col">meter_id</span>) <span class="kw">AS</span> <span class="col">meters</span>, <span class="fn">round</span>(<span class="fn">sum</span>(<span class="col">kwh</span>), <span class="num">3</span>) <span class="kw">AS</span> <span class="col">total_kwh</span>
 <span class="kw">FROM</span> <span class="tbl">dp750.m11.meter_readings</span>
 <span class="kw">WHERE</span> <span class="col">reading_date</span> <span class="op">=</span> <span class="fn">to_date</span>(:load_date)
@@ -624,10 +624,10 @@ processing_date = dbutils.widgets.<span class="fn">get</span>(<span class="str">
 <span class="cm"># m11_daily_load</span>
 <span class="kw">import</span> datetime
 
-<span class="cm"># 1. widget load_date receives the job parameter of the same name</span>
+<span class="cm"># 1. widget load_date dostane parametr jobu stejneho jmena</span>
 dbutils.widgets.<span class="fn">text</span>(<span class="str">"load_date"</span>, <span class="str">""</span>)
 load_date = dbutils.widgets.<span class="fn">get</span>(<span class="str">"load_date"</span>)
-<span class="cm"># 2. this printed line is the output shown in the task run</span>
+<span class="cm"># 2. tento vypsany radek je vystup zobrazeny v behu tasku</span>
 <span class="fn">print</span>(<span class="str">f"load_date = {load_date}"</span>)
 <span class="kw">if</span> load_date == <span class="str">"fail"</span>:
     <span class="kw">raise</span> <span class="fn">ValueError</span>(<span class="str">"Simulated failure for the repair demo"</span>)
@@ -654,7 +654,7 @@ spark.<span class="fn">sql</span>(<span class="str">f"""
   </ol>
   <div class="code-block">
     <div class="code-header"><span class="code-lang">POWERSHELL</span><button class="copy-btn">Kopírovat</button></div>
-    <pre><span class="cm"># 2. create a small csv with a unique name and upload it into the volume (CLI needs the dbfs:/ prefix)</span>
+    <pre><span class="cm"># 2. vytvorit maly csv s unikatnim nazvem a nahrat ho do volume (CLI vyzaduje prefix dbfs:/)</span>
 $file = Join-Path $env:TEMP ("readings_" + (Get-Date -Format "yyyyMMdd_HHmmss") + ".csv")
 Set-Content -Path $file -Value "meter_id,kwh", "EM-1001,1.0"
 databricks fs cp $file dbfs:/Volumes/dp750/m11/inbox/ --profile <span class="str">&lt;profil&gt;</span>
