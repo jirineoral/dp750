@@ -631,7 +631,6 @@ final = salted.<span class="fn">groupBy</span>(<span class="str">"customer_id"</
 
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Caution:</strong> the lab requires a classic cluster (not serverless) with <strong>Photon disabled</strong> (<code class="inline">spark.databricks.photon.enabled false</code>). From the lab documentation: <em>"When enabled, it optimises shuffle and skew handling automatically, which masks the performance problems this lab is designed to demonstrate."</em></div></div>
 
-  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Note:</strong> in class the instructor walks through the lab as a demo. The instructions are step-by-step and self-service — if there is no time for it during the day, you can go through it on your own.</div></div>
 
   <div class="callout success"><div class="callout-icon">✓</div><div><strong>Self-check:</strong> <strong>1)</strong> What in a stage's Summary Metrics tells you there is data skew, and what is the rule of thumb for the ratio of Max to the 75th percentile? <strong>2)</strong> Which tasks does a repair run re-run on a failed Lakeflow Job? <strong>3)</strong> Why does a broadcast join eliminate the shuffle of a large table, and what limits it under the default settings?</div></div>
 </div>

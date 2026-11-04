@@ -484,7 +484,6 @@ pacienti = [(fake.<span class="fn">name</span>(), fake.<span class="fn">date_of_
 df = spark.<span class="fn">createDataFrame</span>(pacienti, [<span class="str">"jmeno"</span>, <span class="str">"datum_narozeni"</span>, <span class="str">"mesto"</span>])
 <span class="fn">display</span>(df)</pre>
   </div>
-  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Poznámka:</strong> na kurzu lab prochází lektor jako demo. Postup je krokový a samoobslužný — pokud se na něj v rámci dne nedostane, projdete si ho samostatně.</div></div>
   <div class="callout success"><div class="callout-icon">✓</div><div><strong>Sebekontrola:</strong> <strong>1)</strong> Proč jste pro workery zvolili memory-optimized (E-series) VM, když má cluster dělat joins pacientských dat a laboratorních výsledků? <strong>2)</strong> Co se stane s cluster-scoped knihovnou faker po restartu clusteru — a co s notebook-scoped instalací po konci session? <strong>3)</strong> Který access mode byste zvolili, kdyby cluster sdílelo pět inženýrů, a který pro trénink GPU modelu v R?</div></div>
 </div>
 

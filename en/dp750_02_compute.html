@@ -482,7 +482,6 @@ patients = [(fake.<span class="fn">name</span>(), fake.<span class="fn">date_of_
 df = spark.<span class="fn">createDataFrame</span>(patients, [<span class="str">"name"</span>, <span class="str">"date_of_birth"</span>, <span class="str">"city"</span>])
 <span class="fn">display</span>(df)</pre>
   </div>
-  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Note:</strong> in class the instructor walks through the lab as a demo. The instructions are step-by-step and self-service — if there is no time for it during the day, you can go through it on your own.</div></div>
   <div class="callout success"><div class="callout-icon">✓</div><div><strong>Self-check:</strong> <strong>1)</strong> Why did you choose memory-optimized (E-series) VMs for the workers when the cluster is meant to join patient data with lab results? <strong>2)</strong> What happens to the cluster-scoped faker library after a cluster restart — and what happens to the notebook-scoped install after the session ends? <strong>3)</strong> Which access mode would you choose if five engineers shared the cluster, and which one for training a GPU model in R?</div></div>
 </div>
 
