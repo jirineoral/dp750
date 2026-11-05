@@ -175,6 +175,7 @@ html.mode-custom [data-view="orig"]{display:none}
     <a href="#sec-deploy-cli" class="toc-item" data-section="sec-deploy-cli">Deploy bundlu přes Databricks CLI</a>
     <a href="#sec-lab" class="toc-item" data-section="sec-lab">Lab 12: Implement Development Lifecycle Processes (45 minut)</a>
     <a href="#sec-runbook" class="toc-item" data-section="sec-runbook">Runbook: ukázka krok za krokem</a>
+    <a href="#sec-runbook-web" class="toc-item" data-section="sec-runbook-web">Runbook: bundle na webu ve workspace</a>
   </aside>
 
   <main class="main">
@@ -732,10 +733,166 @@ databricks bundle destroy -t dev -p <span class="str">&lt;profil&gt;</span> --au
   <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> <code class="inline">plan</code> je pojistka před produkcí: ukáže i <em>delete</em>, kdyby z YAML zmizel zdroj, který v cílovém prostředí existuje. Do <code class="inline">prod</code> nasazuje CI/CD pod service principalem, ne člověk z notebooku.</div></div>
   <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> <code class="inline">validate -t prod -p &lt;profil&gt;</code> skončí chybou, že host v profilu nesouhlasí s hostem v bundlu; profil a target musí mířit na stejný workspace. Po přerušeném deployi pomůže <code class="inline">--force-lock</code>, při chybě přihlášení <code class="inline">databricks auth login</code>.</div></div>
 
+  <h3>Krok 6 – Bundle z existující složky: kurzy ČNB</h3>
+  <p>Repozitář <a href="https://github.com/jirineoral/dp750-cnb-rates" target="_blank" rel="noopener">jirineoral/dp750-cnb-rates</a> (soukromý, jen pro lektora) obsahuje notebook <code class="inline">src/load_cnb_rates.py</code>, který načte kurzovní lístek ČNB za roky 2000 až 2026 do tabulky <code class="inline">adb_dp750.cnb.exchange_rates_notebook</code>. Bundle v něm záměrně není, <code class="inline">databricks.yml</code> se přidává v bodu 3 tohoto kroku. Potřebuješ přístup k repozitáři, serverless jobs a právo zápisu do schématu <code class="inline">adb_dp750.cnb</code>.</p>
+  <ol>
+    <li>Naklonuj repozitář a přejdi do jeho složky.</li>
+    <li><em>V UI:</em> ukaž v Git folderu dialog Create → Bundle: nabízí šablony nového projektu (Empty project, Default Python, Default SQL, podle nastavení workspace i Lakeflow Pipelines a vlastní šablony), volba „z existující složky“ v něm není. Bundlem dělá složku jediná věc: soubor <code class="inline">databricks.yml</code> v jejím kořeni.</li>
+    <li>Do kořene repozitáře přidej <code class="inline">databricks.yml</code> (kód níže). Job parametry se jmenují stejně jako widgety notebooku.</li>
+    <li><code class="inline">validate</code> a <code class="inline">plan</code>: plán vypíše <code class="inline">create jobs.load_cnb_rates</code>.</li>
+    <li><code class="inline">deploy</code> a <code class="inline">run</code> s přepsanými roky a vlastní tabulkou: běh skončí úspěšně, tabulka <code class="inline">exchange_rates_demo</code> má jen rok 2025 a výchozí tabulka zůstane beze změny.</li>
+    <li><code class="inline">destroy</code> smaže job, tabulka zůstane.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">YAML</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm"># 3. databricks.yml v koreni repozitare</span>
+<span class="kw">bundle</span>:
+  <span class="kw">name</span>: dp750_cnb_rates
+
+<span class="kw">resources</span>:
+  <span class="kw">jobs</span>:
+    <span class="kw">load_cnb_rates</span>:
+      <span class="kw">name</span>: load_cnb_rates
+      <span class="kw">parameters</span>:
+        - <span class="kw">name</span>: table
+          <span class="kw">default</span>: exchange_rates_notebook
+        - <span class="kw">name</span>: year_from
+          <span class="kw">default</span>: <span class="str">"2000"</span>
+        - <span class="kw">name</span>: year_to
+          <span class="kw">default</span>: <span class="str">"2026"</span>
+      <span class="kw">tasks</span>:
+        - <span class="kw">task_key</span>: load
+          <span class="kw">notebook_task</span>:
+            <span class="kw">notebook_path</span>: ./src/load_cnb_rates.py
+
+<span class="kw">targets</span>:
+  <span class="kw">dev</span>:
+    <span class="kw">mode</span>: development
+    <span class="kw">default</span>: <span class="kw">true</span>        <span class="cm"># host bere z profilu CLI</span></pre>
+  </div>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">POWERSHELL</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm"># 1. stazeni repozitare</span>
+git clone https://github.com/jirineoral/dp750-cnb-rates.git
+cd dp750-cnb-rates
+<span class="cm"># 4. kontrola a plan</span>
+databricks bundle validate -t dev -p <span class="str">&lt;profil&gt;</span>
+databricks bundle plan -t dev -p <span class="str">&lt;profil&gt;</span>
+<span class="cm"># 5. nasazeni a beh s prepsanymi parametry, vlastni tabulka chrani plnou historii</span>
+databricks bundle deploy -t dev -p <span class="str">&lt;profil&gt;</span>
+databricks bundle run -t dev -p <span class="str">&lt;profil&gt;</span> load_cnb_rates -- --table=exchange_rates_demo --year_from=2025 --year_to=2025
+<span class="cm"># 6. odstraneni jobu</span>
+databricks bundle destroy -t dev -p <span class="str">&lt;profil&gt;</span> --auto-approve</pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> existující kód se nepřesouvá, bundle se kolem něj jen postaví. Stejně to jde v UI: založ z repozitáře Git folder a v jeho kořeni vytvoř soubor <code class="inline">databricks.yml</code>, Databricks pak složku pozná jako bundle (<a href="https://learn.microsoft.com/en-us/azure/databricks/dev-tools/bundles/workspace" target="_blank" rel="noopener">Learn</a>, EN).</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> nasazené soubory bundlu leží ve složce <code class="inline">.bundle</code> ve tvém home ve workspace; zdroj upravuj v repozitáři nebo Git folderu, ne tam. Užší rozsah let přepíše celou tabulku, proto <code class="inline">run</code> míří do jiné tabulky. <code class="inline">destroy</code> tabulku nesmaže, není to resource bundlu; schéma <code class="inline">cnb</code> v bundlu nedeklaruj, už existuje a spravuje ho jiný projekt.</div></div>
+
   <h3>Úklid</h3>
   <ol>
-    <li><code class="inline">databricks bundle destroy -t dev -p &lt;profil&gt; --auto-approve</code> (poslední krok ukázky) a ověř v Jobs &amp; Pipelines, že dev job zmizel.</li>
-    <li><em>V UI:</em> branch <code class="inline">feature/weight-limit</code> po merge smaž u providera; Git folder a lokální složku projektu smaž po kurzu.</li>
+    <li><code class="inline">databricks bundle destroy -t dev -p &lt;profil&gt; --auto-approve</code> ve složce každého projektu, kde jsi ho ještě nepustil, a ověř v Jobs &amp; Pipelines, že dev joby zmizely.</li>
+    <li><em>V UI:</em> branch <code class="inline">feature/weight-limit</code> po merge smaž u providera; Git folder, lokální složku projektu a klon <code class="inline">dp750-cnb-rates</code> smaž po kurzu.</li>
+    <li>Tabulku z kroku 6 smaž příkazem <code class="inline">DROP TABLE adb_dp750.cnb.exchange_rates_demo</code>.</li>
+  </ol>
+</div>
+
+<div class="section" id="sec-runbook-web">
+  <div class="section-header">
+    <div class="section-num">12.W</div>
+    <h2>Runbook: bundle na webu ve workspace</h2>
+  </div>
+  <p>Stejný bundle kolem notebooku s kurzy ČNB jako v kroku 6 předchozího runbooku, tentokrát celý v prohlížeči, bez lokálního CLI. Příkazy <code class="inline">databricks bundle</code> čtou <code class="inline">databricks.yml</code> z pracovní kopie repozitáře, ne přímo z GitHubu. Pracovní kopií je tady Git folder ve workspace.</p>
+  <div class="callout info"><div class="callout-icon">ℹ️</div><div><strong>Příprava:</strong> Git credential ve workspace (uživatelské menu → Settings → Linked accounts) s přístupem k repozitáři <a href="https://github.com/jirineoral/dp750-cnb-rates" target="_blank" rel="noopener">jirineoral/dp750-cnb-rates</a> (soukromý, jen pro lektora), zapnuté workspace files a serverless compute, existující katalog s právem založit v něm schéma <code class="inline">cnb</code>. Ukázka běží v tom workspace, kde ji otevřeš, takže nic nezávisí na konfiguraci lokálního CLI. Podmínky bundlů ve workspace popisuje <a href="https://learn.microsoft.com/en-us/azure/databricks/dev-tools/bundles/workspace" target="_blank" rel="noopener">Learn</a> (EN).</div></div>
+
+  <h3>Krok 1 – Git folder s repozitářem</h3>
+  <ol>
+    <li><em>V UI:</em> Workspace → Create → Git folder: URL <code class="inline">https://github.com/jirineoral/dp750-cnb-rates.git</code>, provider GitHub, název složky <code class="inline">dp750-cnb-rates</code>.</li>
+    <li><em>V UI:</em> v Git dialogu založ branch <code class="inline">bundle</code> přes Create Branch.</li>
+  </ol>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> bundly se ve workspace zakládají a nasazují z Git folderu, běžná složka na to nestačí.</div></div>
+
+  <h3>Krok 2 – databricks.yml v kořeni Git folderu</h3>
+  <ol>
+    <li><em>V UI:</em> v kořeni Git folderu klikni Create → File a pojmenuj soubor <code class="inline">databricks.yml</code>.</li>
+    <li><em>V UI:</em> vlož do něj YAML níže a ukaž, že Git folder se teď chová jako bundle: vpravo od názvu je Open in editor.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">YAML</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm"># 2. databricks.yml v koreni Git folderu</span>
+<span class="kw">bundle</span>:
+  <span class="kw">name</span>: dp750_cnb_rates
+
+<span class="kw">resources</span>:
+  <span class="kw">jobs</span>:
+    <span class="kw">load_cnb_rates</span>:
+      <span class="kw">name</span>: load_cnb_rates
+      <span class="kw">parameters</span>:
+        - <span class="kw">name</span>: catalog
+          <span class="kw">default</span>: <span class="str">&lt;katalog&gt;</span>   <span class="cm"># nahrad katalogem z tohoto workspace</span>
+        - <span class="kw">name</span>: table
+          <span class="kw">default</span>: exchange_rates_notebook
+        - <span class="kw">name</span>: year_from
+          <span class="kw">default</span>: <span class="str">"2000"</span>
+        - <span class="kw">name</span>: year_to
+          <span class="kw">default</span>: <span class="str">"2026"</span>
+      <span class="kw">tasks</span>:
+        - <span class="kw">task_key</span>: load
+          <span class="kw">notebook_task</span>:
+            <span class="kw">notebook_path</span>: ./src/load_cnb_rates.py
+
+<span class="kw">targets</span>:
+  <span class="kw">dev</span>:
+    <span class="kw">mode</span>: development
+    <span class="kw">default</span>: <span class="kw">true</span></pre>
+  </div>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> dialog Create → Bundle zakládá nový projekt ze šablony. Existující složku udělá bundlem soubor <code class="inline">databricks.yml</code> v jejím kořeni. Který bundle se nasadí, určuje složka: jeden Git folder jich může obsahovat víc, každý ve vlastní složce a s vlastním názvem.</div></div>
+
+  <h3>Krok 3 – Deploy z panelu Deployments</h3>
+  <ol>
+    <li><em>V UI:</em> klikni na <code class="inline">databricks.yml</code> a pak na ikonu nasazení (Deployments).</li>
+    <li><em>V UI:</em> v panelu Deployments vyber target <code class="inline">dev</code> a klikni na Deploy. Bundle se zvaliduje a výsledek ukáže dialog.</li>
+    <li><em>V UI:</em> v dialogu Deploy to dev zkontroluj změny a potvrď Deploy. Průběh je v okně Project output, job se objeví v Bundle resources.</li>
+  </ol>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> jedno tlačítko Deploy nahrazuje <code class="inline">validate</code> a <code class="inline">deploy</code>. Při deployi do development targetu z workspace odkazuje job přímo na soubory v Git folderu a synchronizace souborů se přeskočí (<a href="https://learn.microsoft.com/en-us/azure/databricks/dev-tools/bundles/workspace-deploy#source-linked-deployments" target="_blank" rel="noopener">source-linked deployment</a>, EN). Deploy z CLI tohle nastavení ignoruje.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> bundle má ve workspace jednu identitu, ať ho nasadíš lokálně, nebo z UI. Stejný název, target a uživatel tedy aktualizují tentýž job, nevznikne druhý.</div></div>
+
+  <h3>Krok 4 – Spuštění jobu</h3>
+  <ol>
+    <li><em>V UI:</em> v Bundle resources klikni na ikonu spuštění (play) u jobu <code class="inline">load_cnb_rates</code>.</li>
+    <li><em>V UI:</em> otevři Job Runs a ukaž běh s prefixem <code class="inline">[dev &lt;uživatel&gt;]</code>. Výstup tasku obsahuje počet řádků, počet měn a rozsah dat.</li>
+  </ol>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> ikona spuštění je neaktivní, dokud bundle není nasazený. Po každé změně YAML je potřeba nový Deploy, jinak běží stará definice jobu. Výchozí běh přepíše celou tabulku <code class="inline">exchange_rates_notebook</code>. Výchozí katalog notebooku je lektorský, proto job parametr <code class="inline">catalog</code> v YAML nevynechávej, jinak běh na jiném workspace spadne na neexistujícím katalogu.</div></div>
+
+  <h3>Krok 5 – Commit do repozitáře</h3>
+  <ol>
+    <li><em>V UI:</em> v Git dialogu zkontroluj <code class="inline">databricks.yml</code> v Changes, napiš commit message a klikni Commit &amp; Push.</li>
+  </ol>
+  <div class="callout tip"><div class="callout-icon">💡</div><div><strong>Proč:</strong> pro deploy commit potřeba není, nasazuje se obsah Git folderu. Bez commitu ale definice bundlu zůstane jen v tomhle Git folderu.</div></div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> chyba <em>Remote ref update was rejected</em> mluví o write access, příčina ale může být jinde. Klikni na Show error details. Pokud je tam <code class="inline">GH007</code>, GitHub blokuje push se soukromým e-mailem a v Linked accounts nastav u Git credentialu GitHub noreply adresu.</div></div>
+
+  <h3>Krok 6 – Stejné příkazy ve Web Terminalu (volitelně)</h3>
+  <ol>
+    <li><em>V UI:</em> v Git dialogu klikni na Web Terminal.</li>
+    <li>Přejdi do kořene Git folderu.</li>
+    <li>Spusť <code class="inline">validate</code> a <code class="inline">plan</code>.</li>
+    <li>Spusť <code class="inline">deploy</code> a <code class="inline">run</code>.</li>
+  </ol>
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">BASH</span><button class="copy-btn">Kopírovat</button></div>
+    <pre><span class="cm"># 2. koren Git folderu, &lt;e-mail&gt; nahrad svym uzivatelem</span>
+cd /Workspace/Users/<span class="str">&lt;e-mail&gt;</span>/dp750-cnb-rates
+<span class="cm"># 3. kontrola a plan</span>
+databricks bundle validate -t dev
+databricks bundle plan -t dev
+<span class="cm"># 4. nasazeni a beh</span>
+databricks bundle deploy -t dev
+databricks bundle run -t dev load_cnb_rates</pre>
+  </div>
+  <div class="callout warning"><div class="callout-icon">⚠️</div><div><strong>Past:</strong> přihlášení bere Web Terminal z aktuálního uživatele, nic se nenastavuje (<a href="https://learn.microsoft.com/en-us/azure/databricks/compute/web-terminal#run-databricks-cli-commands" target="_blank" rel="noopener">Learn</a>, EN). Web Terminal musí být ve workspace zapnutý a potřebuje běžící compute, na který máš právo CAN ATTACH TO. Pro CLI musí mít compute Databricks Runtime 15.0 nebo novější (u standard access mode 15.1) a workspace nesmí mít zapnutý Private Link.</div></div>
+
+  <h3>Úklid</h3>
+  <ol>
+    <li>Ve Web Terminalu v kořeni Git folderu spusť <code class="inline">databricks bundle destroy -t dev --auto-approve</code> a ověř v Jobs &amp; Pipelines, že job zmizel. Tabulka zůstane, není to resource bundlu.</li>
+    <li><em>V UI:</em> po kurzu dej Git folder do koše přes Move to Trash a u providera smaž branch <code class="inline">bundle</code>, pokud ji už nepotřebuješ.</li>
   </ol>
 </div>
 
